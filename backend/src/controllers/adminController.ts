@@ -28,7 +28,7 @@ export async function handleGetLeadById(
 ): Promise<void> {
   try {
     const { id } = req.params;
-    const lead = await leadService.getLeadById(id);
+    const lead = await leadService.getLeadById(id as string);
 
     if (!lead) {
       throw new AppError('Solicitação não encontrada', 404);
@@ -52,7 +52,7 @@ export async function handleUpdateStatus(
     const { id } = req.params;
     const { status } = req.body;
 
-    const lead = await leadService.updateLeadStatus(id, status as LeadStatus);
+    const lead = await leadService.updateLeadStatus(id as string, status as LeadStatus);
 
     res.json({
       success: true,
@@ -71,7 +71,7 @@ export async function handleDeleteLead(
 ): Promise<void> {
   try {
     const { id } = req.params;
-    await leadService.deleteLead(id);
+    await leadService.deleteLead(id as string);
 
     res.json({
       success: true,

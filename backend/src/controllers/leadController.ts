@@ -33,7 +33,7 @@ export async function handleUploadDocuments(
       throw new AppError('Nenhum arquivo enviado', 400);
     }
 
-    const lead = await leadService.getLeadById(leadId);
+    const lead = await leadService.getLeadById(leadId as string);
     if (!lead) {
       throw new AppError('Solicitação não encontrada', 404);
     }
@@ -45,7 +45,7 @@ export async function handleUploadDocuments(
       filename: file.filename,
     }));
 
-    await leadService.addDocuments(leadId, documents);
+    await leadService.addDocuments(leadId as string, documents);
 
     res.status(200).json({
       success: true,
