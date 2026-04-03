@@ -1,5 +1,5 @@
 import { Lead } from '../types';
-import { MessageCircle, Loader2 } from 'lucide-react';
+import { MessageCircle, Loader2, Eye } from 'lucide-react';
 
 interface TableLeadsProps {
   leads: Lead[];
@@ -94,6 +94,13 @@ export default function TableLeads({
                   <td className="px-4 py-3.5 text-gray-400 text-xs">{formatDate(lead.createdAt)}</td>
                   <td className="px-4 py-3.5">
                     <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        title="Ver detalhes"
+                        onClick={() => onSelectLead(lead)}
+                        className="w-8 h-8 rounded-lg bg-primary-light/10 flex items-center justify-center hover:bg-primary-light/20 active:scale-95 transition-all cursor-pointer"
+                      >
+                        <Eye size={14} className="text-primary-light" />
+                      </button>
                       <select
                         value={lead.status}
                         onChange={(e) => onStatusChange(lead.id, e.target.value)}
