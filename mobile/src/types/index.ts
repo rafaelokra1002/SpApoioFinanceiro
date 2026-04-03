@@ -30,14 +30,13 @@ export interface UploadedFile {
 }
 
 export type CategoryType =
-  | 'ASSALARIADO_CLT'
+  | 'CARTEIRA_ASSINADA'
+  | 'CLT_SEM_REGISTRO'
   | 'AUTONOMO'
-  | 'APOSENTADO'
-  | 'PENSIONISTA'
-  | 'EMPRESARIO'
-  | 'COM_GARANTIA'
-  | 'RENOVACAO'
-  | 'QUITAR_DIVIDAS';
+  | 'BENEFICIARIO'
+  | 'ESTAGIARIO'
+  | 'SEM_COMPROVACAO'
+  | 'COM_GARANTIA';
 
 export interface CategoryOption {
   value: CategoryType;
