@@ -2,20 +2,22 @@ import { useState, useEffect, useCallback } from 'react';
 import { Lead, Stats, Category } from './types';
 import {
   fetchLeads, fetchStats, updateLeadStatus, deleteLead,
-  fetchCategories,
+  fetchCategories, sendWhatsAppMessage, getWhatsAppStatus,
 } from './services/api';
 import Sidebar from './components/Sidebar';
 import HeaderCards from './components/HeaderCards';
 import TableLeads from './components/TableLeads';
 import LeadDetail from './components/LeadDetail';
 import CategoryManager from './components/CategoryManager';
+import WhatsAppManager from './components/WhatsAppManager';
 
 function formatCurrency(value: number) {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
 export default function App() {
-  const [page, setPage] = useState<'leads' | 'categories'>('leads');
+  const [page, setPage] = useState<'leads' | 'categories' | 'whatsapp'>('leads');
+  const [waConnected, setWaConnected] = useState(false);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [filter, setFilter] = useState<string>('');
@@ -57,6 +59,13 @@ export default function App() {
     loadData();
   }, [loadData]);
 
+  // Check WhatsApp status on mount
+  useEffect(() => {
+    getWhatsAppStatus().then(res => {
+      if (res.success) setWaConnected(res.data.connected);
+    }).catch(() => {});
+  }, []);
+
   const handleStatusChange = async (id: string, status: string) => {
     const res = await updateLeadStatus(id, status);
     if (res.success) {
@@ -76,7 +85,7 @@ export default function App() {
     }
   };
 
-  const sendWhatsApp = (lead: Lead) => {
+  const sendWhatsApp = async (lead: Lead) => {
     const phone = lead.telefone.replace(/\D/g, '');
     const phoneFormatted = phone.startsWith('55') ? phone : `55${phone}`;
     const nome = lead.nome.split(' ')[0];
@@ -90,16 +99,30 @@ export default function App() {
     };
 
     const msg = messages[lead.status] || messages['PENDENTE'];
+
+    // If WhatsApp is connected via Evolution API, send directly
+    if (waConnected) {
+      const res = await sendWhatsAppMessage(lead.telefone, msg);
+      if (res.success) {
+        alert(`✅ Mensagem enviada para ${lead.nome}`);
+      } else {
+        alert(`❌ Erro: ${res.error || 'Falha ao enviar'}. Abrindo WhatsApp Web...`);
+        const url = `https://wa.me/${phoneFormatted}?text=${encodeURIComponent(msg)}`;
+        window.open(url, '_blank');
+      }
+      return;
+    }
+
     const url = `https://wa.me/${phoneFormatted}?text=${encodeURIComponent(msg)}`;
     window.open(url, '_blank');
   };
 
-  const handleNavigate = (p: 'leads' | 'categories', f?: string) => {
+  const handleNavigate = (p: 'leads' | 'categories' | 'whatsapp', f?: string) => {
     setPage(p);
     if (p === 'leads') {
       setFilter(f || '');
       setSelectedLead(null);
-    } else {
+    } else if (p === 'categories') {
       loadCategories();
     }
   };
@@ -148,6 +171,8 @@ export default function App() {
             onReload={loadCategories}
           />
         )}
+
+        {page === 'whatsapp' && <WhatsAppManager />}
       </main>
     </div>
   );

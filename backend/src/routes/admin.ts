@@ -16,6 +16,12 @@ import {
   handleDeleteDocument,
   handleSeedCategories,
 } from '../controllers/categoryController';
+import {
+  handleWhatsAppStatus,
+  handleWhatsAppQRCode,
+  handleWhatsAppDisconnect,
+  handleWhatsAppSend,
+} from '../controllers/whatsappController';
 import { validate, statusSchema } from '../middleware/validation';
 
 const router = Router();
@@ -35,5 +41,11 @@ router.delete('/categories/:id', handleDeleteCategory);
 router.post('/categories/:id/documents', handleAddDocument);
 router.put('/categories/documents/:docId', handleUpdateDocument);
 router.delete('/categories/documents/:docId', handleDeleteDocument);
+
+// WhatsApp
+router.get('/whatsapp/status', handleWhatsAppStatus);
+router.get('/whatsapp/qrcode', handleWhatsAppQRCode);
+router.delete('/whatsapp/disconnect', handleWhatsAppDisconnect);
+router.post('/whatsapp/send', handleWhatsAppSend);
 
 export default router;

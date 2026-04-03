@@ -96,3 +96,30 @@ export async function seedCategories() {
   });
   return res.json();
 }
+
+// WhatsApp API
+export async function getWhatsAppStatus() {
+  const res = await fetch(`${API_BASE}/admin/whatsapp/status`);
+  return res.json();
+}
+
+export async function getWhatsAppQRCode() {
+  const res = await fetch(`${API_BASE}/admin/whatsapp/qrcode`);
+  return res.json();
+}
+
+export async function disconnectWhatsApp() {
+  const res = await fetch(`${API_BASE}/admin/whatsapp/disconnect`, {
+    method: 'DELETE',
+  });
+  return res.json();
+}
+
+export async function sendWhatsAppMessage(phone: string, message: string) {
+  const res = await fetch(`${API_BASE}/admin/whatsapp/send`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone, message }),
+  });
+  return res.json();
+}

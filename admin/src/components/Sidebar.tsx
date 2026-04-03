@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import {
   LayoutDashboard, Users, Clock, CheckCircle, XCircle,
-  FolderOpen, RefreshCw, Menu, X, ChevronDown,
+  FolderOpen, RefreshCw, Menu, X, ChevronDown, MessageCircle,
 } from 'lucide-react';
 
 interface SidebarProps {
-  page: 'leads' | 'categories';
+  page: 'leads' | 'categories' | 'whatsapp';
   filter: string;
-  onNavigate: (page: 'leads' | 'categories', filter?: string) => void;
+  onNavigate: (page: 'leads' | 'categories' | 'whatsapp', filter?: string) => void;
   onRefresh: () => void;
 }
 
@@ -73,6 +73,17 @@ export default function Sidebar({ page, filter, onNavigate, onRefresh }: Sidebar
         >
           <FolderOpen size={18} strokeWidth={page === 'categories' ? 2.5 : 1.8} />
           Categorias
+        </button>
+        <button
+          onClick={() => { onNavigate('whatsapp'); setMobileOpen(false); }}
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 cursor-pointer
+            ${page === 'whatsapp'
+              ? 'bg-white/15 text-white shadow-lg shadow-black/10'
+              : 'text-white/60 hover:text-white hover:bg-white/8'
+            }`}
+        >
+          <MessageCircle size={18} strokeWidth={page === 'whatsapp' ? 2.5 : 1.8} />
+          WhatsApp
         </button>
       </nav>
 
