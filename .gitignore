@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.env
+*.db
+*.db-journal
+uploads/*.jpg
+uploads/*.png
+uploads/*.pdf
+uploads/*.webp
+!uploads/.gitkeep
+.DS_Store
+Thumbs.db
+*.log
+.vite/
+.expo/

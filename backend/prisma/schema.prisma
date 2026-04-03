@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Lead {
+  id              String     @id @default(uuid())
+  nome            String
+  telefone        String
+  cpf             String?
+  email           String?
+  valorSolicitado Float
+  valorTotal      Float
+  taxaJuros       Float      @default(30)
+  prazo           Int        @default(30)
+  cidade          String
+  perfil          String
+  nomeEmpresa     String?
+  bairroTrabalho  String?
+  status          String     @default("PENDENTE")
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  documentos      Document[]
+}
+
+model Document {
+  id        String   @id @default(uuid())
+  leadId    String
+  tipo      String
+  url       String
+  filename  String
+  createdAt DateTime @default(now())
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId])
+}
+
+model Simulation {
+  id              String   @id @default(uuid())
+  valorSolicitado Float
+  valorTotal      Float
+  taxaJuros       Float    @default(30)
+  prazo           Int      @default(30)
+  cidade          String
+  createdAt       DateTime @default(now())
+}
