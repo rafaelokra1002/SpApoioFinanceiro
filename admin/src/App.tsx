@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Lead, Stats } from './types';
-import { fetchLeads, fetchStats, updateLeadStatus, deleteLead } from './services/api';
+import { Lead, Stats, Category, CategoryDocument } from './types';
+import {
+  fetchLeads, fetchStats, updateLeadStatus, deleteLead,
+  fetchCategories, createCategory, updateCategory, deleteCategory as deleteCategoryApi,
+  addCategoryDocument, updateCategoryDocument, deleteCategoryDocument,
+  seedCategories,
+} from './services/api';
 
 const statusColors: Record<string, string> = {
   PENDENTE: '#F59E0B',
@@ -31,11 +36,31 @@ function formatDate(dateStr: string) {
 }
 
 export default function App() {
+  const [page, setPage] = useState<'leads' | 'categories'>('leads');
   const [leads, setLeads] = useState<Lead[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [filter, setFilter] = useState<string>('');
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Category state
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [catLoading, setCatLoading] = useState(false);
+  const [editingCat, setEditingCat] = useState<Category | null>(null);
+  const [newCat, setNewCat] = useState({ label: '', icon: '📋' });
+  const [newDoc, setNewDoc] = useState<{ catId: string; key: string; label: string; description: string; icon: string } | null>(null);
+
+  const loadCategories = useCallback(async () => {
+    setCatLoading(true);
+    try {
+      const res = await fetchCategories();
+      if (res.success) setCategories(res.data);
+    } catch (err) {
+      console.error('Erro ao carregar categorias:', err);
+    } finally {
+      setCatLoading(false);
+    }
+  }, []);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -117,6 +142,7 @@ export default function App() {
         </div>
 
         <nav style={styles.nav}>
+          <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase' as const, padding: '8px 12px 4px', letterSpacing: 1 }}>Leads</p>
           {[
             { key: '', label: '📊 Todos' },
             { key: 'PENDENTE', label: '⏳ Pendentes' },
@@ -127,13 +153,24 @@ export default function App() {
               key={item.key}
               style={{
                 ...styles.navItem,
-                ...(filter === item.key ? styles.navItemActive : {}),
+                ...(page === 'leads' && filter === item.key ? styles.navItemActive : {}),
               }}
-              onClick={() => setFilter(item.key)}
+              onClick={() => { setPage('leads'); setFilter(item.key); }}
             >
               {item.label}
             </button>
           ))}
+
+          <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase' as const, padding: '16px 12px 4px', letterSpacing: 1 }}>Configurações</p>
+          <button
+            style={{
+              ...styles.navItem,
+              ...(page === 'categories' ? styles.navItemActive : {}),
+            }}
+            onClick={() => { setPage('categories'); loadCategories(); }}
+          >
+            📂 Categorias
+          </button>
         </nav>
 
         <div style={{ marginTop: 'auto', padding: '12px 0', borderTop: '1px solid rgba(255,255,255,0.15)' }}>
@@ -145,6 +182,7 @@ export default function App() {
 
       {/* Main Content */}
       <main style={styles.main}>
+        {page === 'leads' && (<>
         {/* Stats Cards */}
         {stats && (
           <div style={styles.statsRow}>
@@ -306,6 +344,16 @@ export default function App() {
                   <span>{selectedLead.email}</span>
                 </div>
               )}
+              {selectedLead.instagram && (
+                <div style={styles.detailRow}>
+                  <span style={styles.detailLabel}>Instagram:</span>
+                  <span>{selectedLead.instagram}</span>
+                </div>
+              )}
+              <div style={styles.detailRow}>
+                <span style={styles.detailLabel}>Renda:</span>
+                <span>{selectedLead.renda ? formatCurrency(Number(selectedLead.renda)) : '—'}</span>
+              </div>
               <div style={styles.detailRow}>
                 <span style={styles.detailLabel}>Valor:</span>
                 <span style={{ fontWeight: 700, color: '#1a56db' }}>
@@ -421,6 +469,256 @@ export default function App() {
             </div>
           )}
         </div>
+        </>)}
+
+        {page === 'categories' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+              <h2 style={{ fontSize: 20, fontWeight: 800 }}>📂 Categorias</h2>
+              <button
+                onClick={async () => {
+                  if (!window.confirm('Isso vai popular as categorias padrão. Deseja continuar?')) return;
+                  await seedCategories();
+                  loadCategories();
+                }}
+                style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#8B5CF6', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+              >
+                🌱 Seed Categorias Padrão
+              </button>
+            </div>
+
+            {/* Add Category Form */}
+            <div style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 1px 3px rgba(0,0,0,0.08)', marginBottom: 20 }}>
+              <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 12 }}>Adicionar Categoria</h3>
+              <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>Nome</label>
+                  <input
+                    value={newCat.label}
+                    onChange={(e) => setNewCat({ ...newCat, label: e.target.value })}
+                    placeholder="Ex: Carteira Assinada"
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #E5E7EB', fontSize: 14 }}
+                  />
+                </div>
+                <div style={{ width: 80 }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>Ícone</label>
+                  <input
+                    value={newCat.icon}
+                    onChange={(e) => setNewCat({ ...newCat, icon: e.target.value })}
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #E5E7EB', fontSize: 14, textAlign: 'center' }}
+                  />
+                </div>
+                <button
+                  onClick={async () => {
+                    if (!newCat.label.trim()) return;
+                    const value = newCat.label.trim().toUpperCase().replace(/\s+/g, '_').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                    await createCategory({ value, label: newCat.label.trim(), icon: newCat.icon, order: categories.length });
+                    setNewCat({ label: '', icon: '📋' });
+                    loadCategories();
+                  }}
+                  style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: '#1a56db', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                >
+                  + Adicionar
+                </button>
+              </div>
+            </div>
+
+            {catLoading ? (
+              <p style={{ textAlign: 'center', padding: 40, color: '#9CA3AF' }}>Carregando...</p>
+            ) : categories.length === 0 ? (
+              <p style={{ textAlign: 'center', padding: 40, color: '#9CA3AF' }}>
+                Nenhuma categoria encontrada. Clique em "Seed Categorias Padrão" para popular.
+              </p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {categories.map((cat) => (
+                  <div key={cat.id} style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.08)', overflow: 'hidden' }}>
+                    {/* Category Header */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid #F3F4F6' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <span style={{ fontSize: 24 }}>{cat.icon}</span>
+                        {editingCat?.id === cat.id ? (
+                          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                            <input
+                              value={editingCat.label}
+                              onChange={(e) => setEditingCat({ ...editingCat, label: e.target.value })}
+                              style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid #E5E7EB', fontSize: 14 }}
+                            />
+                            <input
+                              value={editingCat.icon}
+                              onChange={(e) => setEditingCat({ ...editingCat, icon: e.target.value })}
+                              style={{ width: 50, padding: '4px 8px', borderRadius: 6, border: '1px solid #E5E7EB', fontSize: 14, textAlign: 'center' }}
+                            />
+                            <button
+                              onClick={async () => {
+                                await updateCategory(editingCat.id, { label: editingCat.label, icon: editingCat.icon, active: editingCat.active });
+                                setEditingCat(null);
+                                loadCategories();
+                              }}
+                              style={{ padding: '4px 12px', borderRadius: 6, border: 'none', background: '#10B981', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+                            >
+                              Salvar
+                            </button>
+                            <button
+                              onClick={() => setEditingCat(null)}
+                              style={{ padding: '4px 12px', borderRadius: 6, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, cursor: 'pointer' }}
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        ) : (
+                          <div>
+                            <h3 style={{ fontSize: 15, fontWeight: 700 }}>{cat.label}</h3>
+                            <p style={{ fontSize: 11, color: '#9CA3AF' }}>Valor: {cat.value}</p>
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <button
+                          onClick={async () => {
+                            await updateCategory(cat.id, { active: !cat.active });
+                            loadCategories();
+                          }}
+                          style={{
+                            padding: '4px 12px',
+                            borderRadius: 20,
+                            border: 'none',
+                            background: cat.active ? '#10B98120' : '#EF444420',
+                            color: cat.active ? '#10B981' : '#EF4444',
+                            fontSize: 12,
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {cat.active ? '✅ Ativa' : '❌ Inativa'}
+                        </button>
+                        <button
+                          onClick={() => setEditingCat({ ...cat })}
+                          style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, cursor: 'pointer' }}
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (!window.confirm(`Excluir categoria "${cat.label}"?`)) return;
+                            await deleteCategoryApi(cat.id);
+                            loadCategories();
+                          }}
+                          style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, cursor: 'pointer', color: '#EF4444' }}
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Documents */}
+                    <div style={{ padding: '12px 20px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                        <h4 style={{ fontSize: 13, fontWeight: 600, color: '#6B7280' }}>Documentos Necessários</h4>
+                        <button
+                          onClick={() => setNewDoc({ catId: cat.id, key: '', label: '', description: '', icon: '📄' })}
+                          style={{ padding: '3px 10px', borderRadius: 6, border: '1px solid #E5E7EB', background: '#fff', fontSize: 11, cursor: 'pointer', fontWeight: 600, color: '#1a56db' }}
+                        >
+                          + Documento
+                        </button>
+                      </div>
+
+                      {newDoc?.catId === cat.id && (
+                        <div style={{ background: '#F9FAFB', borderRadius: 8, padding: 12, marginBottom: 10, display: 'flex', gap: 8, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                          <div style={{ flex: 1, minWidth: 120 }}>
+                            <label style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 2 }}>Chave</label>
+                            <input
+                              value={newDoc.key}
+                              onChange={(e) => setNewDoc({ ...newDoc, key: e.target.value })}
+                              placeholder="Ex: RG"
+                              style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #E5E7EB', fontSize: 13 }}
+                            />
+                          </div>
+                          <div style={{ flex: 2, minWidth: 160 }}>
+                            <label style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 2 }}>Label</label>
+                            <input
+                              value={newDoc.label}
+                              onChange={(e) => setNewDoc({ ...newDoc, label: e.target.value })}
+                              placeholder="Ex: Documento de Identidade"
+                              style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #E5E7EB', fontSize: 13 }}
+                            />
+                          </div>
+                          <div style={{ flex: 3, minWidth: 200 }}>
+                            <label style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 2 }}>Descrição</label>
+                            <input
+                              value={newDoc.description}
+                              onChange={(e) => setNewDoc({ ...newDoc, description: e.target.value })}
+                              placeholder="Ex: Frente e Verso"
+                              style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #E5E7EB', fontSize: 13 }}
+                            />
+                          </div>
+                          <div style={{ width: 50 }}>
+                            <label style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 2 }}>Ícone</label>
+                            <input
+                              value={newDoc.icon}
+                              onChange={(e) => setNewDoc({ ...newDoc, icon: e.target.value })}
+                              style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #E5E7EB', fontSize: 13, textAlign: 'center' }}
+                            />
+                          </div>
+                          <button
+                            onClick={async () => {
+                              if (!newDoc.key.trim() || !newDoc.label.trim()) return;
+                              await addCategoryDocument(cat.id, {
+                                key: newDoc.key.trim(),
+                                label: newDoc.label.trim(),
+                                description: newDoc.description.trim(),
+                                icon: newDoc.icon,
+                                order: cat.documents?.length || 0,
+                              });
+                              setNewDoc(null);
+                              loadCategories();
+                            }}
+                            style={{ padding: '6px 14px', borderRadius: 6, border: 'none', background: '#1a56db', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+                          >
+                            Salvar
+                          </button>
+                          <button
+                            onClick={() => setNewDoc(null)}
+                            style={{ padding: '6px 14px', borderRadius: 6, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, cursor: 'pointer' }}
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      )}
+
+                      {(!cat.documents || cat.documents.length === 0) ? (
+                        <p style={{ fontSize: 12, color: '#9CA3AF', padding: '8px 0' }}>Nenhum documento configurado</p>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                          {cat.documents.map((doc) => (
+                            <div key={doc.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: '#F9FAFB', borderRadius: 8 }}>
+                              <span style={{ fontSize: 16 }}>{doc.icon}</span>
+                              <div style={{ flex: 1 }}>
+                                <p style={{ fontSize: 13, fontWeight: 600 }}>{doc.label}</p>
+                                {doc.description && <p style={{ fontSize: 11, color: '#9CA3AF' }}>{doc.description}</p>}
+                                <p style={{ fontSize: 10, color: '#CBD5E1' }}>key: {doc.key}</p>
+                              </div>
+                              <button
+                                onClick={async () => {
+                                  if (!window.confirm(`Remover documento "${doc.label}"?`)) return;
+                                  await deleteCategoryDocument(doc.id);
+                                  loadCategories();
+                                }}
+                                style={{ padding: '3px 8px', borderRadius: 6, border: '1px solid #E5E7EB', background: '#fff', fontSize: 11, cursor: 'pointer', color: '#EF4444' }}
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </main>
     </div>
   );

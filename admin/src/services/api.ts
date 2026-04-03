@@ -33,3 +33,66 @@ export async function fetchStats() {
   const res = await fetch(`${API_BASE}/admin/stats`);
   return res.json();
 }
+
+// Categories API
+export async function fetchCategories() {
+  const res = await fetch(`${API_BASE}/admin/categories`);
+  return res.json();
+}
+
+export async function createCategory(data: { value: string; label: string; icon?: string; order?: number; documents?: any[] }) {
+  const res = await fetch(`${API_BASE}/admin/categories`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+
+export async function updateCategory(id: string, data: { label?: string; icon?: string; order?: number; active?: boolean }) {
+  const res = await fetch(`${API_BASE}/admin/categories/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+
+export async function deleteCategory(id: string) {
+  const res = await fetch(`${API_BASE}/admin/categories/${id}`, {
+    method: 'DELETE',
+  });
+  return res.json();
+}
+
+export async function addCategoryDocument(categoryId: string, data: { key: string; label: string; description?: string; icon?: string; order?: number }) {
+  const res = await fetch(`${API_BASE}/admin/categories/${categoryId}/documents`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+
+export async function updateCategoryDocument(docId: string, data: { key?: string; label?: string; description?: string; icon?: string; order?: number }) {
+  const res = await fetch(`${API_BASE}/admin/categories/documents/${docId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+
+export async function deleteCategoryDocument(docId: string) {
+  const res = await fetch(`${API_BASE}/admin/categories/documents/${docId}`, {
+    method: 'DELETE',
+  });
+  return res.json();
+}
+
+export async function seedCategories() {
+  const res = await fetch(`${API_BASE}/admin/categories/seed`, {
+    method: 'POST',
+  });
+  return res.json();
+}

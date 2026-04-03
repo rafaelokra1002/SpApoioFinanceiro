@@ -10,6 +10,8 @@ export async function createLead(data: LeadInput) {
       telefone: data.telefone,
       cpf: data.cpf || null,
       email: data.email || null,
+      instagram: data.instagram || null,
+      renda: data.renda || null,
       valorSolicitado: data.valorSolicitado,
       valorTotal: data.valorTotal,
       cidade: data.cidade,

@@ -16,6 +16,8 @@ export interface LeadInput {
   telefone: string;
   cpf?: string;
   email?: string;
+  instagram?: string;
+  renda?: string;
   valorSolicitado: number;
   valorTotal: number;
   cidade: string;

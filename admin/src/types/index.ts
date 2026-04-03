@@ -4,6 +4,8 @@ export interface Lead {
   telefone: string;
   cpf: string | null;
   email: string | null;
+  instagram: string | null;
+  renda: string | null;
   valorSolicitado: number;
   valorTotal: number;
   taxaJuros: number;
@@ -33,4 +35,24 @@ export interface Stats {
   aprovados: number;
   recusados: number;
   valorTotalSolicitado: number;
+}
+
+export interface CategoryDocument {
+  id: string;
+  categoryId: string;
+  key: string;
+  label: string;
+  description: string;
+  icon: string;
+  order: number;
+}
+
+export interface Category {
+  id: string;
+  value: string;
+  label: string;
+  icon: string;
+  order: number;
+  active: boolean;
+  documents: CategoryDocument[];
 }

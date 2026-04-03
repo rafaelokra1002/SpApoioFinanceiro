@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import simulationRoutes from './routes/simulation';
 import leadRoutes from './routes/lead';
 import adminRoutes from './routes/admin';
+import categoryRoutes from './routes/category';
 import { errorHandler } from './middleware/errorHandler';
 
 dotenv.config();
@@ -25,6 +26,7 @@ app.use('/uploads', express.static(path.resolve(uploadDir)));
 app.use('/api/simulation', simulationRoutes);
 app.use('/api/lead', leadRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/categories', categoryRoutes);
 
 // Health check
 app.get('/api/health', (_req, res) => {

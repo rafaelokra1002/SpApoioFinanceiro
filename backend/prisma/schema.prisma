@@ -13,6 +13,8 @@ model Lead {
   telefone        String
   cpf             String?
   email           String?
+  instagram       String?
+  renda           String?
   valorSolicitado Float
   valorTotal      Float
   taxaJuros       Float      @default(30)
@@ -47,4 +49,30 @@ model Simulation {
   prazo           Int      @default(30)
   cidade          String
   createdAt       DateTime @default(now())
+}
+
+model Category {
+  id        String             @id @default(uuid())
+  value     String             @unique
+  label     String
+  icon      String             @default("📋")
+  order     Int                @default(0)
+  active    Boolean            @default(true)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  documents CategoryDocument[]
+}
+
+model CategoryDocument {
+  id          String   @id @default(uuid())
+  categoryId  String
+  key         String
+  label       String
+  description String   @default("")
+  icon        String   @default("📄")
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([categoryId])
 }
