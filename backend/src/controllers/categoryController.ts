@@ -87,7 +87,7 @@ export async function handleUpdateCategory(
   next: NextFunction
 ): Promise<void> {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { label, icon, order, active } = req.body;
 
     const category = await prisma.category.update({
@@ -114,7 +114,7 @@ export async function handleDeleteCategory(
   next: NextFunction
 ): Promise<void> {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     await prisma.category.delete({ where: { id } });
     res.json({ success: true, message: 'Categoria removida' });
   } catch (error) {
@@ -129,7 +129,7 @@ export async function handleAddDocument(
   next: NextFunction
 ): Promise<void> {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { key, label, description, icon, order } = req.body;
 
     if (!key || !label) {
@@ -161,7 +161,7 @@ export async function handleUpdateDocument(
   next: NextFunction
 ): Promise<void> {
   try {
-    const { docId } = req.params;
+    const docId = req.params.docId as string;
     const { key, label, description, icon, order } = req.body;
 
     const doc = await prisma.categoryDocument.update({
@@ -188,7 +188,7 @@ export async function handleDeleteDocument(
   next: NextFunction
 ): Promise<void> {
   try {
-    const { docId } = req.params;
+    const docId = req.params.docId as string;
     await prisma.categoryDocument.delete({ where: { id: docId } });
     res.json({ success: true, message: 'Documento removido' });
   } catch (error) {
