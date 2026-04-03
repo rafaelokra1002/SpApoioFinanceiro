@@ -3,11 +3,11 @@ dist/
 .env
 *.db
 *.db-journal
-uploads/*.jpg
-uploads/*.png
-uploads/*.pdf
-uploads/*.webp
-!uploads/.gitkeep
+backend/uploads/*.jpg
+backend/uploads/*.png
+backend/uploads/*.pdf
+backend/uploads/*.webp
+!backend/uploads/.gitkeep
 .DS_Store
 Thumbs.db
 *.log
