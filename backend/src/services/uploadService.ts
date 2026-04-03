@@ -1,5 +1,18 @@
-// Upload service - handled by multer middleware
-// This file is kept for future cloud storage integration (e.g., Cloudinary, S3)
+import { v2 as cloudinary } from 'cloudinary';
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+export async function uploadToCloudinary(filePath: string, folder: string = 'sp-apoio'): Promise<string> {
+  const result = await cloudinary.uploader.upload(filePath, {
+    folder,
+    resource_type: 'auto',
+  });
+  return result.secure_url;
+}
 
 export function getUploadUrl(filename: string, baseUrl: string): string {
   return `${baseUrl}/uploads/${filename}`;

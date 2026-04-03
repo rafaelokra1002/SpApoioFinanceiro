@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import * as leadService from '../services/leadService';
+import { uploadToCloudinary } from '../services/uploadService';
 import { AppError } from '../middleware/errorHandler';
 import { ApiResponse } from '../types';
 
@@ -38,12 +39,15 @@ export async function handleUploadDocuments(
       throw new AppError('Solicitação não encontrada', 404);
     }
 
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
-    const documents = files.map((file) => ({
-      tipo: file.fieldname || 'documento',
-      url: `${baseUrl}/uploads/${file.filename}`,
-      filename: file.filename,
-    }));
+    const documents = [];
+    for (const file of files) {
+      const url = await uploadToCloudinary(file.path);
+      documents.push({
+        tipo: file.fieldname || 'documento',
+        url,
+        filename: file.originalname || file.filename,
+      });
+    }
 
     await leadService.addDocuments(leadId as string, documents);
 
@@ -82,12 +86,15 @@ export async function handleCreateLeadWithDocs(
     const lead = await leadService.createLead(leadData);
 
     if (files && files.length > 0) {
-      const baseUrl = `${req.protocol}://${req.get('host')}`;
-      const documents = files.map((file) => ({
-        tipo: file.fieldname || 'documento',
-        url: `${baseUrl}/uploads/${file.filename}`,
-        filename: file.filename,
-      }));
+      const documents = [];
+      for (const file of files) {
+        const url = await uploadToCloudinary(file.path);
+        documents.push({
+          tipo: file.fieldname || 'documento',
+          url,
+          filename: file.originalname || file.filename,
+        });
+      }
       await leadService.addDocuments(lead.id, documents);
     }
 
