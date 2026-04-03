@@ -1,14 +1,13 @@
 import { CategoryOption, DocumentType, ParcelaOption, RendaOption } from '../types';
 
 export const CATEGORIES: CategoryOption[] = [
-  { value: 'ASSALARIADO_CLT', label: 'Assalariado (CLT)', icon: '👔' },
+  { value: 'CARTEIRA_ASSINADA', label: 'Carteira Assinada', icon: '👔' },
+  { value: 'CLT_SEM_REGISTRO', label: 'CLT sem Registro', icon: '📝' },
   { value: 'AUTONOMO', label: 'Autônomo', icon: '🔧' },
-  { value: 'APOSENTADO', label: 'Aposentado', icon: '👴' },
-  { value: 'PENSIONISTA', label: 'Pensionista', icon: '📋' },
-  { value: 'EMPRESARIO', label: 'Empresário', icon: '💼' },
-  { value: 'COM_GARANTIA', label: 'Com Garantia', icon: '🔒' },
-  { value: 'RENOVACAO', label: 'Renovação', icon: '🔄' },
-  { value: 'QUITAR_DIVIDAS', label: 'Quitar Dívidas', icon: '💰' },
+  { value: 'BENEFICIARIO', label: 'Beneficiário', icon: '📋' },
+  { value: 'ESTAGIARIO', label: 'Estagiário', icon: '🎓' },
+  { value: 'SEM_COMPROVACAO', label: 'Sem Comprovação de Renda', icon: '❌' },
+  // { value: 'COM_GARANTIA', label: 'Solicite com Garantia', icon: '🔒' },
 ];
 
 export const PARCELAS: ParcelaOption[] = [
@@ -40,50 +39,46 @@ export const RENDAS: RendaOption[] = [
 ];
 
 export const DOCUMENT_TYPES: Record<string, DocumentType[]> = {
-  ASSALARIADO_CLT: [
-    { key: 'RG (frente e verso)', label: 'RG (frente e verso)', description: 'RG (frente e verso)', icon: '🪪' },
-    { key: 'Selfie (rosto)', label: 'Selfie (rosto)', description: 'Selfie (rosto)', icon: '📷' },
-    { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Comprovante de residência', icon: '🏠' },
-    { key: 'Carteira de trabalho ou contracheque', label: 'Carteira de trabalho digital', description: 'OU contracheque', icon: '💼' },
+  CARTEIRA_ASSINADA: [
+    { key: 'RG ou CNH (frente e verso)', label: 'RG ou CNH (frente e verso)', description: 'Documento de identificação', icon: '🪪' },
+    { key: 'Selfie (rosto)', label: 'Selfie (rosto nítido)', description: 'Sem filtro, rosto bem visível', icon: '📷' },
+    { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz – últimos 2 meses', icon: '🏠' },
+    { key: 'Carteira de trabalho digital', label: 'Carteira de trabalho digital (PDF)', description: 'Envie em formato PDF', icon: '💼' },
+  ],
+  CLT_SEM_REGISTRO: [
+    { key: 'RG ou CNH (frente e verso)', label: 'RG ou CNH (frente e verso)', description: 'Documento de identificação', icon: '🪪' },
+    { key: 'Selfie (rosto)', label: 'Selfie (rosto nítido)', description: 'Sem filtro, rosto bem visível', icon: '📷' },
+    { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz – últimos 2 meses', icon: '🏠' },
+    { key: 'Extrato bancário ou comprovante', label: 'Extrato bancário (últimos 30 dias)', description: 'Ou print do último pagamento', icon: '📄' },
   ],
   AUTONOMO: [
-    { key: 'RG (frente e verso)', label: 'RG (frente e verso)', description: 'RG (frente e verso)', icon: '🪪' },
-    { key: 'Selfie (rosto)', label: 'Selfie (rosto)', description: 'Selfie (rosto)', icon: '📷' },
-    { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Comprovante de residência', icon: '🏠' },
+    { key: 'RG ou CNH (frente e verso)', label: 'RG ou CNH (frente e verso)', description: 'Documento de identificação', icon: '🪪' },
+    { key: 'Selfie (rosto)', label: 'Selfie (rosto nítido)', description: 'Sem filtro, rosto bem visível', icon: '📷' },
+    { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz – últimos 2 meses', icon: '🏠' },
+    { key: 'Extrato bancário', label: 'Extrato bancário (últimos 30 dias)', description: 'Extrato completo do último mês', icon: '📄' },
   ],
-  APOSENTADO: [
-    { key: 'RG (frente e verso)', label: 'RG (frente e verso)', description: 'RG (frente e verso)', icon: '🪪' },
-    { key: 'Selfie (rosto)', label: 'Selfie (rosto)', description: 'Selfie (rosto)', icon: '📷' },
-    { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Comprovante de residência', icon: '🏠' },
-    { key: 'Extrato do benefício', label: 'Extrato do benefício', description: 'INSS ou extrato bancário', icon: '📄' },
+  BENEFICIARIO: [
+    { key: 'RG ou CNH (frente e verso)', label: 'RG ou CNH (frente e verso)', description: 'Documento de identificação', icon: '🪪' },
+    { key: 'Selfie (rosto)', label: 'Selfie (rosto nítido)', description: 'Sem filtro, rosto bem visível', icon: '📷' },
+    { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz – últimos 2 meses', icon: '🏠' },
+    { key: 'Extrato bancário', label: 'Extrato bancário (últimos 30 dias)', description: 'Print do app com nome e valor visível', icon: '📄' },
   ],
-  PENSIONISTA: [
-    { key: 'RG (frente e verso)', label: 'RG (frente e verso)', description: 'RG (frente e verso)', icon: '🪪' },
-    { key: 'Selfie (rosto)', label: 'Selfie (rosto)', description: 'Selfie (rosto)', icon: '📷' },
-    { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Comprovante de residência', icon: '🏠' },
-    { key: 'Extrato da pensão', label: 'Extrato da pensão', description: 'Comprovante da pensão', icon: '📄' },
+  ESTAGIARIO: [
+    { key: 'RG ou CNH (frente e verso)', label: 'RG ou CNH (frente e verso)', description: 'Documento de identificação', icon: '🪪' },
+    { key: 'Selfie (rosto)', label: 'Selfie (rosto nítido)', description: 'Sem filtro, rosto bem visível', icon: '📷' },
+    { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz – últimos 2 meses', icon: '🏠' },
+    { key: 'Contrato de estágio', label: 'Contrato de estágio', description: 'Ou comprovante do último pagamento', icon: '📄' },
   ],
-  EMPRESARIO: [
-    { key: 'RG (frente e verso)', label: 'RG (frente e verso)', description: 'RG (frente e verso)', icon: '🪪' },
-    { key: 'Selfie (rosto)', label: 'Selfie (rosto)', description: 'Selfie (rosto)', icon: '📷' },
-    { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Comprovante de residência', icon: '🏠' },
-    { key: 'Contrato social ou MEI', label: 'Contrato social ou MEI', description: 'Documento da empresa', icon: '📄' },
+  SEM_COMPROVACAO: [
+    { key: 'RG ou CNH (frente e verso)', label: 'RG ou CNH (frente e verso)', description: 'Documento de identificação', icon: '🪪' },
+    { key: 'Selfie (rosto)', label: 'Selfie (rosto nítido)', description: 'Sem filtro, rosto bem visível', icon: '📷' },
+    { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz – últimos 2 meses', icon: '🏠' },
   ],
   COM_GARANTIA: [
-    { key: 'RG (frente e verso)', label: 'RG (frente e verso)', description: 'RG (frente e verso)', icon: '🪪' },
-    { key: 'Selfie (rosto)', label: 'Selfie (rosto)', description: 'Selfie (rosto)', icon: '📷' },
-    { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Comprovante de residência', icon: '🏠' },
-    { key: 'Documento da garantia', label: 'Documento da garantia', description: 'Documento do bem', icon: '📄' },
-  ],
-  RENOVACAO: [
-    { key: 'RG (frente e verso)', label: 'RG (frente e verso)', description: 'RG (frente e verso)', icon: '🪪' },
-    { key: 'Selfie (rosto)', label: 'Selfie (rosto)', description: 'Selfie (rosto)', icon: '📷' },
-    { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Comprovante de residência', icon: '🏠' },
-  ],
-  QUITAR_DIVIDAS: [
-    { key: 'RG (frente e verso)', label: 'RG (frente e verso)', description: 'RG (frente e verso)', icon: '🪪' },
-    { key: 'Selfie (rosto)', label: 'Selfie (rosto)', description: 'Selfie (rosto)', icon: '📷' },
-    { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Comprovante de residência', icon: '🏠' },
+    { key: 'RG ou CNH (frente e verso)', label: 'RG ou CNH (frente e verso)', description: 'Documento de identificação', icon: '🪪' },
+    { key: 'Selfie (rosto)', label: 'Selfie (rosto nítido)', description: 'Sem filtro, rosto bem visível', icon: '📷' },
+    { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz – últimos 2 meses', icon: '🏠' },
+    { key: 'Documento da garantia', label: 'Documento da garantia', description: 'Documento do bem oferecido', icon: '📄' },
   ],
 };
 

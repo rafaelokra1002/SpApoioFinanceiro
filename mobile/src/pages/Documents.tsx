@@ -9,23 +9,35 @@ export function Documents() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+  const pdfInputRef = useRef<HTMLInputElement>(null);
   const [currentDocKey, setCurrentDocKey] = useState('');
 
-  const docs = DOCUMENT_TYPES[state.categoria] || DOCUMENT_TYPES['ASSALARIADO_CLT'];
-  const showWorkFields = ['ASSALARIADO_CLT', 'AUTONOMO', 'EMPRESARIO'].includes(state.categoria);
+  const docs = DOCUMENT_TYPES[state.categoria] || DOCUMENT_TYPES['CARTEIRA_ASSINADA'];
+  const showWorkFields = ['CARTEIRA_ASSINADA', 'CLT_SEM_REGISTRO', 'AUTONOMO', 'BENEFICIARIO', 'ESTAGIARIO', 'SEM_COMPROVACAO', 'COM_GARANTIA'].includes(state.categoria);
 
   const openFilePicker = (docKey: string) => {
     setCurrentDocKey(docKey);
     fileInputRef.current?.click();
   };
 
+  const openGallery = (docKey: string) => {
+    setCurrentDocKey(docKey);
+    galleryInputRef.current?.click();
+  };
+
+  const openPdfPicker = (docKey: string) => {
+    setCurrentDocKey(docKey);
+    pdfInputRef.current?.click();
+  };
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && currentDocKey) {
-      const preview = URL.createObjectURL(file);
+      const preview = file.type === 'application/pdf' ? '' : URL.createObjectURL(file);
       dispatch({ type: 'SET_DOCUMENT', key: currentDocKey, file: { file, preview } });
     }
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    e.target.value = '';
   };
 
   const handleSubmit = async () => {
@@ -83,6 +95,10 @@ export function Documents() {
     <div style={{ padding: '24px 20px 24px', minHeight: 'calc(100vh - 56px)' }}>
       <input ref={fileInputRef} type="file" accept="image/*" capture="environment"
         onChange={handleFileSelect} style={{ display: 'none' }} />
+      <input ref={galleryInputRef} type="file" accept="image/*"
+        onChange={handleFileSelect} style={{ display: 'none' }} />
+      <input ref={pdfInputRef} type="file" accept="application/pdf"
+        onChange={handleFileSelect} style={{ display: 'none' }} />
 
       <div style={{
         background: '#fff', borderRadius: 20, padding: '28px 20px 24px',
@@ -99,9 +115,17 @@ export function Documents() {
           </button>
           <h1 style={{ fontSize: 22, fontWeight: 800, color: '#0d2b5e' }}>Envio de Documentos</h1>
         </div>
-        <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 22, paddingLeft: 40 }}>
+        <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 12, paddingLeft: 40 }}>
           Envie as fotos abaixo para confirmar seu perfil.
         </p>
+        <div style={{
+          background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 10,
+          padding: '10px 14px', marginBottom: 22,
+        }}>
+          <p style={{ fontSize: 12, color: '#92400e', lineHeight: 1.5, margin: 0 }}>
+            📌 O comprovante de residência não precisa estar em seu nome, porém é necessário que você resida no endereço informado no documento.
+          </p>
+        </div>
 
         {/* Personal data */}
         <InputField label="Nome completo" placeholder="Seu nome completo"
@@ -147,11 +171,35 @@ export function Documents() {
                     <span style={{ fontSize: 11, fontWeight: 700, color: '#16a34a' }}>Enviado</span>
                   </div>
                 ) : (
-                  <button onClick={() => openFilePicker(doc.key)} style={{
-                    padding: '7px 12px', borderRadius: 10, border: 'none',
-                    background: 'linear-gradient(135deg, #2e8b57 0%, #3ba06a 100%)',
-                    color: '#fff', fontWeight: 700, fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap',
-                  }}>Enviar Foto</button>
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    <button onClick={() => openFilePicker(doc.key)} title="Tirar foto" style={{
+                      padding: '7px 8px', borderRadius: 8, border: 'none',
+                      background: 'linear-gradient(135deg, #2e8b57 0%, #3ba06a 100%)',
+                      color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center',
+                    }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round">
+                        <rect x="2" y="6" width="20" height="14" rx="2"/><circle cx="12" cy="13" r="4"/><path d="M8 6l1-3h6l1 3"/>
+                      </svg>
+                    </button>
+                    <button onClick={() => openGallery(doc.key)} title="Buscar na galeria" style={{
+                      padding: '7px 8px', borderRadius: 8, border: 'none',
+                      background: '#0d2b5e',
+                      color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center',
+                    }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>
+                      </svg>
+                    </button>
+                    <button onClick={() => openPdfPicker(doc.key)} title="Enviar PDF" style={{
+                      padding: '7px 8px', borderRadius: 8, border: 'none',
+                      background: '#c0392b',
+                      color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center',
+                    }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round">
+                        <rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/>
+                      </svg>
+                    </button>
+                  </div>
                 )}
               </div>
             );
@@ -159,14 +207,47 @@ export function Documents() {
         </div>
 
         {/* Work fields */}
-        {showWorkFields && (
+        {showWorkFields && state.categoria !== 'SEM_COMPROVACAO' && (
           <div style={{ marginTop: 12, marginBottom: 12 }}>
             <p style={{ fontSize: 14, fontWeight: 600, color: '#0d2b5e', marginBottom: 10 }}>
-              Informe onde você trabalha (nome da fachada)
+              {state.categoria === 'AUTONOMO'
+                ? 'Dados da atividade'
+                : state.categoria === 'BENEFICIARIO'
+                ? 'Informações do benefício'
+                : state.categoria === 'ESTAGIARIO'
+                ? 'Dados do estágio'
+                : 'Dados do trabalho'}
             </p>
-            <InputField placeholder="Nome da fachada"
+            <InputField
+              placeholder={state.categoria === 'AUTONOMO' ? 'Profissão ou tipo de serviço' : state.categoria === 'BENEFICIARIO' ? 'Tipo de benefício recebido' : 'Nome da empresa (como está na fachada)'}
               value={state.nomeEmpresa} onChange={v => dispatch({ type: 'SET_FIELD', field: 'nomeEmpresa', value: v })} />
-            <InputField placeholder="Bairro, local onde trabalha"
+            {state.categoria !== 'BENEFICIARIO' && (
+              <InputField
+                placeholder={state.categoria === 'AUTONOMO' ? 'Onde atende (casa, salão, online, etc.)' : 'Bairro, local onde trabalha'}
+                value={state.bairroTrabalho} onChange={v => dispatch({ type: 'SET_FIELD', field: 'bairroTrabalho', value: v })} />
+            )}
+          </div>
+        )}
+
+        {/* SEM_COMPROVACAO extra fields */}
+        {state.categoria === 'SEM_COMPROVACAO' && (
+          <div style={{ marginTop: 12, marginBottom: 12 }}>
+            <p style={{ fontSize: 14, fontWeight: 600, color: '#0d2b5e', marginBottom: 10 }}>
+              Dados do aparelho celular
+            </p>
+            <InputField placeholder="Marca e modelo do celular"
+              value={state.nomeEmpresa} onChange={v => dispatch({ type: 'SET_FIELD', field: 'nomeEmpresa', value: v })} />
+
+            <p style={{ fontSize: 14, fontWeight: 600, color: '#0d2b5e', marginBottom: 10, marginTop: 16 }}>
+              Instagram
+            </p>
+            <InputField placeholder="@ do perfil"
+              value={state.instagram} onChange={v => dispatch({ type: 'SET_FIELD', field: 'instagram', value: v })} />
+
+            <p style={{ fontSize: 14, fontWeight: 600, color: '#0d2b5e', marginBottom: 10, marginTop: 16 }}>
+              Dados de renda
+            </p>
+            <InputField placeholder="Você trabalha com o quê?"
               value={state.bairroTrabalho} onChange={v => dispatch({ type: 'SET_FIELD', field: 'bairroTrabalho', value: v })} />
           </div>
         )}

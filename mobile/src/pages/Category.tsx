@@ -2,12 +2,19 @@ import { useLoan } from '../context/LoanContext';
 import { CATEGORIES } from '../constants/categories';
 
 const categoryIcons: Record<string, React.ReactNode> = {
-  ASSALARIADO_CLT: (
+  CARTEIRA_ASSINADA: (
     <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
       <circle cx="18" cy="12" r="5" stroke="#0d2b5e" strokeWidth="1.8" fill="#e8effc"/>
       <path d="M8 30c0-5.5 4.5-10 10-10s10 4.5 10 10" stroke="#0d2b5e" strokeWidth="1.8" fill="#e8effc"/>
       <rect x="14" y="17" width="8" height="4" rx="1" fill="#0d2b5e" opacity="0.15"/>
       <path d="M18 17v4" stroke="#c0392b" strokeWidth="1.5"/>
+    </svg>
+  ),
+  CLT_SEM_REGISTRO: (
+    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+      <rect x="6" y="8" width="24" height="20" rx="3" stroke="#0d2b5e" strokeWidth="1.8" fill="#e8effc"/>
+      <path d="M12 15h12M12 19h12M12 23h8" stroke="#0d2b5e" strokeWidth="1.5" strokeLinecap="round"/>
+      <line x1="8" y1="8" x2="28" y2="28" stroke="#c0392b" strokeWidth="2" strokeLinecap="round"/>
     </svg>
   ),
   AUTONOMO: (
@@ -16,24 +23,25 @@ const categoryIcons: Record<string, React.ReactNode> = {
       <path d="M14 18l3 3 5-6" stroke="#0d2b5e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   ),
-  APOSENTADO: (
+  BENEFICIARIO: (
     <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
       <circle cx="18" cy="12" r="5" stroke="#0d2b5e" strokeWidth="1.8" fill="#e8effc"/>
       <path d="M10 30c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="#0d2b5e" strokeWidth="1.8" fill="#e8effc"/>
       <path d="M13 10c0 0-1-4 5-4s5 4 5 4" stroke="#0d2b5e" strokeWidth="1.2" fill="none"/>
     </svg>
   ),
-  PENSIONISTA: (
+  ESTAGIARIO: (
     <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-      <rect x="6" y="8" width="24" height="20" rx="3" stroke="#0d2b5e" strokeWidth="1.8" fill="#e8effc"/>
-      <path d="M12 15h12M12 19h12M12 23h8" stroke="#0d2b5e" strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M18 6l14 8-14 8L4 14z" stroke="#0d2b5e" strokeWidth="1.8" fill="#e8effc"/>
+      <path d="M28 18v8c0 0-4 4-10 4s-10-4-10-4v-8" stroke="#0d2b5e" strokeWidth="1.8" fill="none"/>
+      <line x1="32" y1="14" x2="32" y2="28" stroke="#0d2b5e" strokeWidth="1.8"/>
     </svg>
   ),
-  EMPRESARIO: (
+  SEM_COMPROVACAO: (
     <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-      <rect x="6" y="12" width="24" height="16" rx="3" stroke="#0d2b5e" strokeWidth="1.8" fill="#e8effc"/>
-      <path d="M12 12V9a6 6 0 0112 0v3" stroke="#0d2b5e" strokeWidth="1.8"/>
-      <circle cx="18" cy="20" r="2" fill="#0d2b5e"/>
+      <circle cx="18" cy="18" r="12" stroke="#0d2b5e" strokeWidth="1.8" fill="#e8effc"/>
+      <text x="11" y="23" fontSize="14" fontWeight="bold" fill="#0d2b5e">R$</text>
+      <line x1="8" y1="8" x2="28" y2="28" stroke="#c0392b" strokeWidth="2" strokeLinecap="round"/>
     </svg>
   ),
   COM_GARANTIA: (
@@ -41,18 +49,6 @@ const categoryIcons: Record<string, React.ReactNode> = {
       <rect x="10" y="14" width="16" height="14" rx="3" stroke="#0d2b5e" strokeWidth="1.8" fill="#e8effc"/>
       <path d="M14 14V11a4 4 0 018 0v3" stroke="#0d2b5e" strokeWidth="1.8"/>
       <circle cx="18" cy="21" r="2" fill="#0d2b5e"/>
-    </svg>
-  ),
-  RENOVACAO: (
-    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-      <path d="M26 14a8 8 0 01-15.3 3.2M10 22a8 8 0 0115.3-3.2" stroke="#0d2b5e" strokeWidth="1.8" strokeLinecap="round"/>
-      <path d="M26 10v4h-4M10 26v-4h4" stroke="#0d2b5e" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  ),
-  QUITAR_DIVIDAS: (
-    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-      <circle cx="18" cy="18" r="12" stroke="#0d2b5e" strokeWidth="1.8" fill="#e8effc"/>
-      <text x="13" y="23" fontSize="14" fontWeight="bold" fill="#0d2b5e">$</text>
     </svg>
   ),
 };
