@@ -146,7 +146,7 @@ export async function handleGetMessageLogs(
   next: NextFunction
 ): Promise<void> {
   try {
-    const { leadId } = req.params;
+    const leadId = req.params.leadId as string;
     const logs = await prisma.messageLog.findMany({
       where: { leadId },
       orderBy: { createdAt: 'desc' },
