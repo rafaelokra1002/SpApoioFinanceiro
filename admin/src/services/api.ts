@@ -104,7 +104,7 @@ export async function getWhatsAppStatus() {
 }
 
 export async function getWhatsAppQRCode() {
-  const res = await fetch(`${API_BASE}/admin/whatsapp/qrcode`);
+  const res = await fetch(`${API_BASE}/admin/whatsapp/qrcode`, { cache: 'no-store' });
   return res.json();
 }
 
