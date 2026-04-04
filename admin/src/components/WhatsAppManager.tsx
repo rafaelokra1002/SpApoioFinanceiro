@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import {
-  MessageCircle, Loader2, Phone, CheckCircle2,
-  AlertCircle, Save, MessageSquare, ExternalLink,
+  Wifi, WifiOff, QrCode, Loader2, Phone, CheckCircle2,
+  AlertCircle, LogOut, RefreshCw, Save, MessageSquare,
 } from 'lucide-react';
 import {
+  getWhatsAppStatus,
+  getWhatsAppQRCode,
+  disconnectWhatsApp,
   fetchMessageTemplates,
   upsertMessageTemplate,
-  seedMessageTemplates,
 } from '../services/api';
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
@@ -17,20 +19,90 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
 
 const VARIABLES = ['{{nome}}', '{{valor}}', '{{telefone}}', '{{cidade}}', '{{email}}', '{{cpf}}', '{{status}}'];
 
+const DEFAULT_TEMPLATES: Record<string, string> = {
+  PENDENTE: `Olá *{{nome}}*, tudo bem?\n\nAqui é da *SP Apoio Financeiro*.\n\nRecebemos sua solicitação de crédito no valor de *{{valor}}*.\n\nSeu cadastro está *pendente de análise* e em breve nossa equipe irá avaliar.\n\nFique tranquilo(a), assim que tivermos uma atualização, entraremos em contato por aqui mesmo.\n\nQualquer dúvida, é só chamar!\n\nAtenciosamente,\n*Equipe SP Apoio Financeiro*`,
+  APROVADO: `Olá *{{nome}}*! Temos uma ótima notícia!\n\nSua solicitação de crédito no valor de *{{valor}}* foi *APROVADA*!\n\nParabéns! Nossa equipe entrará em contato para finalizar o processo com você.\n\nAgradecemos por escolher a *SP Apoio Financeiro*.\n\nAtenciosamente,\n*Equipe SP Apoio Financeiro*`,
+  RECUSADO: `Olá *{{nome}}*, tudo bem?\n\nApós análise da sua solicitação de crédito no valor de *{{valor}}*, infelizmente não foi possível aprovar o pedido neste momento.\n\nSe quiser, nossa equipe pode orientar você sobre uma nova tentativa futura.\n\nAtenciosamente,\n*Equipe SP Apoio Financeiro*`,
+};
+
 export default function WhatsAppManager() {
-  const [templates, setTemplates] = useState<Record<string, string>>({});
+  const [status, setStatus] = useState<{
+    connected: boolean;
+    name?: string;
+    number?: string;
+  }>({ connected: false });
+  const [qrcode, setQrcode] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [qrLoading, setQrLoading] = useState(false);
+  const [templates, setTemplates] = useState<Record<string, string>>(DEFAULT_TEMPLATES);
   const [saving, setSaving] = useState<string | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
 
   useEffect(() => {
+    getWhatsAppStatus().then(res => {
+      if (res.success) setStatus(res.data);
+    }).catch(() => {
+      setStatus({ connected: false });
+    }).finally(() => setLoading(false));
+
     fetchMessageTemplates().then(res => {
       if (res.success && res.data) {
-        const map: Record<string, string> = {};
+        const map: Record<string, string> = { ...DEFAULT_TEMPLATES };
         for (const t of res.data) map[t.status] = t.content;
         setTemplates(map);
       }
     }).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (!qrcode) return;
+    const interval = setInterval(async () => {
+      const res = await getWhatsAppStatus();
+      if (res.success && res.data.connected) {
+        setStatus(res.data);
+        setQrcode(null);
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [qrcode]);
+
+  const checkStatus = async () => {
+    setLoading(true);
+    try {
+      const res = await getWhatsAppStatus();
+      if (res.success) setStatus(res.data);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConnect = async () => {
+    setQrLoading(true);
+    try {
+      const res = await getWhatsAppQRCode();
+      if (res.success) {
+        if (res.data.connected) {
+          setStatus({ connected: true });
+          setQrcode(null);
+        } else if (res.data.qrcode) {
+          setQrcode(res.data.qrcode);
+        } else {
+          alert('QR Code não disponível no momento. Tente novamente em alguns segundos.');
+        }
+      } else {
+        alert(res.error || 'Erro ao gerar QR Code');
+      }
+    } finally {
+      setQrLoading(false);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    if (!window.confirm('Desconectar WhatsApp?')) return;
+    await disconnectWhatsApp();
+    setStatus({ connected: false });
+    setQrcode(null);
+  };
 
   const handleSaveTemplate = async (statusKey: string) => {
     const content = templates[statusKey];
@@ -54,41 +126,94 @@ export default function WhatsAppManager() {
       <div className="mb-6">
         <h2 className="text-xl font-extrabold text-gray-900">WhatsApp</h2>
         <p className="text-sm text-gray-400 mt-0.5">
-          Use templates prontos e abra a mensagem no WhatsApp Web com um clique
+          Conecte seu WhatsApp para enviar mensagens diretamente do painel
         </p>
       </div>
 
-      {/* Manual Mode Card */}
+      {/* Connection Status Card */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-[#25D366]/10">
-              <MessageCircle size={24} className="text-[#25D366]" />
+            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${
+              status.connected ? 'bg-success/10' : 'bg-gray-100'
+            }`}>
+              {status.connected
+                ? <Wifi size={24} className="text-success" />
+                : <WifiOff size={24} className="text-gray-400" />}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-lg font-bold text-gray-900">Modo WhatsApp Web</h3>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-success/10 text-success">
-                  <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-                  Ativo
+                <h3 className="text-lg font-bold text-gray-900">
+                  {status.connected ? 'Conectado' : 'Desconectado'}
+                </h3>
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${
+                  status.connected ? 'bg-success/10 text-success' : 'bg-gray-100 text-gray-500'
+                }`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${status.connected ? 'bg-success animate-pulse' : 'bg-gray-400'}`} />
+                  {status.connected ? 'Online' : 'Offline'}
                 </span>
               </div>
-              <p className="text-sm text-gray-400 mt-0.5">
-                O painel monta a mensagem e abre a conversa no WhatsApp Web para envio manual
-              </p>
+              {status.connected && status.name && (
+                <p className="text-sm text-gray-500 mt-0.5">
+                  {status.name} • {status.number}
+                </p>
+              )}
+              {!status.connected && (
+                <p className="text-sm text-gray-400 mt-0.5">
+                  Escaneie o QR Code para conectar
+                </p>
+              )}
             </div>
           </div>
 
-          <a
-            href="https://web.whatsapp.com"
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#25D366] text-white text-[13px] font-semibold hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer"
-          >
-            <ExternalLink size={15} /> Abrir WhatsApp Web
-          </a>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={checkStatus}
+              disabled={loading}
+              className="p-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-50"
+            >
+              <RefreshCw size={16} className={`text-gray-500 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+            {status.connected ? (
+              <button
+                onClick={handleDisconnect}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-danger/10 text-danger text-[13px] font-semibold hover:bg-danger/20 transition-colors cursor-pointer"
+              >
+                <LogOut size={15} /> Desconectar
+              </button>
+            ) : (
+              <button
+                onClick={handleConnect}
+                disabled={qrLoading}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#25D366] text-white text-[13px] font-semibold hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50 cursor-pointer"
+              >
+                {qrLoading ? <Loader2 size={15} className="animate-spin" /> : <QrCode size={15} />}
+                Conectar
+              </button>
+            )}
+          </div>
         </div>
       </div>
+
+      {qrcode && !status.connected && (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">
+          <div className="flex flex-col items-center">
+            <div className="bg-white p-4 rounded-2xl shadow-lg border border-gray-200 mb-4">
+              <img src={qrcode} alt="QR Code WhatsApp" className="w-64 h-64" />
+            </div>
+            <div className="text-center">
+              <h3 className="text-base font-bold text-gray-900 mb-1">Escaneie o QR Code</h3>
+              <p className="text-sm text-gray-400 max-w-sm">
+                Abra o WhatsApp no celular → Menu → Dispositivos conectados → Conectar dispositivo
+              </p>
+            </div>
+            <div className="flex items-center gap-2 mt-4 text-xs text-gray-400">
+              <Loader2 size={12} className="animate-spin" />
+              Aguardando conexão...
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Message Templates Editor */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
@@ -100,21 +225,12 @@ export default function WhatsAppManager() {
             <h3 className="text-base font-bold text-gray-900">Templates de Mensagem</h3>
             <p className="text-xs text-gray-400">Edite as mensagens enviadas para cada status</p>
           </div>
-          {!Object.values(templates).some(v => v?.trim()) && (
-            <button
-              onClick={async () => {
-                const res = await seedMessageTemplates();
-                if (res.success && res.data) {
-                  const map: Record<string, string> = {};
-                  for (const t of res.data) map[t.status] = t.content;
-                  setTemplates(map);
-                }
-              }}
-              className="ml-auto px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-[12px] font-semibold hover:bg-primary/20 transition-colors cursor-pointer"
-            >
-              Carregar exemplos
-            </button>
-          )}
+          <button
+            onClick={() => setTemplates(DEFAULT_TEMPLATES)}
+            className="ml-auto px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-[12px] font-semibold hover:bg-primary/20 transition-colors cursor-pointer"
+          >
+            Restaurar exemplos
+          </button>
         </div>
 
         <div className="flex flex-wrap gap-1.5 mb-5 p-3 bg-gray-50 rounded-xl">
@@ -166,11 +282,11 @@ export default function WhatsAppManager() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-              <MessageCircle size={16} className="text-primary" />
+              <QrCode size={16} className="text-primary" />
             </div>
             <div>
-              <p className="text-[13px] font-semibold text-gray-800">1. Abra a conversa</p>
-              <p className="text-[12px] text-gray-400 mt-0.5">O painel abre o WhatsApp Web já com a mensagem pronta</p>
+              <p className="text-[13px] font-semibold text-gray-800">1. Conecte</p>
+              <p className="text-[12px] text-gray-400 mt-0.5">Escaneie o QR Code com o WhatsApp</p>
             </div>
           </div>
           <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
@@ -187,8 +303,8 @@ export default function WhatsAppManager() {
               <CheckCircle2 size={16} className="text-success" />
             </div>
             <div>
-              <p className="text-[13px] font-semibold text-gray-800">3. Revise e envie</p>
-              <p className="text-[12px] text-gray-400 mt-0.5">O atendente confere o texto e conclui o envio no WhatsApp</p>
+              <p className="text-[13px] font-semibold text-gray-800">3. Envio Direto</p>
+              <p className="text-[12px] text-gray-400 mt-0.5">A mensagem é enviada direto pelo painel quando o WhatsApp estiver conectado</p>
             </div>
           </div>
         </div>
@@ -196,7 +312,7 @@ export default function WhatsAppManager() {
         <div className="mt-4 p-3 bg-warning/5 border border-warning/20 rounded-xl flex items-start gap-2">
           <AlertCircle size={16} className="text-warning shrink-0 mt-0.5" />
           <p className="text-[12px] text-gray-600">
-            <strong>Atenção:</strong> Neste modo o envio não é automático no servidor. A mensagem abre no WhatsApp Web e o atendente confirma o envio manualmente.
+            <strong>Atenção:</strong> O servidor precisa continuar rodando com a sessão salva e acesso ao Chrome/Edge para manter o WhatsApp conectado.
           </p>
         </div>
       </div>

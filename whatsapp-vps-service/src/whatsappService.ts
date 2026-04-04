@@ -3,9 +3,6 @@ import QRCode from 'qrcode';
 import fs from 'fs';
 import path from 'path';
 
-const WHATSAPP_SERVICE_URL = process.env.WHATSAPP_SERVICE_URL || '';
-const WHATSAPP_SERVICE_TOKEN = process.env.WHATSAPP_SERVICE_TOKEN || '';
-
 type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
 
 export interface WhatsAppStatus {
@@ -20,7 +17,6 @@ export interface WhatsAppStatus {
 class WhatsAppService {
   private client: Client | null = null;
   private status: ConnectionStatus = 'disconnected';
-  private qrCode: string | null = null;
   private qrCodeDataUrl: string | null = null;
   private phoneNumber: string | null = null;
   private profileName: string | null = null;
@@ -143,7 +139,6 @@ class WhatsAppService {
 
     this.client.on('qr', async (qr: string) => {
       this.status = 'connecting';
-      this.qrCode = qr;
       this.qrCodeDataUrl = await QRCode.toDataURL(qr);
       this.lastError = null;
       this.reconnectAttempts = 0;
@@ -152,7 +147,6 @@ class WhatsAppService {
     this.client.on('ready', () => {
       const info = this.client?.info;
       this.status = 'connected';
-      this.qrCode = null;
       this.qrCodeDataUrl = null;
       this.phoneNumber = info?.wid?.user || null;
       this.profileName = info?.pushname || null;
@@ -175,7 +169,6 @@ class WhatsAppService {
 
     this.client.on('disconnected', (reason: string) => {
       this.status = 'disconnected';
-      this.qrCode = null;
       this.qrCodeDataUrl = null;
       this.phoneNumber = null;
       this.profileName = null;
@@ -210,7 +203,7 @@ class WhatsAppService {
 
   async getConnectionStatus(): Promise<WhatsAppStatus> {
     return {
-      connected: this.status === 'connected',
+      connected: this.isConnected(),
       name: this.profileName || undefined,
       number: this.phoneNumber || undefined,
       qrcode: this.qrCodeDataUrl || undefined,
@@ -246,7 +239,7 @@ class WhatsAppService {
     return { connected: false };
   }
 
-  async disconnectInstance(): Promise<boolean> {
+  async disconnect(): Promise<boolean> {
     this.clearReconnectTimer();
     this.clearKeepAlive();
 
@@ -255,7 +248,7 @@ class WhatsAppService {
         try {
           await this.client.logout();
         } catch {
-          // ignore logout failures and destroy anyway
+          // ignore logout failures
         }
 
         await this.client.destroy();
@@ -265,7 +258,6 @@ class WhatsAppService {
     } finally {
       this.client = null;
       this.status = 'disconnected';
-      this.qrCode = null;
       this.qrCodeDataUrl = null;
       this.phoneNumber = null;
       this.profileName = null;
@@ -288,10 +280,8 @@ class WhatsAppService {
 
       const rawNumber = phone.replace(/\D/g, '');
       const number = rawNumber.startsWith('55') ? rawNumber : `55${rawNumber}`;
-
       const candidates = new Set<string>([number]);
 
-      // Tenta variações comuns de números brasileiros com/sem o nono dígito.
       if (number.length === 13) {
         candidates.add(`${number.slice(0, 4)}${number.slice(5)}`);
       }
@@ -324,60 +314,4 @@ class WhatsAppService {
   }
 }
 
-const whatsAppService = new WhatsAppService();
-
-async function callRemoteService<T>(route: string, init?: RequestInit): Promise<T> {
-  const headers = new Headers(init?.headers || {});
-  if (WHATSAPP_SERVICE_TOKEN) {
-    headers.set('x-service-token', WHATSAPP_SERVICE_TOKEN);
-  }
-  if (!headers.has('Content-Type') && init?.body) {
-    headers.set('Content-Type', 'application/json');
-  }
-
-  const response = await fetch(`${WHATSAPP_SERVICE_URL}${route}`, {
-    ...init,
-    headers,
-  });
-
-  return response.json() as Promise<T>;
-}
-
-export async function getConnectionStatus(): Promise<WhatsAppStatus> {
-  if (WHATSAPP_SERVICE_URL) {
-    const response = await callRemoteService<{ success: boolean; data: WhatsAppStatus }>('/status');
-    return response.data;
-  }
-
-  return whatsAppService.getConnectionStatus();
-}
-
-export async function getQRCode(): Promise<{ qrcode?: string; connected: boolean }> {
-  if (WHATSAPP_SERVICE_URL) {
-    const response = await callRemoteService<{ success: boolean; data: { qrcode?: string; connected: boolean } }>('/qrcode');
-    return response.data;
-  }
-
-  return whatsAppService.getQRCode();
-}
-
-export async function disconnectInstance(): Promise<boolean> {
-  if (WHATSAPP_SERVICE_URL) {
-    const response = await callRemoteService<{ success: boolean }>('/disconnect', { method: 'DELETE' });
-    return response.success;
-  }
-
-  return whatsAppService.disconnectInstance();
-}
-
-export async function sendTextMessage(phone: string, text: string): Promise<{ success: boolean; error?: string }> {
-  if (WHATSAPP_SERVICE_URL) {
-    const response = await callRemoteService<{ success: boolean; error?: string }>('/send', {
-      method: 'POST',
-      body: JSON.stringify({ phone, message: text }),
-    });
-    return response;
-  }
-
-  return whatsAppService.sendTextMessage(phone, text);
-}
+export const whatsAppService = new WhatsAppService();

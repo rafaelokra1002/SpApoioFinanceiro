@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Lead, Stats, Category } from './types';
 import {
   fetchLeads, fetchStats, updateLeadStatus, deleteLead,
-  fetchCategories, fetchMessageTemplates,
+  fetchCategories, sendWhatsAppByLead, getWhatsAppStatus, fetchMessageTemplates,
 } from './services/api';
 import Sidebar from './components/Sidebar';
 import HeaderCards from './components/HeaderCards';
@@ -15,12 +15,9 @@ function formatCurrency(value: number) {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-function parseTemplate(template: string, data: Record<string, string>) {
-  return template.replace(/\{\{(\w+)\}\}/g, (_, key) => data[key] ?? '');
-}
-
 export default function App() {
   const [page, setPage] = useState<'leads' | 'categories' | 'whatsapp'>('leads');
+  const [waConnected, setWaConnected] = useState(false);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [filter, setFilter] = useState<string>('');
@@ -64,6 +61,9 @@ export default function App() {
   }, [loadData]);
 
   useEffect(() => {
+    getWhatsAppStatus().then(res => {
+      if (res.success) setWaConnected(res.data.connected);
+    }).catch(() => {});
     fetchMessageTemplates().then(res => {
       if (res.success && res.data) {
         const map: Record<string, string> = {};
@@ -74,12 +74,23 @@ export default function App() {
   }, []);
 
   const handleStatusChange = async (id: string, status: string) => {
+    const currentLead = selectedLead?.id === id
+      ? selectedLead
+      : leads.find((lead) => lead.id === id) || null;
+
     const res = await updateLeadStatus(id, status);
     if (res.success) {
-      loadData();
+      const updatedLead = currentLead ? { ...currentLead, status } : null;
+
       if (selectedLead?.id === id) {
         setSelectedLead({ ...selectedLead, status });
       }
+
+      if (updatedLead) {
+        await sendWhatsApp(updatedLead);
+      }
+
+      loadData();
     }
   };
 
@@ -93,32 +104,22 @@ export default function App() {
   };
 
   const sendWhatsApp = async (lead: Lead) => {
-    const phone = lead.telefone.replace(/\D/g, '');
-    const phoneFormatted = phone.startsWith('55') ? phone : `55${phone}`;
-    const nome = lead.nome.split(' ')[0];
-    const valor = formatCurrency(lead.valorSolicitado);
+    const statusRes = await getWhatsAppStatus().catch(() => null);
+    const connected = Boolean(statusRes?.success && statusRes.data?.connected);
+    setWaConnected(connected);
 
-    const defaultMessages: Record<string, string> = {
-      PENDENTE: `Olá *${nome}*, tudo bem?\n\nAqui é da *SP Apoio Financeiro*.\n\nRecebemos sua solicitação de crédito no valor de *${valor}*.\n\nSeu cadastro está *pendente de análise* e em breve nossa equipe irá avaliar.\n\nFique tranquilo(a), assim que tivermos uma atualização, entraremos em contato por aqui mesmo.\n\nQualquer dúvida, é só chamar!\n\nAtenciosamente,\n*Equipe SP Apoio Financeiro*`,
-      EM_ANALISE: `Olá *${nome}*, tudo bem?\n\nAqui é da *SP Apoio Financeiro*.\n\nPassando para informar que sua solicitação de crédito no valor de *${valor}* já está *em análise* pela nossa equipe.\n\nEstamos avaliando toda a documentação enviada e em breve teremos uma resposta para você.\n\nAgradecemos a confiança e a paciência!\n\nAtenciosamente,\n*Equipe SP Apoio Financeiro*`,
-      APROVADO: `Olá *${nome}*! Temos uma ótima notícia!\n\nSua solicitação de crédito no valor de *${valor}* foi *APROVADA*!\n\nParabéns! Nossa equipe entrará em contato para agendar a assinatura do contrato e finalizar todo o processo.\n\nAgradecemos por escolher a *SP Apoio Financeiro*. Estamos felizes em poder ajudar!\n\nAtenciosamente,\n*Equipe SP Apoio Financeiro*`,
-      RECUSADO: `Olá *${nome}*, tudo bem?\n\nAqui é da *SP Apoio Financeiro*.\n\nApós análise criteriosa, infelizmente não foi possível aprovar sua solicitação de crédito no valor de *${valor}* neste momento.\n\nIsso não significa que não poderemos ajudá-lo(a) no futuro. Você pode realizar uma nova solicitação após 30 dias ou entrar em contato para avaliarmos outras opções.\n\nAgradecemos seu interesse e confiança.\n\nAtenciosamente,\n*Equipe SP Apoio Financeiro*`,
-    };
-
-    const rawTemplate = templates[lead.status];
-    let msg: string;
-    if (rawTemplate) {
-      const vars: Record<string, string> = {
-        nome, valor, telefone: lead.telefone, cidade: lead.cidade,
-        status: lead.status, cpf: lead.cpf || '', email: lead.email || '',
-      };
-      msg = parseTemplate(rawTemplate, vars);
-    } else {
-      msg = defaultMessages[lead.status] || defaultMessages['PENDENTE'];
+    if (!connected) {
+      alert('WhatsApp não está conectado no painel. Conecte o WhatsApp antes de enviar mensagens.');
+      return;
     }
 
-    const url = `https://wa.me/${phoneFormatted}?text=${encodeURIComponent(msg)}`;
-    window.open(url, '_blank');
+    const res = await sendWhatsAppByLead(lead.id);
+    if (res.success) {
+      alert(`✅ Mensagem enviada para ${lead.nome}`);
+      return;
+    }
+
+    alert(`❌ Erro ao enviar mensagem para ${lead.nome}: ${res.error || 'Falha ao enviar'}`);
   };
 
   const handleNavigate = (p: 'leads' | 'categories' | 'whatsapp', f?: string) => {

@@ -1,4 +1,8 @@
-const API_BASE = 'https://spapoiofinanceiro.onrender.com/api';
+const API_BASE = import.meta.env.VITE_API_BASE || (
+  import.meta.env.DEV
+    ? 'http://localhost:3001/api'
+    : 'https://spapoiofinanceiro.onrender.com/api'
+);
 
 export async function fetchLeads(status?: string) {
   const url = status

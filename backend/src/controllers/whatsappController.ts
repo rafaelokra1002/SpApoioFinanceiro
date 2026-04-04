@@ -10,6 +10,13 @@ import { ApiResponse } from '../types';
 
 const prisma = new PrismaClient();
 
+const DEFAULT_TEMPLATES: Record<string, string> = {
+  PENDENTE: `Olá *{{nome}}*, tudo bem?\n\nAqui é da *SP Apoio Financeiro*.\n\nRecebemos sua solicitação de crédito no valor de *{{valor}}*.\n\nSeu cadastro está *pendente de análise* e em breve nossa equipe irá avaliar.\n\nFique tranquilo(a), assim que tivermos uma atualização, entraremos em contato por aqui mesmo.\n\nQualquer dúvida, é só chamar!\n\nAtenciosamente,\n*Equipe SP Apoio Financeiro*`,
+  EM_ANALISE: `Olá *{{nome}}*, tudo bem?\n\nAqui é da *SP Apoio Financeiro*.\n\nPassando para informar que sua solicitação de crédito no valor de *{{valor}}* já está *em análise* pela nossa equipe.\n\nEstamos avaliando toda a documentação enviada e em breve teremos uma resposta para você.\n\nAgradecemos a confiança e a paciência!\n\nAtenciosamente,\n*Equipe SP Apoio Financeiro*`,
+  APROVADO: `Olá *{{nome}}*! Temos uma ótima notícia!\n\nSua solicitação de crédito no valor de *{{valor}}* foi *APROVADA*!\n\nParabéns! Nossa equipe entrará em contato para agendar a assinatura do contrato e finalizar todo o processo.\n\nAgradecemos por escolher a *SP Apoio Financeiro*. Estamos felizes em poder ajudar!\n\nAtenciosamente,\n*Equipe SP Apoio Financeiro*`,
+  RECUSADO: `Olá *{{nome}}*, tudo bem?\n\nAqui é da *SP Apoio Financeiro*.\n\nApós análise criteriosa, infelizmente não foi possível aprovar sua solicitação de crédito no valor de *{{valor}}* neste momento.\n\nIsso não significa que não poderemos ajudá-lo(a) no futuro. Você pode realizar uma nova solicitação após 30 dias ou entrar em contato para avaliarmos outras opções.\n\nAgradecemos seu interesse e confiança.\n\nAtenciosamente,\n*Equipe SP Apoio Financeiro*`,
+};
+
 function parseTemplate(template: string, data: Record<string, string>): string {
   return template.replace(/\{\{(\w+)\}\}/g, (_, key) => data[key] ?? '');
 }
@@ -206,14 +213,11 @@ export async function handleWhatsAppSendLead(
       return;
     }
 
-    const template = await prisma.messageTemplate.findUnique({
-      where: { status: lead.status as any },
-    });
-
-    if (!template) {
-      res.status(404).json({ success: false, error: `Template não encontrado para status ${lead.status}` });
-      return;
-    }
+    const template = ['PENDENTE', 'APROVADO', 'RECUSADO'].includes(lead.status)
+      ? await prisma.messageTemplate.findUnique({
+          where: { status: lead.status as any },
+        })
+      : null;
 
     const vars: Record<string, string> = {
       nome: lead.nome.split(' ')[0],
@@ -225,7 +229,8 @@ export async function handleWhatsAppSendLead(
       email: lead.email || '',
     };
 
-    const message = parseTemplate(template.content, vars);
+    const templateContent = template?.content || DEFAULT_TEMPLATES[lead.status] || DEFAULT_TEMPLATES.PENDENTE;
+    const message = parseTemplate(templateContent, vars);
     const result = await sendTextMessage(lead.telefone, message);
 
     await prisma.messageLog.create({

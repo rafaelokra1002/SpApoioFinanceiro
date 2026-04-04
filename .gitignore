@@ -13,3 +13,5 @@ Thumbs.db
 *.log
 .vite/
 .expo/
+backend/whatsapp-session/
+whatsapp-vps-service/whatsapp-session/
