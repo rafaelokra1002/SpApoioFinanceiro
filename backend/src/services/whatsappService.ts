@@ -57,33 +57,37 @@ export async function getConnectionStatus(): Promise<WhatsAppStatus> {
 export async function getQRCode(): Promise<{ qrcode?: string; connected: boolean }> {
   try {
     // First try to create instance (idempotent if already exists)
-    await createInstance();
+    const createResult = await createInstance();
+    console.log('[WhatsApp] createInstance:', JSON.stringify(createResult).substring(0, 300));
 
     const res = await fetch(`${EVOLUTION_API_URL}/instance/connect/${INSTANCE_NAME}`, {
       headers,
     });
 
     if (!res.ok) {
+      console.log('[WhatsApp] connect failed:', res.status);
       return { connected: false };
     }
 
     const data = await res.json();
+    console.log('[WhatsApp] connect response:', JSON.stringify(data).substring(0, 500));
 
     // Evolution API pode retornar o QR em diferentes campos
-    const qr = data?.base64 || data?.qrcode?.base64 || data?.code;
+    const qr = data?.base64 || data?.qrcode?.base64 || data?.qrcode || data?.code;
 
     if (qr) {
       return { qrcode: qr, connected: false };
     }
 
-    // Check if already connected
+    // Check if actually connected
     if (data?.instance?.state === 'open') {
       return { connected: true };
     }
 
-    // Already connected
-    return { connected: true };
-  } catch {
+    // Not connected and no QR code
+    return { connected: false };
+  } catch (err) {
+    console.error('[WhatsApp] getQRCode error:', err);
     return { connected: false };
   }
 }
