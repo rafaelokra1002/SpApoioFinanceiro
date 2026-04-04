@@ -2,8 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Lead, Stats, Category } from './types';
 import {
   fetchLeads, fetchStats, updateLeadStatus, deleteLead,
-  fetchCategories, sendWhatsAppMessage, sendWhatsAppByLead,
-  getWhatsAppStatus, fetchMessageTemplates,
+  fetchCategories, fetchMessageTemplates,
 } from './services/api';
 import Sidebar from './components/Sidebar';
 import HeaderCards from './components/HeaderCards';
@@ -16,9 +15,12 @@ function formatCurrency(value: number) {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+function parseTemplate(template: string, data: Record<string, string>) {
+  return template.replace(/\{\{(\w+)\}\}/g, (_, key) => data[key] ?? '');
+}
+
 export default function App() {
   const [page, setPage] = useState<'leads' | 'categories' | 'whatsapp'>('leads');
-  const [waConnected, setWaConnected] = useState(false);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [filter, setFilter] = useState<string>('');
@@ -61,11 +63,7 @@ export default function App() {
     loadData();
   }, [loadData]);
 
-  // Check WhatsApp status on mount
   useEffect(() => {
-    getWhatsAppStatus().then(res => {
-      if (res.success) setWaConnected(res.data.connected);
-    }).catch(() => {});
     fetchMessageTemplates().then(res => {
       if (res.success && res.data) {
         const map: Record<string, string> = {};
@@ -100,18 +98,6 @@ export default function App() {
     const nome = lead.nome.split(' ')[0];
     const valor = formatCurrency(lead.valorSolicitado);
 
-    // If WhatsApp is connected, try sending via backend template
-    if (waConnected) {
-      const res = await sendWhatsAppByLead(lead.id);
-      if (res.success) {
-        alert(`✅ Mensagem enviada para ${lead.nome}`);
-        return;
-      }
-      // If no template in DB, fall through to fallback
-      alert(`❌ Erro: ${res.error || 'Falha ao enviar'}. Abrindo WhatsApp Web...`);
-    }
-
-    // Fallback: build message locally and open wa.me
     const defaultMessages: Record<string, string> = {
       PENDENTE: `Olá *${nome}*, tudo bem?\n\nAqui é da *SP Apoio Financeiro*.\n\nRecebemos sua solicitação de crédito no valor de *${valor}*.\n\nSeu cadastro está *pendente de análise* e em breve nossa equipe irá avaliar.\n\nFique tranquilo(a), assim que tivermos uma atualização, entraremos em contato por aqui mesmo.\n\nQualquer dúvida, é só chamar!\n\nAtenciosamente,\n*Equipe SP Apoio Financeiro*`,
       EM_ANALISE: `Olá *${nome}*, tudo bem?\n\nAqui é da *SP Apoio Financeiro*.\n\nPassando para informar que sua solicitação de crédito no valor de *${valor}* já está *em análise* pela nossa equipe.\n\nEstamos avaliando toda a documentação enviada e em breve teremos uma resposta para você.\n\nAgradecemos a confiança e a paciência!\n\nAtenciosamente,\n*Equipe SP Apoio Financeiro*`,
@@ -126,7 +112,7 @@ export default function App() {
         nome, valor, telefone: lead.telefone, cidade: lead.cidade,
         status: lead.status, cpf: lead.cpf || '', email: lead.email || '',
       };
-      msg = rawTemplate.replace(/\{\{(\w+)\}\}/g, (_, key) => vars[key] ?? '');
+      msg = parseTemplate(rawTemplate, vars);
     } else {
       msg = defaultMessages[lead.status] || defaultMessages['PENDENTE'];
     }
