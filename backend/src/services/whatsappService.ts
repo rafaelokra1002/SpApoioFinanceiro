@@ -69,8 +69,16 @@ export async function getQRCode(): Promise<{ qrcode?: string; connected: boolean
 
     const data = await res.json();
 
-    if (data?.base64) {
-      return { qrcode: data.base64, connected: false };
+    // Evolution API pode retornar o QR em diferentes campos
+    const qr = data?.base64 || data?.qrcode?.base64 || data?.code;
+
+    if (qr) {
+      return { qrcode: qr, connected: false };
+    }
+
+    // Check if already connected
+    if (data?.instance?.state === 'open') {
+      return { connected: true };
     }
 
     // Already connected

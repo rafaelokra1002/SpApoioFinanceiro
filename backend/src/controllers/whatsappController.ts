@@ -40,6 +40,7 @@ export async function handleWhatsAppQRCode(
 ): Promise<void> {
   try {
     const result = await getQRCode();
+    console.log('[WhatsApp QRCode]', JSON.stringify(result).substring(0, 200));
     res.set('Cache-Control', 'no-store');
     res.json({ success: true, data: result });
   } catch (error) {

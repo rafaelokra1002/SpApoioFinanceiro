@@ -73,13 +73,18 @@ export default function WhatsAppManager() {
     setQrLoading(true);
     try {
       const res = await getWhatsAppQRCode();
+      console.log('[QR Response]', res);
       if (res.success) {
         if (res.data.connected) {
           setStatus({ connected: true });
           setQrcode(null);
         } else if (res.data.qrcode) {
           setQrcode(res.data.qrcode);
+        } else {
+          alert('QR Code não disponível. Verifique a configuração da Evolution API.');
         }
+      } else {
+        alert(res.error || 'Erro ao gerar QR Code');
       }
     } catch {
       // ignore
