@@ -1,5 +1,14 @@
+import { useState, useEffect } from 'react';
 import { Lead } from '../types';
-import { X, CheckCircle, XCircle, Trash2, MessageCircle, ExternalLink } from 'lucide-react';
+import { X, CheckCircle, XCircle, Trash2, MessageCircle, ExternalLink, Clock } from 'lucide-react';
+import { fetchMessageLogs } from '../services/api';
+
+interface MessageLog {
+  id: string;
+  mensagem: string;
+  status: string;
+  createdAt: string;
+}
 
 interface LeadDetailProps {
   lead: Lead;
@@ -14,6 +23,14 @@ function formatCurrency(value: number) {
 }
 
 export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, onWhatsApp }: LeadDetailProps) {
+  const [logs, setLogs] = useState<MessageLog[]>([]);
+
+  useEffect(() => {
+    fetchMessageLogs(lead.id).then(res => {
+      if (res.success) setLogs(res.data);
+    }).catch(() => {});
+  }, [lead.id]);
+
   const rows = [
     { label: 'Nome', value: lead.nome },
     { label: 'Telefone', value: lead.telefone },
@@ -79,6 +96,34 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
                   <ExternalLink size={10} className="text-gray-300 group-hover:text-primary-light" />
                 </div>
               </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Message History */}
+      {logs.length > 0 && (
+        <div className="px-5 pb-4">
+          <h4 className="text-xs font-bold text-gray-500 mb-3 flex items-center gap-1.5">
+            <Clock size={12} /> Mensagens ({logs.length})
+          </h4>
+          <div className="space-y-2 max-h-48 overflow-y-auto">
+            {logs.map((log) => (
+              <div key={log.id} className="p-2.5 bg-gray-50 rounded-xl">
+                <div className="flex items-center justify-between mb-1">
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                    log.status === 'ENVIADO'
+                      ? 'bg-success/10 text-success'
+                      : 'bg-danger/10 text-danger'
+                  }`}>
+                    {log.status}
+                  </span>
+                  <span className="text-[10px] text-gray-400">
+                    {new Date(log.createdAt).toLocaleString('pt-BR')}
+                  </span>
+                </div>
+                <p className="text-[11px] text-gray-600 line-clamp-3 whitespace-pre-line">{log.mensagem}</p>
+              </div>
             ))}
           </div>
         </div>

@@ -21,6 +21,11 @@ import {
   handleWhatsAppQRCode,
   handleWhatsAppDisconnect,
   handleWhatsAppSend,
+  handleWhatsAppSendLead,
+  handleGetTemplates,
+  handleUpsertTemplate,
+  handleGetMessageLogs,
+  handleSeedTemplates,
 } from '../controllers/whatsappController';
 import { validate, statusSchema } from '../middleware/validation';
 
@@ -47,5 +52,10 @@ router.get('/whatsapp/status', handleWhatsAppStatus);
 router.get('/whatsapp/qrcode', handleWhatsAppQRCode);
 router.delete('/whatsapp/disconnect', handleWhatsAppDisconnect);
 router.post('/whatsapp/send', handleWhatsAppSend);
+router.post('/whatsapp/send-lead', handleWhatsAppSendLead);
+router.get('/whatsapp/logs/:leadId', handleGetMessageLogs);
+router.get('/whatsapp/templates', handleGetTemplates);
+router.post('/whatsapp/templates/seed', handleSeedTemplates);
+router.put('/whatsapp/templates/:status', handleUpsertTemplate);
 
 export default router;

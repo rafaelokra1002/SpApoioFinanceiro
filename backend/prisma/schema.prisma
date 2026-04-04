@@ -27,6 +27,7 @@ model Lead {
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
   documentos      Document[]
+  mensagens       MessageLog[]
 }
 
 model Document {
@@ -75,4 +76,34 @@ model CategoryDocument {
   category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@index([categoryId])
+}
+
+enum LeadStatus {
+  PENDENTE
+  APROVADO
+  RECUSADO
+}
+
+model MessageTemplate {
+  id        String     @id @default(uuid())
+  status    LeadStatus @unique
+  content   String
+  createdAt DateTime   @default(now())
+}
+
+enum MessageLogStatus {
+  ENVIADO
+  ERRO
+}
+
+model MessageLog {
+  id        String           @id @default(uuid())
+  leadId    String
+  telefone  String
+  mensagem  String
+  status    MessageLogStatus
+  createdAt DateTime         @default(now())
+  lead      Lead             @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId])
 }

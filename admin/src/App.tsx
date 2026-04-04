@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { Lead, Stats, Category } from './types';
 import {
   fetchLeads, fetchStats, updateLeadStatus, deleteLead,
-  fetchCategories, sendWhatsAppMessage, getWhatsAppStatus,
+  fetchCategories, sendWhatsAppMessage, sendWhatsAppByLead,
+  getWhatsAppStatus, fetchMessageTemplates,
 } from './services/api';
 import Sidebar from './components/Sidebar';
 import HeaderCards from './components/HeaderCards';
@@ -26,6 +27,7 @@ export default function App() {
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [catLoading, setCatLoading] = useState(false);
+  const [templates, setTemplates] = useState<Record<string, string>>({});
 
   const loadCategories = useCallback(async () => {
     setCatLoading(true);
@@ -64,6 +66,13 @@ export default function App() {
     getWhatsAppStatus().then(res => {
       if (res.success) setWaConnected(res.data.connected);
     }).catch(() => {});
+    fetchMessageTemplates().then(res => {
+      if (res.success && res.data) {
+        const map: Record<string, string> = {};
+        for (const t of res.data) map[t.status] = t.content;
+        setTemplates(map);
+      }
+    }).catch(() => {});
   }, []);
 
   const handleStatusChange = async (id: string, status: string) => {
@@ -91,26 +100,35 @@ export default function App() {
     const nome = lead.nome.split(' ')[0];
     const valor = formatCurrency(lead.valorSolicitado);
 
-    const messages: Record<string, string> = {
+    // If WhatsApp is connected, try sending via backend template
+    if (waConnected) {
+      const res = await sendWhatsAppByLead(lead.id);
+      if (res.success) {
+        alert(`✅ Mensagem enviada para ${lead.nome}`);
+        return;
+      }
+      // If no template in DB, fall through to fallback
+      alert(`❌ Erro: ${res.error || 'Falha ao enviar'}. Abrindo WhatsApp Web...`);
+    }
+
+    // Fallback: build message locally and open wa.me
+    const defaultMessages: Record<string, string> = {
       PENDENTE: `Olá *${nome}*, tudo bem?\n\nAqui é da *SP Apoio Financeiro*.\n\nRecebemos sua solicitação de crédito no valor de *${valor}*.\n\nSeu cadastro está *pendente de análise* e em breve nossa equipe irá avaliar.\n\nFique tranquilo(a), assim que tivermos uma atualização, entraremos em contato por aqui mesmo.\n\nQualquer dúvida, é só chamar!\n\nAtenciosamente,\n*Equipe SP Apoio Financeiro*`,
       EM_ANALISE: `Olá *${nome}*, tudo bem?\n\nAqui é da *SP Apoio Financeiro*.\n\nPassando para informar que sua solicitação de crédito no valor de *${valor}* já está *em análise* pela nossa equipe.\n\nEstamos avaliando toda a documentação enviada e em breve teremos uma resposta para você.\n\nAgradecemos a confiança e a paciência!\n\nAtenciosamente,\n*Equipe SP Apoio Financeiro*`,
       APROVADO: `Olá *${nome}*! Temos uma ótima notícia!\n\nSua solicitação de crédito no valor de *${valor}* foi *APROVADA*!\n\nParabéns! Nossa equipe entrará em contato para agendar a assinatura do contrato e finalizar todo o processo.\n\nAgradecemos por escolher a *SP Apoio Financeiro*. Estamos felizes em poder ajudar!\n\nAtenciosamente,\n*Equipe SP Apoio Financeiro*`,
       RECUSADO: `Olá *${nome}*, tudo bem?\n\nAqui é da *SP Apoio Financeiro*.\n\nApós análise criteriosa, infelizmente não foi possível aprovar sua solicitação de crédito no valor de *${valor}* neste momento.\n\nIsso não significa que não poderemos ajudá-lo(a) no futuro. Você pode realizar uma nova solicitação após 30 dias ou entrar em contato para avaliarmos outras opções.\n\nAgradecemos seu interesse e confiança.\n\nAtenciosamente,\n*Equipe SP Apoio Financeiro*`,
     };
 
-    const msg = messages[lead.status] || messages['PENDENTE'];
-
-    // If WhatsApp is connected via Evolution API, send directly
-    if (waConnected) {
-      const res = await sendWhatsAppMessage(lead.telefone, msg);
-      if (res.success) {
-        alert(`✅ Mensagem enviada para ${lead.nome}`);
-      } else {
-        alert(`❌ Erro: ${res.error || 'Falha ao enviar'}. Abrindo WhatsApp Web...`);
-        const url = `https://wa.me/${phoneFormatted}?text=${encodeURIComponent(msg)}`;
-        window.open(url, '_blank');
-      }
-      return;
+    const rawTemplate = templates[lead.status];
+    let msg: string;
+    if (rawTemplate) {
+      const vars: Record<string, string> = {
+        nome, valor, telefone: lead.telefone, cidade: lead.cidade,
+        status: lead.status, cpf: lead.cpf || '', email: lead.email || '',
+      };
+      msg = rawTemplate.replace(/\{\{(\w+)\}\}/g, (_, key) => vars[key] ?? '');
+    } else {
+      msg = defaultMessages[lead.status] || defaultMessages['PENDENTE'];
     }
 
     const url = `https://wa.me/${phoneFormatted}?text=${encodeURIComponent(msg)}`;

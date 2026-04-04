@@ -123,3 +123,38 @@ export async function sendWhatsAppMessage(phone: string, message: string) {
   });
   return res.json();
 }
+
+export async function sendWhatsAppByLead(leadId: string) {
+  const res = await fetch(`${API_BASE}/admin/whatsapp/send-lead`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ leadId }),
+  });
+  return res.json();
+}
+
+export async function fetchMessageLogs(leadId: string) {
+  const res = await fetch(`${API_BASE}/admin/whatsapp/logs/${leadId}`);
+  return res.json();
+}
+
+export async function fetchMessageTemplates() {
+  const res = await fetch(`${API_BASE}/admin/whatsapp/templates`);
+  return res.json();
+}
+
+export async function seedMessageTemplates() {
+  const res = await fetch(`${API_BASE}/admin/whatsapp/templates/seed`, {
+    method: 'POST',
+  });
+  return res.json();
+}
+
+export async function upsertMessageTemplate(status: string, content: string) {
+  const res = await fetch(`${API_BASE}/admin/whatsapp/templates/${status}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ content }),
+  });
+  return res.json();
+}
