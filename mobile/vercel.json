@@ -3,6 +3,7 @@
     { "source": "/", "destination": "/credito-online", "permanent": false }
   ],
   "rewrites": [
+    { "source": "/credito-online", "destination": "/credito-online.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
