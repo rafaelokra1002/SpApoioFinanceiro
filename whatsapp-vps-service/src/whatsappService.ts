@@ -15,6 +15,16 @@ export interface WhatsAppStatus {
   error?: string;
 }
 
+function normalizeWhatsAppText(text: string): string {
+  return text
+    .replace(/\r\n/g, '\n')
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\s*(https?:\/\/[^\s<>()]+)\s*/g, '\n\n$1\n\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 class WhatsAppService {
   private client: Client | null = null;
   private status: ConnectionStatus = 'disconnected';
@@ -348,7 +358,7 @@ class WhatsAppService {
         return { success: false, error: 'Número não encontrado no WhatsApp' };
       }
 
-      await this.client.sendMessage(chatId, text);
+      await this.client.sendMessage(chatId, normalizeWhatsAppText(text));
       return { success: true };
     } catch (error) {
       return {

@@ -127,10 +127,9 @@ function DuvidasModal() {
   const { dispatch } = useLoan();
   const faqs = [
     { q: 'Qual o valor mínimo de empréstimo?', a: 'O valor mínimo é de R$ 300,00.' },
-    { q: 'Qual a taxa de juros?', a: 'A taxa é de 30% ao mês sobre o valor solicitado.' },
-    { q: 'Em quanto tempo recebo o dinheiro?', a: 'Após aprovação, o dinheiro é liberado em até 24 horas.' },
+    { q: 'Qual a taxa de juros?', a: 'A taxa é de 30% ao mês, exceto para a categoria Não Precisa Comprovar Renda, que é 35% ao mês.' },
+    { q: 'Em quanto tempo recebo o dinheiro?', a: 'Análise em menos de 24h. Aprovou, caiu na conta em minutos.' },
     { q: 'Preciso ter nome limpo?', a: 'Não necessariamente. Cada caso é analisado individualmente.' },
-    { q: 'Como faço para renovar?', a: 'Selecione a categoria "Renovação" e faça uma nova simulação.' },
   ];
   return (
     <Modal onClose={() => dispatch({ type: 'SHOW_MODAL', modal: 'duvidas', show: false })}>

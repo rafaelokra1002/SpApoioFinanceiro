@@ -225,7 +225,7 @@ export async function handleSeedCategories(
           { key: 'RG ou CNH (frente e verso)', label: 'RG ou CNH (frente e verso)', description: 'Documento de identificação', icon: '🪪' },
           { key: 'Selfie (rosto)', label: 'Selfie (rosto nítido)', description: 'Sem filtro, rosto bem visível', icon: '📷' },
           { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz – últimos 2 meses', icon: '🏠' },
-          { key: 'Extrato bancário ou comprovante', label: 'Extrato bancário (últimos 30 dias)', description: 'Ou print do último pagamento', icon: '📄' },
+          { key: 'Extrato bancário (últimos 30 dias) ou comprovante do último pagamento', label: 'Extrato bancário (últimos 30 dias) ou comprovante do último pagamento', description: 'Envie uma das duas opções', icon: '📄' },
         ],
       },
       {
@@ -252,11 +252,11 @@ export async function handleSeedCategories(
           { key: 'RG ou CNH (frente e verso)', label: 'RG ou CNH (frente e verso)', description: 'Documento de identificação', icon: '🪪' },
           { key: 'Selfie (rosto)', label: 'Selfie (rosto nítido)', description: 'Sem filtro, rosto bem visível', icon: '📷' },
           { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz – últimos 2 meses', icon: '🏠' },
-          { key: 'Contrato de estágio', label: 'Contrato de estágio', description: 'Ou comprovante do último pagamento', icon: '📄' },
+          { key: 'Contrato de estágio ou comprovante do último pagamento', label: 'Contrato de estágio ou comprovante do último pagamento', description: 'Envie uma das duas opções', icon: '📄' },
         ],
       },
       {
-        value: 'SEM_COMPROVACAO', label: 'Sem Comprovação de Renda', icon: '❌', order: 5,
+        value: 'SEM_COMPROVACAO', label: 'Não Precisa Comprovar Renda', icon: '❌', order: 5,
         documents: [
           { key: 'RG ou CNH (frente e verso)', label: 'RG ou CNH (frente e verso)', description: 'Documento de identificação', icon: '🪪' },
           { key: 'Selfie (rosto)', label: 'Selfie (rosto nítido)', description: 'Sem filtro, rosto bem visível', icon: '📷' },

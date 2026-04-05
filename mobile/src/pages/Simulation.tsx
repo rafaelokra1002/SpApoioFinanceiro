@@ -28,7 +28,7 @@ export function Simulation() {
 
   const handleCalc = () => {
     if (state.valor <= 0 || !state.cidade || !state.renda) return;
-    const sim = calculate(state.valor, 1);
+    const sim = calculate(state.valor, 1, state.categoria);
     if (sim) {
       dispatch({ type: 'SET_SIMULATION', payload: sim });
       dispatch({ type: 'SET_STEP', step: 3 });

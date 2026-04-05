@@ -5,11 +5,12 @@ import { PARCELAS } from '../constants/categories';
 export function useSimulation() {
   const [result, setResult] = useState<SimulationResult | null>(null);
 
-  const calculate = useCallback((valor: number, numParcelas: number) => {
+  const calculate = useCallback((valor: number, numParcelas: number, categoria?: string) => {
     if (valor <= 0 || numParcelas <= 0) { setResult(null); return null; }
 
     const parcela = PARCELAS.find(p => p.value === numParcelas);
-    const coef = parcela?.coeficiente ?? 1.30;
+    const taxaJuros = categoria === 'SEM_COMPROVACAO' ? 35 : 30;
+    const coef = parcela?.coeficiente ?? (1 + taxaJuros / 100);
     const valorTotal = Math.round(valor * coef * 100) / 100;
     const valorParcela = Math.round((valorTotal / numParcelas) * 100) / 100;
 
@@ -21,7 +22,7 @@ export function useSimulation() {
 
     const sim: SimulationResult = {
       valorSolicitado: valor,
-      taxaJuros: 30,
+      taxaJuros,
       valorTotal,
       parcelas: numParcelas,
       valorParcela,
