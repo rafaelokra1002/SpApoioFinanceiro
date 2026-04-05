@@ -1,4 +1,7 @@
 {
+  "redirects": [
+    { "source": "/", "destination": "/credito", "permanent": false }
+  ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]
