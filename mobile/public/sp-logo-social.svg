@@ -1,0 +1,11 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#0B1220"/>
+  <circle cx="320" cy="315" r="210" fill="#1D71DA"/>
+  <path d="M228 272.5C228 239.087 255.087 212 288.5 212H302V257H290C277.85 257 268 266.85 268 279V287H350C383.413 287 410.5 314.087 410.5 347.5C410.5 380.913 383.413 408 350 408H229V363H348.5C360.65 363 370.5 353.15 370.5 341C370.5 328.85 360.65 319 348.5 319H268V418H228V272.5Z" fill="white"/>
+  <path d="M326 212H394C414.987 212 432 229.013 432 250V376H387V327H343V287H387V257H326V212Z" fill="white"/>
+  <text x="555" y="260" fill="white" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="800">SP Apoio Financeiro</text>
+  <text x="555" y="338" fill="#C5D4F0" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="500">Solicite seu crédito com rapidez, segurança e atendimento humanizado.</text>
+  <text x="555" y="398" fill="#C5D4F0" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="500">Envie sua proposta online e acompanhe tudo pelo WhatsApp.</text>
+  <rect x="555" y="457" width="250" height="64" rx="18" fill="#1D71DA"/>
+  <text x="680" y="498" text-anchor="middle" fill="white" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700">Solicitar agora</text>
+</svg>

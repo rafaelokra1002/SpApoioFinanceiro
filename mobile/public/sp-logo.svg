@@ -1,0 +1,7 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="64" fill="#1D71DA"/>
+  <circle cx="256" cy="256" r="210" fill="#1D71DA" stroke="white" stroke-opacity="0.08" stroke-width="4"/>
+  <path d="M164 213.5C164 180.087 191.087 153 224.5 153H238V198H226C213.85 198 204 207.85 204 220V228H286C319.413 228 346.5 255.087 346.5 288.5C346.5 321.913 319.413 349 286 349H165V304H284.5C296.65 304 306.5 294.15 306.5 282C306.5 269.85 296.65 260 284.5 260H204V359H164V213.5Z" fill="white"/>
+  <path d="M262 153H330C350.987 153 368 170.013 368 191V317H323V268H279V228H323V198H262V153Z" fill="white"/>
+  <text x="256" y="424" text-anchor="middle" fill="white" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700" letter-spacing="1">APOIO FINANCEIRO</text>
+</svg>
