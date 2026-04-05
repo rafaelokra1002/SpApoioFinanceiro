@@ -25,11 +25,11 @@ export default function Sidebar({ page, filter, onNavigate, onRefresh }: Sidebar
     <>
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 py-6 border-b border-white/10">
-        <div className="w-11 h-11 rounded-2xl bg-[#2a3563] border border-white/8 shadow-lg shadow-black/20 flex items-center justify-center shrink-0">
-          <div className="w-8 h-8 rounded-xl bg-[#0f1a3e] border border-white/10 flex items-center justify-center text-[16px] leading-none">
-            💰
-          </div>
-        </div>
+        <img
+          src="/favicon.svg"
+          alt="SP Apoio Financeiro"
+          className="w-11 h-11 shrink-0 drop-shadow-[0_10px_18px_rgba(0,0,0,0.28)]"
+        />
         <div>
           <h2 className="text-[15px] font-extrabold text-white tracking-tight">SP Apoio</h2>
           <p className="text-[11px] text-white/50">Painel Administrativo</p>
