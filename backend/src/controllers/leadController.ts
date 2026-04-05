@@ -1,8 +1,26 @@
 import { Request, Response, NextFunction } from 'express';
 import * as leadService from '../services/leadService';
-import { uploadToCloudinary } from '../services/uploadService';
+import { getUploadUrl, shouldUseCloudinary, uploadToCloudinary } from '../services/uploadService';
 import { AppError } from '../middleware/errorHandler';
 import { ApiResponse } from '../types';
+
+function getBaseUrl(req: Request): string {
+  const forwardedProto = req.header('x-forwarded-proto');
+  const protocol = forwardedProto || req.protocol;
+  return `${protocol}://${req.get('host')}`;
+}
+
+async function persistDocument(file: Express.Multer.File, baseUrl: string) {
+  const url = shouldUseCloudinary()
+    ? await uploadToCloudinary(file.path)
+    : getUploadUrl(file.filename, baseUrl);
+
+  return {
+    tipo: file.fieldname || 'documento',
+    url,
+    filename: file.originalname || file.filename,
+  };
+}
 
 export async function handleCreateLead(
   req: Request,
@@ -39,14 +57,10 @@ export async function handleUploadDocuments(
       throw new AppError('Solicitação não encontrada', 404);
     }
 
+    const baseUrl = getBaseUrl(req);
     const documents = [];
     for (const file of files) {
-      const url = await uploadToCloudinary(file.path);
-      documents.push({
-        tipo: file.fieldname || 'documento',
-        url,
-        filename: file.originalname || file.filename,
-      });
+      documents.push(await persistDocument(file, baseUrl));
     }
 
     await leadService.addDocuments(leadId as string, documents);
@@ -86,14 +100,10 @@ export async function handleCreateLeadWithDocs(
     const lead = await leadService.createLead(leadData);
 
     if (files && files.length > 0) {
+      const baseUrl = getBaseUrl(req);
       const documents = [];
       for (const file of files) {
-        const url = await uploadToCloudinary(file.path);
-        documents.push({
-          tipo: file.fieldname || 'documento',
-          url,
-          filename: file.originalname || file.filename,
-        });
+        documents.push(await persistDocument(file, baseUrl));
       }
       await leadService.addDocuments(lead.id, documents);
     }
