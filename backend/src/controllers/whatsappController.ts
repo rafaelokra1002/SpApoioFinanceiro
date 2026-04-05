@@ -13,7 +13,7 @@ const prisma = new PrismaClient();
 const DEFAULT_TEMPLATES: Record<string, string> = {
   PENDENTE: `Olá *{{nome}}*, tudo bem?\n\nAqui é da *SP Apoio Financeiro*.\n\nRecebemos sua solicitação de crédito no valor de *{{valor}}*.\n\nSeu cadastro está *pendente de análise* e em breve nossa equipe irá avaliar.\n\nFique tranquilo(a), assim que tivermos uma atualização, entraremos em contato por aqui mesmo.\n\nQualquer dúvida, é só chamar!\n\nAtenciosamente,\n*Equipe SP Apoio Financeiro*`,
   EM_ANALISE: `Olá *{{nome}}*, tudo bem?\n\nAqui é da *SP Apoio Financeiro*.\n\nPassando para informar que sua solicitação de crédito no valor de *{{valor}}* já está *em análise* pela nossa equipe.\n\nEstamos avaliando toda a documentação enviada e em breve teremos uma resposta para você.\n\nAgradecemos a confiança e a paciência!\n\nAtenciosamente,\n*Equipe SP Apoio Financeiro*`,
-  APROVADO: `Olá *{{nome}}*! Temos uma ótima notícia!\n\nSua solicitação de crédito no valor de *{{valor}}* foi *APROVADA*!\n\nParabéns! Nossa equipe entrará em contato para finalizar o processo com você.\n\n👉 Para dar continuidade, clique no link abaixo e fale conosco:\n\nhttps://api.whatsapp.com/send?phone=5571983024664\n\nAgradecemos por escolher a *SP Apoio Financeiro*.\n\nAtenciosamente,\n*Equipe SP Apoio Financeiro*`,
+  APROVADO: `Olá *{{nome}}*! Temos uma ótima notícia!\n\nSua solicitação de crédito no valor de *{{valor}}* foi *APROVADA*!\n\nParabéns! Nossa equipe entrará em contato para finalizar o processo com você.\n\n👉 Para dar continuidade, clique no link abaixo e fale conosco:\n\nhttps://sp-apoio-financeiro.vercel.app/whatsapp.html\n\nAgradecemos por escolher a *SP Apoio Financeiro*.\n\nAtenciosamente,\n*Equipe SP Apoio Financeiro*`,
   RECUSADO: `Olá *{{nome}}*, tudo bem?\n\nAqui é da *SP Apoio Financeiro*.\n\nApós análise criteriosa, infelizmente não foi possível aprovar sua solicitação de crédito no valor de *{{valor}}* neste momento.\n\nIsso não significa que não poderemos ajudá-lo(a) no futuro. Você pode realizar uma nova solicitação após 30 dias ou entrar em contato para avaliarmos outras opções.\n\nAgradecemos seu interesse e confiança.\n\nAtenciosamente,\n*Equipe SP Apoio Financeiro*`,
 };
 
@@ -97,7 +97,7 @@ export async function handleSeedTemplates(
       },
       {
         status: 'APROVADO',
-        content: `Olá *{{nome}}*! Temos uma ótima notícia!\n\nSua solicitação de crédito no valor de *{{valor}}* foi *APROVADA*!\n\nParabéns! Nossa equipe entrará em contato para finalizar o processo com você.\n\n👉 Para dar continuidade, clique no link abaixo e fale conosco:\n\nhttps://api.whatsapp.com/send?phone=5571983024664\n\nAgradecemos por escolher a *SP Apoio Financeiro*.\n\nAtenciosamente,\n*Equipe SP Apoio Financeiro*`,
+        content: `Olá *{{nome}}*! Temos uma ótima notícia!\n\nSua solicitação de crédito no valor de *{{valor}}* foi *APROVADA*!\n\nParabéns! Nossa equipe entrará em contato para finalizar o processo com você.\n\n👉 Para dar continuidade, clique no link abaixo e fale conosco:\n\nhttps://sp-apoio-financeiro.vercel.app/whatsapp.html\n\nAgradecemos por escolher a *SP Apoio Financeiro*.\n\nAtenciosamente,\n*Equipe SP Apoio Financeiro*`,
       },
       {
         status: 'RECUSADO',
