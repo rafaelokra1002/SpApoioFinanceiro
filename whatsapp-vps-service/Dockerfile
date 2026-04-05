@@ -1,6 +1,5 @@
 FROM node:20-bookworm-slim
 
-ENV NODE_ENV=production
 ENV PUPPETEER_SKIP_DOWNLOAD=true
 ENV WHATSAPP_CHROME_PATH=/usr/bin/chromium
 
@@ -39,11 +38,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci
+RUN npm ci --include=dev
 
 COPY tsconfig.json ./
 COPY src ./src
 
 RUN npm run build && npm prune --omit=dev
+
+ENV NODE_ENV=production
 
 CMD ["npm", "start"]
