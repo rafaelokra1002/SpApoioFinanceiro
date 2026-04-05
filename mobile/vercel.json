@@ -1,6 +1,6 @@
 {
   "redirects": [
-    { "source": "/", "destination": "/credito", "permanent": false }
+    { "source": "/", "destination": "/credito-online", "permanent": false }
   ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
