@@ -21,7 +21,7 @@ const VARIABLES = ['{{nome}}', '{{valor}}', '{{telefone}}', '{{cidade}}', '{{ema
 
 const DEFAULT_TEMPLATES: Record<string, string> = {
   PENDENTE: `Olá *{{nome}}*, tudo bem?\n\nAqui é da *SP Apoio Financeiro*.\n\nRecebemos sua solicitação de crédito no valor de *{{valor}}*.\n\nSeu cadastro está *pendente de análise* e em breve nossa equipe irá avaliar.\n\nFique tranquilo(a), assim que tivermos uma atualização, entraremos em contato por aqui mesmo.\n\nQualquer dúvida, é só chamar!\n\nAtenciosamente,\n*Equipe SP Apoio Financeiro*`,
-  APROVADO: `Olá *{{nome}}*! Temos uma ótima notícia!\n\nSua solicitação de crédito no valor de *{{valor}}* foi *APROVADA*!\n\nParabéns! Nossa equipe entrará em contato para finalizar o processo com você.\n\n👉 Para dar continuidade, clique no link abaixo e fale conosco:\n\nhttps://wa.me/5571983024664\n\nAgradecemos por escolher a *SP Apoio Financeiro*.\n\nAtenciosamente,\n*Equipe SP Apoio Financeiro*`,
+  APROVADO: `Olá *{{nome}}*! Temos uma ótima notícia!\n\nSua solicitação de crédito no valor de *{{valor}}* foi *APROVADA*!\n\nParabéns! Nossa equipe entrará em contato para finalizar o processo com você.\n\n👉 Para dar continuidade, clique no link abaixo e fale conosco:\n\nhttps://api.whatsapp.com/send?phone=5571983024664\n\nAgradecemos por escolher a *SP Apoio Financeiro*.\n\nAtenciosamente,\n*Equipe SP Apoio Financeiro*`,
   RECUSADO: `Olá *{{nome}}*, tudo bem?\n\nApós análise da sua solicitação de crédito no valor de *{{valor}}*, infelizmente não foi possível aprovar o pedido neste momento.\n\nSe quiser, nossa equipe pode orientar você sobre uma nova tentativa futura.\n\nAtenciosamente,\n*Equipe SP Apoio Financeiro*`,
 };
 
