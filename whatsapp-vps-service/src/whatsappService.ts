@@ -1,3 +1,4 @@
+import { execFileSync } from 'child_process';
 import { Client, LocalAuth } from 'whatsapp-web.js';
 import QRCode from 'qrcode';
 import fs from 'fs';
@@ -36,9 +37,32 @@ class WhatsAppService {
     return this.status === 'connected';
   }
 
+  private resolveExecutable(command: string): string | undefined {
+    try {
+      const locator = process.platform === 'win32' ? 'where.exe' : 'which';
+      const output = execFileSync(locator, [command], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+      return output.split(/\r?\n/).map((line) => line.trim()).find(Boolean);
+    } catch {
+      return undefined;
+    }
+  }
+
   private findChrome(): string | undefined {
-    if (process.env.WHATSAPP_CHROME_PATH) {
-      return process.env.WHATSAPP_CHROME_PATH;
+    const envCandidates = [
+      process.env.WHATSAPP_CHROME_PATH,
+      process.env.PUPPETEER_EXECUTABLE_PATH,
+      process.env.CHROME_BIN,
+    ].filter((candidate): candidate is string => Boolean(candidate));
+
+    for (const candidate of envCandidates) {
+      if (fs.existsSync(candidate)) {
+        return candidate;
+      }
+
+      const resolved = this.resolveExecutable(candidate);
+      if (resolved) {
+        return resolved;
+      }
     }
 
     const chromePaths = [
@@ -51,7 +75,28 @@ class WhatsAppService {
       '/usr/bin/chromium',
     ];
 
-    return chromePaths.find((candidate) => fs.existsSync(candidate));
+    const existingPath = chromePaths.find((candidate) => fs.existsSync(candidate));
+    if (existingPath) {
+      return existingPath;
+    }
+
+    const commandCandidates = [
+      'google-chrome-stable',
+      'google-chrome',
+      'chromium-browser',
+      'chromium',
+      'chrome',
+      'msedge',
+    ];
+
+    for (const command of commandCandidates) {
+      const resolved = this.resolveExecutable(command);
+      if (resolved) {
+        return resolved;
+      }
+    }
+
+    return undefined;
   }
 
   private ensureSessionDir(): void {
