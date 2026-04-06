@@ -219,11 +219,11 @@ export function Documents() {
                 : 'Dados do trabalho'}
             </p>
             <InputField
-              placeholder={state.categoria === 'AUTONOMO' ? 'Profissão ou tipo de serviço' : state.categoria === 'BENEFICIARIO' ? 'Tipo de benefício recebido' : 'Nome da empresa (como está na fachada)'}
+              placeholder={state.categoria === 'AUTONOMO' ? 'Profissão ou tipo de serviço (opcional)' : state.categoria === 'BENEFICIARIO' ? 'Tipo de benefício recebido (opcional)' : 'Nome da empresa (como está na fachada) (opcional)'}
               value={state.nomeEmpresa} onChange={v => dispatch({ type: 'SET_FIELD', field: 'nomeEmpresa', value: v })} />
             {state.categoria !== 'BENEFICIARIO' && (
               <InputField
-                placeholder={state.categoria === 'AUTONOMO' ? 'Onde atende (casa, salão, online, etc.)' : 'Bairro, local onde trabalha'}
+                placeholder={state.categoria === 'AUTONOMO' ? 'Onde atende (casa, salão, online, etc.) (opcional)' : 'Bairro, local onde trabalha (opcional)'}
                 value={state.bairroTrabalho} onChange={v => dispatch({ type: 'SET_FIELD', field: 'bairroTrabalho', value: v })} />
             )}
           </div>
