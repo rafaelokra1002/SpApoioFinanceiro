@@ -89,6 +89,8 @@ export async function handleCreateLeadWithDocs(
       telefone: body.telefone,
       cpf: body.cpf || undefined,
       email: body.email || undefined,
+      instagram: body.instagram || undefined,
+      renda: body.renda || undefined,
       valorSolicitado: parseFloat(body.valorSolicitado) || 0,
       valorTotal: parseFloat(body.valorTotal) || 0,
       cidade: body.cidade || '',
