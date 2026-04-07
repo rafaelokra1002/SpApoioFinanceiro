@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Lead } from '../types';
-import { X, CheckCircle, XCircle, Trash2, MessageCircle, ExternalLink, Clock } from 'lucide-react';
+import { X, CheckCircle, XCircle, Trash2, MessageCircle, ExternalLink, Clock, Download, Loader2 } from 'lucide-react';
 import { fetchMessageLogs } from '../services/api';
+import { downloadLeadDossier } from '../utils/leadDossier';
 
 interface MessageLog {
   id: string;
@@ -24,6 +25,7 @@ function formatCurrency(value: number) {
 
 export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, onWhatsApp }: LeadDetailProps) {
   const [logs, setLogs] = useState<MessageLog[]>([]);
+  const [downloadingDossier, setDownloadingDossier] = useState(false);
 
   useEffect(() => {
     fetchMessageLogs(lead.id).then(res => {
@@ -45,6 +47,18 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
     lead.nomeEmpresa ? { label: 'Empresa', value: lead.nomeEmpresa } : null,
     lead.bairroTrabalho ? { label: 'Bairro Trab.', value: lead.bairroTrabalho } : null,
   ].filter(Boolean) as { label: string; value: string; highlight?: boolean; bold?: boolean }[];
+
+  const handleDownloadDossier = async () => {
+    try {
+      setDownloadingDossier(true);
+      await downloadLeadDossier(lead, logs);
+    } catch (error) {
+      console.error('Erro ao gerar dossiê:', error);
+      alert('Não foi possível gerar o dossiê deste lead.');
+    } finally {
+      setDownloadingDossier(false);
+    }
+  };
 
   return (
     <div className="w-[360px] bg-white rounded-2xl shadow-sm border border-gray-100 self-start sticky top-6 overflow-hidden">
@@ -131,6 +145,14 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
 
       {/* Actions */}
       <div className="px-5 pb-5 space-y-2">
+        <button
+          onClick={handleDownloadDossier}
+          disabled={downloadingDossier}
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary-light text-white text-[13px] font-bold hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer disabled:cursor-wait disabled:opacity-70"
+        >
+          {downloadingDossier ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+          {downloadingDossier ? 'Gerando dossiê...' : 'Baixar Dossiê para Análise'}
+        </button>
         <div className="flex gap-2">
           <button
             onClick={() => onStatusChange(lead.id, 'APROVADO')}
