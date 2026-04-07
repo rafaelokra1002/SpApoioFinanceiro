@@ -103,14 +103,20 @@ function DocumentosInfoModal() {
     <Modal onClose={() => dispatch({ type: 'SHOW_MODAL', modal: 'documentosInfo', show: false })}>
       <h2 style={modalTitle}>Documentos Necessários</h2>
       <p style={modalSubtitle}>Veja os documentos para cada categoria.</p>
-      {CATEGORIES.slice(0, 5).map(cat => {
+      {CATEGORIES.map(cat => {
         const docs = DOCUMENT_TYPES[cat.value] || [];
+        const extraItems = cat.value === 'SEM_COMPROVACAO'
+          ? ['Dados de renda: Trabalha com quê atualmente?']
+          : [];
         return (
           <div key={cat.value} style={{ marginBottom: 16 }}>
             <h3 style={{ fontSize: 14, fontWeight: 700, color: '#0d2b5e', marginBottom: 6 }}>{cat.label}</h3>
             <ul style={{ paddingLeft: 18, margin: 0 }}>
               {docs.map(d => (
                 <li key={d.key} style={{ fontSize: 13, color: '#4b5563', marginBottom: 3 }}>{d.label}</li>
+              ))}
+              {extraItems.map(item => (
+                <li key={item} style={{ fontSize: 13, color: '#4b5563', marginBottom: 3 }}>{item}</li>
               ))}
             </ul>
           </div>
