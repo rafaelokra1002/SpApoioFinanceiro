@@ -5,6 +5,7 @@ import { AppError } from '../middleware/errorHandler';
 import { ApiResponse } from '../types';
 
 function getBaseUrl(req: Request): string {
+  if (process.env.BASE_URL) return process.env.BASE_URL;
   const forwardedProto = req.header('x-forwarded-proto');
   const protocol = forwardedProto || req.protocol;
   return `${protocol}://${req.get('host')}`;
