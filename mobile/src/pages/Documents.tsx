@@ -93,9 +93,9 @@ export function Documents() {
 
   return (
     <div style={{ padding: '24px 20px 24px', minHeight: 'calc(100vh - 56px)' }}>
-      <input ref={fileInputRef} type="file" accept="image/*" capture="environment"
+      <input ref={fileInputRef} type="file" accept="image/*,application/pdf" capture="environment"
         onChange={handleFileSelect} style={{ display: 'none' }} />
-      <input ref={galleryInputRef} type="file" accept="image/*"
+      <input ref={galleryInputRef} type="file" accept="image/*,application/pdf"
         onChange={handleFileSelect} style={{ display: 'none' }} />
       <input ref={pdfInputRef} type="file" accept="application/pdf"
         onChange={handleFileSelect} style={{ display: 'none' }} />
