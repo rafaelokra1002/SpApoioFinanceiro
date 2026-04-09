@@ -25,7 +25,7 @@ const fileFilter = (
   file: Express.Multer.File,
   cb: multer.FileFilterCallback
 ) => {
-  const allowedTypes = [
+  const allowedMimeTypes = [
     'image/jpeg',
     'image/jpg',
     'image/png',
@@ -33,7 +33,10 @@ const fileFilter = (
     'application/pdf',
   ];
 
-  if (allowedTypes.includes(file.mimetype)) {
+  const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.pdf'];
+  const ext = path.extname(file.originalname).toLowerCase();
+
+  if (allowedMimeTypes.includes(file.mimetype) || allowedExtensions.includes(ext)) {
     cb(null, true);
   } else {
     cb(new Error('Tipo de arquivo não permitido. Use JPEG, PNG, WebP ou PDF.'));

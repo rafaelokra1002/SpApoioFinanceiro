@@ -1,7 +1,7 @@
 const API_BASE = import.meta.env.VITE_API_BASE || (
   import.meta.env.DEV
     ? 'http://localhost:3001/api'
-    : 'https://spapoiofinanceiro.onrender.com/api'
+    : 'https://api.spapoiofinanceiro.com/api'
 );
 
 export async function fetchLeads(status?: string) {
