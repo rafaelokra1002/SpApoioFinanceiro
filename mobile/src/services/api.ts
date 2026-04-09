@@ -23,7 +23,8 @@ export async function submitLeadWithDocuments(
       if (value !== undefined && value !== null) formData.append(key, String(value));
     });
     documents.forEach((doc) => {
-      formData.append('documentos', doc.file, `${doc.tipo}.jpg`);
+      const ext = doc.file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      formData.append('documentos', doc.file, `${doc.tipo}.${ext}`);
     });
 
     const res = await fetch(`${API_BASE}/lead/complete`, {
