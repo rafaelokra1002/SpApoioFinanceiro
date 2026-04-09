@@ -91,26 +91,39 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
             📄 Documentos ({lead.documentos.length})
           </h4>
           <div className="grid grid-cols-2 gap-2">
-            {lead.documentos.map((doc) => (
-              <a
-                key={doc.id}
-                href={doc.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex flex-col bg-gray-50 rounded-xl overflow-hidden hover:shadow-md transition-all"
-              >
-                <img
-                  src={doc.url}
-                  alt={doc.tipo}
-                  className="w-full h-20 object-cover"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                />
-                <div className="flex items-center justify-between px-2 py-1.5">
-                  <span className="text-[10px] text-gray-500 truncate">{doc.tipo}</span>
-                  <ExternalLink size={10} className="text-gray-300 group-hover:text-primary-light" />
-                </div>
-              </a>
-            ))}
+            {lead.documentos.map((doc) => {
+              const isPdf = doc.url?.toLowerCase().endsWith('.pdf') || doc.filename?.toLowerCase().endsWith('.pdf');
+              return (
+                <a
+                  key={doc.id}
+                  href={doc.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex flex-col bg-gray-50 rounded-xl overflow-hidden hover:shadow-md transition-all"
+                >
+                  {isPdf ? (
+                    <div className="w-full h-20 flex flex-col items-center justify-center bg-red-50 text-red-500">
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                        <rect x="5" y="3" width="14" height="18" rx="2" />
+                        <path d="M9 8h6M9 12h6M9 16h3" />
+                      </svg>
+                      <span className="text-[10px] font-bold mt-1">PDF</span>
+                    </div>
+                  ) : (
+                    <img
+                      src={doc.url}
+                      alt={doc.tipo}
+                      className="w-full h-20 object-cover"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
+                  )}
+                  <div className="flex items-center justify-between px-2 py-1.5">
+                    <span className="text-[10px] text-gray-500 truncate">{doc.tipo}</span>
+                    <ExternalLink size={10} className="text-gray-300 group-hover:text-primary-light" />
+                  </div>
+                </a>
+              );
+            })}
           </div>
         </div>
       )}
