@@ -11,39 +11,39 @@ export function Home() {
       alignItems: 'center',
       overflow: 'hidden',
     }}>
-      {/* Character Image */}
+      {/* Character Image + Title overlay */}
       <div style={{
         width: '100%', display: 'flex', justifyContent: 'center',
         marginBottom: 0, position: 'relative',
       }}>
+        <img
+          src="/personagem.png"
+          alt="SP Empréstimos"
+          style={{
+            width: '100%',
+            objectFit: 'contain',
+            display: 'block',
+          }}
+        />
+        {/* Gradient fade at bottom of image */}
         <div style={{
-          width: '75%', maxWidth: 320, marginTop: 10,
-          borderRadius: 20,
-          background: 'radial-gradient(ellipse at center, rgba(15,35,80,0.9) 0%, rgba(10,25,60,0.95) 60%, transparent 100%)',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-          overflow: 'hidden',
+          position: 'absolute', bottom: 0, left: 0, right: 0,
+          height: '50%',
+          background: 'linear-gradient(to top, #0d2b5e 0%, transparent 100%)',
+          pointerEvents: 'none',
+        }} />
+        {/* Title overlaying bottom of image */}
+        <h1 style={{
+          position: 'absolute', bottom: 8,
+          color: '#fff', fontSize: 30, fontWeight: 900,
+          textAlign: 'center',
+          textShadow: '0 2px 12px rgba(0,0,0,0.5)',
+          letterSpacing: 0.5,
+          zIndex: 1,
         }}>
-          <img
-            src="/personagem.png"
-            alt="SP Empréstimos"
-            style={{
-              width: '100%',
-              objectFit: 'contain',
-              display: 'block',
-            }}
-          />
-        </div>
+          SP Empréstimos
+        </h1>
       </div>
-
-      {/* Title */}
-      <h1 style={{
-        color: '#fff', fontSize: 30, fontWeight: 900,
-        textAlign: 'center', marginBottom: 20,
-        textShadow: '0 2px 8px rgba(0,0,0,0.3)',
-        letterSpacing: 0.5,
-      }}>
-        SP Empréstimos
-      </h1>
 
       {/* Menu Buttons */}
       <div style={{
