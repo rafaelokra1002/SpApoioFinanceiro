@@ -63,11 +63,7 @@ export function Home() {
           label="Como Funciona"
           onClick={() => dispatch({ type: 'SHOW_MODAL', modal: 'comoFunciona', show: true })}
         />
-        <MenuButton
-          icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6M9 13h6M9 17h3"/></svg>}
-          label="Documentos Necessários"
-          onClick={() => dispatch({ type: 'SHOW_MODAL', modal: 'documentosInfo', show: true })}
-        />
+
         <MenuButton
           icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>}
           label="Dúvidas Frequentes"
