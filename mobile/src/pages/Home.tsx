@@ -21,7 +21,7 @@ export function Home() {
           src="/personagem.png"
           alt="SP Empréstimos"
           style={{
-            width: '55%', maxWidth: 220,
+            width: '75%', maxWidth: 300,
             objectFit: 'contain',
             display: 'block',
             marginTop: 0,
