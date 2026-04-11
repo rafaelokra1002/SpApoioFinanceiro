@@ -35,7 +35,7 @@ export function Home() {
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
         padding: '0 20px 20px',
-        paddingTop: '49vh',
+        paddingTop: '40vh',
       }}>
         {/* Title */}
         <h1 style={{

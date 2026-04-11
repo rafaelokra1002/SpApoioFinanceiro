@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useLoan } from '../context/LoanContext';
 import { DOCUMENT_TYPES } from '../constants/categories';
 import { submitLeadWithDocuments } from '../services/api';
@@ -118,14 +118,6 @@ export function Documents() {
         <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 12, paddingLeft: 40 }}>
           Envie as fotos abaixo para confirmar seu perfil.
         </p>
-        <div style={{
-          background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 10,
-          padding: '10px 14px', marginBottom: 22,
-        }}>
-          <p style={{ fontSize: 12, color: '#92400e', lineHeight: 1.5, margin: 0 }}>
-            📌 O comprovante de residência não precisa estar em seu nome, porém é necessário que você resida no endereço informado no documento.
-          </p>
-        </div>
 
         {/* Personal data */}
         <InputField label="Nome completo" placeholder="Seu nome completo"
@@ -144,7 +136,8 @@ export function Documents() {
           {docs.map(doc => {
             const uploaded = state.documents[doc.key];
             return (
-              <div key={doc.key} style={{
+              <React.Fragment key={doc.key}>
+              <div style={{
                 display: 'flex', alignItems: 'center', gap: 10,
                 padding: '11px 12px', borderRadius: 14,
                 border: uploaded ? '2px solid #2e8b57' : '1.5px solid #e5e7eb',
@@ -202,6 +195,17 @@ export function Documents() {
                   </div>
                 )}
               </div>
+              {doc.key === 'Comprovante de residência' && (
+                <div style={{
+                  background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 10,
+                  padding: '8px 12px',
+                }}>
+                  <p style={{ fontSize: 11, color: '#92400e', lineHeight: 1.5, margin: 0 }}>
+                    📌 O comprovante de residência não precisa estar em seu nome, porém é necessário que você resida no endereço informado no documento.
+                  </p>
+                </div>
+              )}
+              </React.Fragment>
             );
           })}
         </div>
