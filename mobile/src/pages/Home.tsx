@@ -9,6 +9,7 @@ export function Home() {
       background: 'linear-gradient(180deg, #091e42 0%, #0d2b5e 40%, #163a7a 100%)',
       display: 'flex', flexDirection: 'column',
       alignItems: 'center',
+      justifyContent: 'center',
       overflow: 'hidden',
     }}>
       {/* Character Image + Title overlay */}
