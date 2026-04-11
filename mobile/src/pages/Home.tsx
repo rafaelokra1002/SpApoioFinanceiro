@@ -21,7 +21,7 @@ export function Home() {
           src="/personagem.png"
           alt="SP Empréstimos"
           style={{
-            width: '80%', maxWidth: 340,
+            width: '60%', maxWidth: 250,
             objectFit: 'contain',
             display: 'block',
             marginTop: 0,
@@ -38,7 +38,7 @@ export function Home() {
         {/* Title overlaying bottom of image */}
         <h1 style={{
           position: 'absolute', bottom: 6,
-          color: '#fff', fontSize: 30, fontWeight: 900,
+          color: '#fff', fontSize: 26, fontWeight: 900,
           textAlign: 'center',
           textShadow: '0 2px 12px rgba(0,0,0,0.5)',
           letterSpacing: 0.5,
@@ -50,8 +50,8 @@ export function Home() {
 
       {/* Menu Buttons */}
       <div style={{
-        display: 'flex', flexDirection: 'column', gap: 10,
-        width: '100%', padding: '0 20px', marginBottom: 16,
+        display: 'flex', flexDirection: 'column', gap: 8,
+        width: '100%', padding: '0 20px', marginBottom: 8,
       }}>
         <MenuButton
           icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h5"/><circle cx="15" cy="16" r="3"/><path d="M15 14v4M13 16h4"/></svg>}
@@ -79,7 +79,7 @@ export function Home() {
       {/* Bottom text */}
       <p style={{
         color: 'rgba(255,255,255,0.6)', fontSize: 13, textAlign: 'center',
-        lineHeight: 1.5, paddingBottom: 20, paddingTop: 10,
+        lineHeight: 1.5, paddingBottom: 12, paddingTop: 6,
         fontStyle: 'italic',
       }}>
         Simule & descubra as melhores<br/>condições para você!
@@ -92,7 +92,7 @@ function MenuButton({ icon, label, onClick, highlight }: { icon: React.ReactNode
   return (
     <button onClick={onClick} style={{
       display: 'flex', alignItems: 'center', gap: 14, width: '100%',
-      padding: '14px 16px', borderRadius: 14,
+      padding: '12px 16px', borderRadius: 14,
       background: highlight
         ? 'linear-gradient(135deg, #1a4fc9 0%, #2563eb 50%, #3b82f6 100%)'
         : 'rgba(255,255,255,0.10)',
