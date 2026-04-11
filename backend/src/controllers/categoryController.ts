@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+﻿import { Request, Response, NextFunction } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { ApiResponse } from '../types';
 
@@ -49,7 +49,7 @@ export async function handleCreateCategory(
     const { value, label, icon, order, documents } = req.body;
 
     if (!value || !label) {
-      res.status(400).json({ success: false, error: 'value e label são obrigatórios' });
+      res.status(400).json({ success: false, error: 'value e label sÃ£o obrigatÃ³rios' });
       return;
     }
 
@@ -57,7 +57,7 @@ export async function handleCreateCategory(
       data: {
         value: value.toUpperCase().replace(/\s+/g, '_'),
         label,
-        icon: icon || '📋',
+        icon: icon || 'ðŸ“‹',
         order: order ?? 0,
         documents: documents?.length
           ? {
@@ -65,7 +65,7 @@ export async function handleCreateCategory(
                 key: doc.key,
                 label: doc.label,
                 description: doc.description || '',
-                icon: doc.icon || '📄',
+                icon: doc.icon || 'ðŸ“„',
                 order: i,
               })),
             }
@@ -133,7 +133,7 @@ export async function handleAddDocument(
     const { key, label, description, icon, order } = req.body;
 
     if (!key || !label) {
-      res.status(400).json({ success: false, error: 'key e label são obrigatórios' });
+      res.status(400).json({ success: false, error: 'key e label sÃ£o obrigatÃ³rios' });
       return;
     }
 
@@ -143,7 +143,7 @@ export async function handleAddDocument(
         key,
         label,
         description: description || '',
-        icon: icon || '📄',
+        icon: icon || 'ðŸ“„',
         order: order ?? 0,
       },
     });
@@ -205,62 +205,62 @@ export async function handleSeedCategories(
   try {
     const existing = await prisma.category.count();
     if (existing > 0) {
-      res.json({ success: true, message: 'Categorias já existem, seed ignorado' });
+      res.json({ success: true, message: 'Categorias jÃ¡ existem, seed ignorado' });
       return;
     }
 
     const categories = [
       {
-        value: 'CARTEIRA_ASSINADA', label: 'Carteira Assinada', icon: '👔', order: 0,
+        value: 'CARTEIRA_ASSINADA', label: 'Carteira Assinada', icon: 'ðŸ‘”', order: 0,
         documents: [
-          { key: 'RG ou CNH (frente e verso)', label: 'RG ou CNH (frente e verso)', description: 'Documento de identificação', icon: '🪪' },
-          { key: 'Selfie (rosto)', label: 'Selfie (rosto nítido)', description: 'Sem filtro, rosto bem visível', icon: '📷' },
-          { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz – últimos 2 meses', icon: '🏠' },
-          { key: 'Carteira de trabalho digital', label: 'Carteira de trabalho digital (PDF)', description: 'Envie em formato PDF', icon: '💼' },
+          { key: 'RG ou CNH (frente e verso)', label: 'RG ou CNH (frente e verso)', description: 'Documento de identificaÃ§Ã£o', icon: 'ðŸªª' },
+          { key: 'Selfie (rosto)', label: 'Selfie (rosto nÃ­tido)', description: 'Sem filtro, rosto bem visÃ­vel', icon: 'ðŸ“·' },
+          { key: 'Comprovante de residÃªncia', label: 'Comprovante de residÃªncia', description: 'Ãgua ou luz â€“ Ãºltimos 2 meses', icon: 'ðŸ ' },
+          { key: 'Carteira de trabalho digital', label: 'Carteira de trabalho digital (PDF)', description: 'Envie em formato PDF', icon: 'ðŸ’¼' },
         ],
       },
       {
-        value: 'CLT_SEM_REGISTRO', label: 'CLT sem Registro', icon: '📝', order: 1,
+        value: 'CLT_SEM_REGISTRO', label: 'CLT sem Registro', icon: 'ðŸ“', order: 1,
         documents: [
-          { key: 'RG ou CNH (frente e verso)', label: 'RG ou CNH (frente e verso)', description: 'Documento de identificação', icon: '🪪' },
-          { key: 'Selfie (rosto)', label: 'Selfie (rosto nítido)', description: 'Sem filtro, rosto bem visível', icon: '📷' },
-          { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz – últimos 2 meses', icon: '🏠' },
-          { key: 'Extrato bancário (últimos 30 dias) ou comprovante do último pagamento', label: 'Extrato bancário (últimos 30 dias) ou comprovante do último pagamento', description: 'Envie uma das duas opções', icon: '📄' },
+          { key: 'RG ou CNH (frente e verso)', label: 'RG ou CNH (frente e verso)', description: 'Documento de identificaÃ§Ã£o', icon: 'ðŸªª' },
+          { key: 'Selfie (rosto)', label: 'Selfie (rosto nÃ­tido)', description: 'Sem filtro, rosto bem visÃ­vel', icon: 'ðŸ“·' },
+          { key: 'Comprovante de residÃªncia', label: 'Comprovante de residÃªncia', description: 'Ãgua ou luz â€“ Ãºltimos 2 meses', icon: 'ðŸ ' },
+          { key: 'Extrato bancÃ¡rio (Ãºltimos 30 dias) ou comprovante do Ãºltimo pagamento', label: 'Extrato bancÃ¡rio (Ãºltimos 30 dias) ou comprovante do Ãºltimo pagamento', description: 'Envie uma das duas opÃ§Ãµes', icon: 'ðŸ“„' },
         ],
       },
       {
-        value: 'AUTONOMO', label: 'Autônomo', icon: '🔧', order: 2,
+        value: 'AUTONOMO', label: 'AutÃ´nomo', icon: 'ðŸ”§', order: 2,
         documents: [
-          { key: 'RG ou CNH (frente e verso)', label: 'RG ou CNH (frente e verso)', description: 'Documento de identificação', icon: '🪪' },
-          { key: 'Selfie (rosto)', label: 'Selfie (rosto nítido)', description: 'Sem filtro, rosto bem visível', icon: '📷' },
-          { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz – últimos 2 meses', icon: '🏠' },
-          { key: 'Extrato bancário', label: 'Extrato bancário (últimos 30 dias)', description: 'Extrato completo do último mês', icon: '📄' },
+          { key: 'RG ou CNH (frente e verso)', label: 'RG ou CNH (frente e verso)', description: 'Documento de identificaÃ§Ã£o', icon: 'ðŸªª' },
+          { key: 'Selfie (rosto)', label: 'Selfie (rosto nÃ­tido)', description: 'Sem filtro, rosto bem visÃ­vel', icon: 'ðŸ“·' },
+          { key: 'Comprovante de residÃªncia', label: 'Comprovante de residÃªncia', description: 'Ãgua ou luz â€“ Ãºltimos 2 meses', icon: 'ðŸ ' },
+          { key: 'Extrato bancÃ¡rio', label: 'Extrato bancÃ¡rio (Ãºltimos 30 dias)', description: 'Extrato completo do Ãºltimo mÃªs', icon: 'ðŸ“„' },
         ],
       },
       {
-        value: 'BENEFICIARIO', label: 'Beneficiário', icon: '📋', order: 3,
+        value: 'BENEFICIARIO', label: 'BeneficiÃ¡rio', icon: 'ðŸ“‹', order: 3,
         documents: [
-          { key: 'RG ou CNH (frente e verso)', label: 'RG ou CNH (frente e verso)', description: 'Documento de identificação', icon: '🪪' },
-          { key: 'Selfie (rosto)', label: 'Selfie (rosto nítido)', description: 'Sem filtro, rosto bem visível', icon: '📷' },
-          { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz – últimos 2 meses', icon: '🏠' },
-          { key: 'Extrato bancário', label: 'Extrato bancário (últimos 30 dias)', description: 'Print do app com nome e valor visível', icon: '📄' },
+          { key: 'RG ou CNH (frente e verso)', label: 'RG ou CNH (frente e verso)', description: 'Documento de identificaÃ§Ã£o', icon: 'ðŸªª' },
+          { key: 'Selfie (rosto)', label: 'Selfie (rosto nÃ­tido)', description: 'Sem filtro, rosto bem visÃ­vel', icon: 'ðŸ“·' },
+          { key: 'Comprovante de residÃªncia', label: 'Comprovante de residÃªncia', description: 'Ãgua ou luz â€“ Ãºltimos 2 meses', icon: 'ðŸ ' },
+          { key: 'Extrato bancÃ¡rio', label: 'Extrato bancÃ¡rio (Ãºltimos 30 dias)', description: 'Print do app com nome e valor visÃ­vel', icon: 'ðŸ“„' },
         ],
       },
       {
-        value: 'ESTAGIARIO', label: 'Estagiário', icon: '🎓', order: 4,
+        value: 'ESTAGIARIO', label: 'EstagiÃ¡rio', icon: 'ðŸŽ“', order: 4,
         documents: [
-          { key: 'RG ou CNH (frente e verso)', label: 'RG ou CNH (frente e verso)', description: 'Documento de identificação', icon: '🪪' },
-          { key: 'Selfie (rosto)', label: 'Selfie (rosto nítido)', description: 'Sem filtro, rosto bem visível', icon: '📷' },
-          { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz – últimos 2 meses', icon: '🏠' },
-          { key: 'Contrato de estágio ou comprovante do último pagamento', label: 'Contrato de estágio ou comprovante do último pagamento', description: 'Envie uma das duas opções', icon: '📄' },
+          { key: 'RG ou CNH (frente e verso)', label: 'RG ou CNH (frente e verso)', description: 'Documento de identificaÃ§Ã£o', icon: 'ðŸªª' },
+          { key: 'Selfie (rosto)', label: 'Selfie (rosto nÃ­tido)', description: 'Sem filtro, rosto bem visÃ­vel', icon: 'ðŸ“·' },
+          { key: 'Comprovante de residÃªncia', label: 'Comprovante de residÃªncia', description: 'Ãgua ou luz â€“ Ãºltimos 2 meses', icon: 'ðŸ ' },
+          { key: 'Contrato de estÃ¡gio ou comprovante do Ãºltimo pagamento', label: 'Contrato de estÃ¡gio ou comprovante do Ãºltimo pagamento', description: 'Envie uma das duas opÃ§Ãµes', icon: 'ðŸ“„' },
         ],
       },
       {
-        value: 'SEM_COMPROVACAO', label: 'Não Precisa Comprovar Renda', icon: '❌', order: 5,
+        value: 'SEM_COMPROVACAO', label: 'NÃ£o Precisa Comprovar Renda', icon: 'âŒ', order: 5,
         documents: [
-          { key: 'RG ou CNH (frente e verso)', label: 'RG ou CNH (frente e verso)', description: 'Documento de identificação', icon: '🪪' },
-          { key: 'Selfie (rosto)', label: 'Selfie (rosto nítido)', description: 'Sem filtro, rosto bem visível', icon: '📷' },
-          { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz – últimos 2 meses', icon: '🏠' },
+          { key: 'RG ou CNH (frente e verso)', label: 'RG ou CNH (frente e verso)', description: 'Documento de identificaÃ§Ã£o', icon: 'ðŸªª' },
+          { key: 'Selfie (rosto)', label: 'Selfie (rosto nÃ­tido)', description: 'Sem filtro, rosto bem visÃ­vel', icon: 'ðŸ“·' },
+          { key: 'Comprovante de residÃªncia', label: 'Comprovante de residÃªncia', description: 'Ãgua ou luz â€“ Ãºltimos 2 meses', icon: 'ðŸ ' },
         ],
       },
     ];

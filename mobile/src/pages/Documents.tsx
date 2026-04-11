@@ -12,6 +12,7 @@ export function Documents() {
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const pdfInputRef = useRef<HTMLInputElement>(null);
   const [currentDocKey, setCurrentDocKey] = useState('');
+  const [showTip, setShowTip] = useState<string | null>(null);
 
   const docs = DOCUMENT_TYPES[state.categoria] || DOCUMENT_TYPES['CARTEIRA_ASSINADA'];
   const showWorkFields = ['CARTEIRA_ASSINADA', 'CLT_SEM_REGISTRO', 'AUTONOMO', 'BENEFICIARIO', 'ESTAGIARIO', 'SEM_COMPROVACAO', 'COM_GARANTIA'].includes(state.categoria);
@@ -152,6 +153,16 @@ export function Documents() {
                   {doc.description !== doc.label && (
                     <div style={{ fontSize: 11, color: '#6b7280', marginTop: 1 }}>{doc.description}</div>
                   )}
+                  {doc.key === 'Carteira de trabalho digital' && (
+                    <div style={{ fontSize: 10, color: '#c0392b', marginTop: 3, fontWeight: 600 }}>
+                      ⚠️ Envie a Carteira de Trabalho em PDF
+                    </div>
+                  )}
+                  {doc.key === 'Comprovante de residência' && (
+                    <div style={{ fontSize: 10, color: '#92400e', marginTop: 3, fontWeight: 600 }}>
+                      ⚠️ Não precisa estar em seu nome, basta residir no endereço informado
+                    </div>
+                  )}
                 </div>
                 {uploaded ? (
                   <div style={{
@@ -195,16 +206,6 @@ export function Documents() {
                   </div>
                 )}
               </div>
-              {doc.key === 'Comprovante de residência' && (
-                <div style={{
-                  background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 10,
-                  padding: '8px 12px',
-                }}>
-                  <p style={{ fontSize: 11, color: '#92400e', lineHeight: 1.5, margin: 0 }}>
-                    📌 O comprovante de residência não precisa estar em seu nome, porém é necessário que você resida no endereço informado no documento.
-                  </p>
-                </div>
-              )}
               </React.Fragment>
             );
           })}
