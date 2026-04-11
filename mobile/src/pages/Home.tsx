@@ -16,15 +16,23 @@ export function Home() {
         width: '100%', display: 'flex', justifyContent: 'center',
         marginBottom: 0, position: 'relative',
       }}>
-        <img
-          src="/personagem.png"
-          alt="SP Empréstimos"
-          style={{
-            width: '75%', maxWidth: 320,
-            objectFit: 'contain',
-            marginTop: 10,
-          }}
-        />
+        <div style={{
+          width: '75%', maxWidth: 320, marginTop: 10,
+          borderRadius: 20,
+          background: 'radial-gradient(ellipse at center, rgba(15,35,80,0.9) 0%, rgba(10,25,60,0.95) 60%, transparent 100%)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+          overflow: 'hidden',
+        }}>
+          <img
+            src="/personagem.png"
+            alt="SP Empréstimos"
+            style={{
+              width: '100%',
+              objectFit: 'contain',
+              display: 'block',
+            }}
+          />
+        </div>
       </div>
 
       {/* Title */}
