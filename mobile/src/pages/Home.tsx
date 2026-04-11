@@ -24,34 +24,14 @@ export function Home() {
             objectFit: 'contain',
             display: 'block',
             marginTop: 16,
+            mixBlendMode: 'lighten',
           }}
         />
-        {/* Gradient fade at top of image */}
-        <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0,
-          height: '30%',
-          background: 'linear-gradient(to bottom, #091e42 0%, transparent 100%)',
-          pointerEvents: 'none',
-        }} />
-        {/* Gradient fade at left */}
-        <div style={{
-          position: 'absolute', top: 0, left: 0, bottom: 0,
-          width: '25%',
-          background: 'linear-gradient(to right, #0a2040 0%, transparent 100%)',
-          pointerEvents: 'none',
-        }} />
-        {/* Gradient fade at right */}
-        <div style={{
-          position: 'absolute', top: 0, right: 0, bottom: 0,
-          width: '25%',
-          background: 'linear-gradient(to left, #0a2040 0%, transparent 100%)',
-          pointerEvents: 'none',
-        }} />
         {/* Gradient fade at bottom of image */}
         <div style={{
           position: 'absolute', bottom: 0, left: 0, right: 0,
-          height: '50%',
-          background: 'linear-gradient(to top, #0d2b5e 2%, rgba(13,43,94,0.6) 40%, transparent 100%)',
+          height: '40%',
+          background: 'linear-gradient(to top, #0d2b5e 2%, transparent 100%)',
           pointerEvents: 'none',
         }} />
         {/* Title overlaying bottom of image */}
