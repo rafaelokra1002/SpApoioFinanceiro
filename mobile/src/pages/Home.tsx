@@ -15,7 +15,7 @@ export function Home() {
       {/* Character Image + Title overlay */}
       <div style={{
         width: '100%', display: 'flex', justifyContent: 'center',
-        marginBottom: 2, position: 'relative',
+        marginBottom: -30, position: 'relative',
       }}>
         <img
           src="/personagem.png"
