@@ -21,7 +21,7 @@ export function Home() {
           src="/personagem.png"
           alt="SP Empréstimos"
           style={{
-            width: '60%', maxWidth: 250,
+            width: '55%', maxWidth: 220,
             objectFit: 'contain',
             display: 'block',
             marginTop: 0,
@@ -50,8 +50,8 @@ export function Home() {
 
       {/* Menu Buttons */}
       <div style={{
-        display: 'flex', flexDirection: 'column', gap: 8,
-        width: '100%', padding: '0 20px', marginBottom: 8,
+        display: 'flex', flexDirection: 'column', gap: 6,
+        width: '100%', padding: '0 20px', marginBottom: 4,
       }}>
         <MenuButton
           icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h5"/><circle cx="15" cy="16" r="3"/><path d="M15 14v4M13 16h4"/></svg>}
@@ -92,7 +92,7 @@ function MenuButton({ icon, label, onClick, highlight }: { icon: React.ReactNode
   return (
     <button onClick={onClick} style={{
       display: 'flex', alignItems: 'center', gap: 14, width: '100%',
-      padding: '12px 16px', borderRadius: 14,
+      padding: '11px 16px', borderRadius: 14,
       background: highlight
         ? 'linear-gradient(135deg, #1a4fc9 0%, #2563eb 50%, #3b82f6 100%)'
         : 'rgba(255,255,255,0.10)',
