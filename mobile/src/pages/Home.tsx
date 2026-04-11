@@ -14,29 +14,29 @@ export function Home() {
       {/* Character Image + Title overlay */}
       <div style={{
         width: '100%', display: 'flex', justifyContent: 'center',
-        marginBottom: 6, position: 'relative',
+        marginBottom: 2, position: 'relative',
       }}>
         <img
           src="/personagem.png"
           alt="SP Empréstimos"
           style={{
-            width: '65%', maxWidth: 280,
+            width: '80%', maxWidth: 340,
             objectFit: 'contain',
             display: 'block',
-            marginTop: 16,
+            marginTop: 0,
             mixBlendMode: 'lighten',
           }}
         />
         {/* Gradient fade at bottom of image */}
         <div style={{
           position: 'absolute', bottom: 0, left: 0, right: 0,
-          height: '40%',
-          background: 'linear-gradient(to top, #0d2b5e 2%, transparent 100%)',
+          height: '45%',
+          background: 'linear-gradient(to top, #0d2b5e 5%, transparent 100%)',
           pointerEvents: 'none',
         }} />
         {/* Title overlaying bottom of image */}
         <h1 style={{
-          position: 'absolute', bottom: -4,
+          position: 'absolute', bottom: 6,
           color: '#fff', fontSize: 30, fontWeight: 900,
           textAlign: 'center',
           textShadow: '0 2px 12px rgba(0,0,0,0.5)',
