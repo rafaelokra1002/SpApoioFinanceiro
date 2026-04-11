@@ -14,7 +14,7 @@ export function Home() {
       {/* Character Image + Title overlay */}
       <div style={{
         width: '100%', display: 'flex', justifyContent: 'center',
-        marginBottom: 0, position: 'relative',
+        marginBottom: 6, position: 'relative',
       }}>
         <img
           src="/personagem.png"
@@ -29,13 +29,13 @@ export function Home() {
         {/* Gradient fade at bottom of image */}
         <div style={{
           position: 'absolute', bottom: 0, left: 0, right: 0,
-          height: '40%',
-          background: 'linear-gradient(to top, #0d2b5e 5%, transparent 100%)',
+          height: '50%',
+          background: 'linear-gradient(to top, #0d2b5e 2%, rgba(13,43,94,0.6) 40%, transparent 100%)',
           pointerEvents: 'none',
         }} />
         {/* Title overlaying bottom of image */}
         <h1 style={{
-          position: 'absolute', bottom: 0,
+          position: 'absolute', bottom: -4,
           color: '#fff', fontSize: 30, fontWeight: 900,
           textAlign: 'center',
           textShadow: '0 2px 12px rgba(0,0,0,0.5)',
@@ -49,7 +49,7 @@ export function Home() {
       {/* Menu Buttons */}
       <div style={{
         display: 'flex', flexDirection: 'column', gap: 10,
-        width: '100%', padding: '0 20px', marginBottom: 20,
+        width: '100%', padding: '0 20px', marginBottom: 16,
       }}>
         <MenuButton
           icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h5"/><circle cx="15" cy="16" r="3"/><path d="M15 14v4M13 16h4"/></svg>}
@@ -77,7 +77,7 @@ export function Home() {
       {/* Bottom text */}
       <p style={{
         color: 'rgba(255,255,255,0.6)', fontSize: 13, textAlign: 'center',
-        lineHeight: 1.5, marginTop: 'auto', paddingBottom: 24,
+        lineHeight: 1.5, paddingBottom: 20, paddingTop: 10,
         fontStyle: 'italic',
       }}>
         Simule & descubra as melhores<br/>condições para você!
