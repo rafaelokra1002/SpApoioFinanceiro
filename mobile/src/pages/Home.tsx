@@ -6,53 +6,52 @@ export function Home() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(180deg, #091e42 0%, #0d2b5e 40%, #163a7a 100%)',
-      display: 'flex', flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
+      position: 'relative',
       overflow: 'hidden',
+      background: '#091e42',
     }}>
-      {/* Character Image + Title overlay */}
+      {/* Background image - full screen */}
+      <img
+        src="/personagem.png"
+        alt=""
+        style={{
+          position: 'absolute', top: 0, left: 0,
+          width: '100%', height: '60%',
+          objectFit: 'cover',
+          objectPosition: 'top center',
+        }}
+      />
+      {/* Dark overlay gradient - only fades bottom of image */}
       <div style={{
-        width: '100%', display: 'flex', justifyContent: 'center',
-        marginBottom: -30, position: 'relative',
+        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+        background: 'linear-gradient(180deg, transparent 0%, transparent 30%, #091e42 58%)',
+        pointerEvents: 'none',
+      }} />
+
+      {/* Content on top */}
+      <div style={{
+        position: 'relative', zIndex: 1,
+        minHeight: '100vh',
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        padding: '0 20px 20px',
+        paddingTop: '49vh',
       }}>
-        <img
-          src="/personagem.png"
-          alt="SP Empréstimos"
-          style={{
-            width: '75%', maxWidth: 300,
-            objectFit: 'contain',
-            display: 'block',
-            marginTop: 0,
-            mixBlendMode: 'lighten',
-          }}
-        />
-        {/* Gradient fade at bottom of image */}
-        <div style={{
-          position: 'absolute', bottom: 0, left: 0, right: 0,
-          height: '45%',
-          background: 'linear-gradient(to top, #0d2b5e 5%, transparent 100%)',
-          pointerEvents: 'none',
-        }} />
-        {/* Title overlaying bottom of image */}
+        {/* Title */}
         <h1 style={{
-          position: 'absolute', bottom: 6,
-          color: '#fff', fontSize: 26, fontWeight: 900,
-          textAlign: 'center',
+          color: '#fff', fontSize: 28, fontWeight: 900,
+          textAlign: 'center', marginBottom: 16,
           textShadow: '0 2px 12px rgba(0,0,0,0.5)',
           letterSpacing: 0.5,
-          zIndex: 1,
         }}>
           SP Empréstimos
         </h1>
-      </div>
 
-      {/* Menu Buttons */}
-      <div style={{
-        display: 'flex', flexDirection: 'column', gap: 6,
-        width: '100%', padding: '0 20px', marginBottom: 4,
-      }}>
+        {/* Menu Buttons */}
+        <div style={{
+          display: 'flex', flexDirection: 'column', gap: 8,
+          width: '100%', marginBottom: 10,
+        }}>
         <MenuButton
           icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h5"/><circle cx="15" cy="16" r="3"/><path d="M15 14v4M13 16h4"/></svg>}
           label="Simulação de Empréstimo"
@@ -76,14 +75,15 @@ export function Home() {
         />
       </div>
 
-      {/* Bottom text */}
-      <p style={{
-        color: 'rgba(255,255,255,0.6)', fontSize: 13, textAlign: 'center',
-        lineHeight: 1.5, paddingBottom: 12, paddingTop: 6,
-        fontStyle: 'italic',
-      }}>
-        Simule & descubra as melhores<br/>condições para você!
-      </p>
+        {/* Bottom text */}
+        <p style={{
+          color: 'rgba(255,255,255,0.6)', fontSize: 13, textAlign: 'center',
+          lineHeight: 1.5, paddingBottom: 8, paddingTop: 8,
+          fontStyle: 'italic',
+        }}>
+          Simule & descubra as melhores<br/>condições para você!
+        </p>
+      </div>
     </div>
   );
 }
