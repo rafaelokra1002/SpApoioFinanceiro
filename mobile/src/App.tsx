@@ -196,7 +196,7 @@ function AppContent() {
   const { state } = useLoan();
   return (
     <>
-      {state.step === 0 ? <HomeHeader /> : <Header />}
+      {state.step !== 0 && <Header />}
       <Router />
       {state.showComoFunciona && <ComoFuncionaModal />}
       {state.showDocumentosInfo && <DocumentosInfoModal />}
