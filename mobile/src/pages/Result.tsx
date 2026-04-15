@@ -103,6 +103,13 @@ export function Result() {
             </svg>
             <span style={{ fontSize: 15, color: '#374151' }}><strong>Pix rápido</strong> após aprovação</span>
           </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" fill="#16a34a"/>
+              <path d="M8 12l3 3 5-5" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <span style={{ fontSize: 15, color: '#374151' }}><strong>Data de pagamento</strong> definida após a aprovação</span>
+          </div>
         </div>
 
         {/* Action Button */}

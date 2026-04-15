@@ -15,9 +15,9 @@ function Header() {
 
   return (
     <header style={{
-      background: 'linear-gradient(135deg, #0a1f4a 0%, #0d2b5e 50%, #163a7a 100%)',
+      background: 'linear-gradient(90deg, #1e1040 0%, #2d1b69 30%, #5b2d8e 60%, #7c3aed 100%)',
       color: '#fff', padding: '14px 18px', display: 'flex',
-      alignItems: 'center', justifyContent: 'space-between',
+      alignItems: 'center',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
@@ -31,11 +31,6 @@ function Header() {
           <div style={{ fontWeight: 800, fontSize: 14, lineHeight: 1.1 }}>Financeiro</div>
         </div>
       </div>
-      <button style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: 4 }}>
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
-        </svg>
-      </button>
     </header>
   );
 }
@@ -44,9 +39,9 @@ function Header() {
 function HomeHeader() {
   return (
     <header style={{
-      background: 'linear-gradient(135deg, #0a1f4a 0%, #0d2b5e 80%)',
+      background: 'linear-gradient(90deg, #1e1040 0%, #2d1b69 30%, #5b2d8e 60%, #7c3aed 100%)',
       color: '#fff', padding: '14px 18px', display: 'flex',
-      alignItems: 'center', justifyContent: 'space-between',
+      alignItems: 'center',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
@@ -60,11 +55,6 @@ function HomeHeader() {
           <div style={{ fontWeight: 800, fontSize: 14, lineHeight: 1.1 }}>Financeiro</div>
         </div>
       </div>
-      <button style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: 4 }}>
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
-        </svg>
-      </button>
     </header>
   );
 }
