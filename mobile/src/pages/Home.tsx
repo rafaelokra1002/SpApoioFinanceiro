@@ -8,7 +8,7 @@ export function Home() {
       minHeight: '100vh',
       position: 'relative',
       overflow: 'hidden',
-      background: 'linear-gradient(135deg, #1e1040 0%, #2d1b69 40%, #1e1040 100%)',
+      background: 'linear-gradient(135deg, #7a60c8 0%, #9070e8 40%, #7a60c8 100%)',
     }}>
       {/* Background image - full screen */}
       <img
@@ -24,7 +24,7 @@ export function Home() {
       {/* Dark overlay gradient - only fades bottom of image */}
       <div style={{
         position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-        background: 'linear-gradient(180deg, transparent 0%, transparent 30%, #091e42 58%)',
+        background: 'linear-gradient(180deg, transparent 0%, transparent 30%, #1a3260 58%)',
         pointerEvents: 'none',
       }} />
 
