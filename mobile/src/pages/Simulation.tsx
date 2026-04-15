@@ -37,13 +37,14 @@ export function Simulation() {
 
   const rendaNum = rendaInput ? parseInt(rendaInput, 10) / 100 : 0;
   const valorMaiorQueRenda = state.valor > 0 && rendaNum > 0 && state.valor > rendaNum;
-  const canCalc = state.valor > 0 && state.cidade && state.renda && !valorMaiorQueRenda;
+  const valorAbaixoMinimo = state.valor > 0 && state.valor < 300;
+  const canCalc = state.valor >= 300 && state.cidade && state.renda && !valorMaiorQueRenda;
 
   return (
-    <div style={{ padding: '24px 20px 24px', minHeight: 'calc(100vh - 56px)' }}>
+    <div style={{ padding: '24px 20px 24px', minHeight: 'calc(100vh - 56px)', background: 'linear-gradient(135deg, #1e1040 0%, #2d1b69 40%, #1e1040 100%)' }}>
       <div style={{
-        background: '#fff', borderRadius: 20, padding: '28px 20px 24px',
-        boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
+        background: 'rgba(255,255,255,0.95)', borderRadius: 20, padding: '28px 20px 24px',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
       }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
@@ -62,7 +63,7 @@ export function Simulation() {
         <div style={{
           display: 'flex', alignItems: 'center',
           border: '2px solid #d1d9e6', borderRadius: 12, overflow: 'hidden',
-          marginBottom: valorMaiorQueRenda ? 8 : 18,
+          marginBottom: (valorMaiorQueRenda || valorAbaixoMinimo) ? 8 : 18,
         }}>
           <span style={{
             padding: '13px 14px', background: '#f0f3f8', fontWeight: 700,
@@ -79,8 +80,21 @@ export function Simulation() {
           />
         </div>
 
+        {/* Aviso valor mínimo */}
+        {valorAbaixoMinimo && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            marginBottom: 18, padding: '4px 0',
+          }}>
+            <span style={{ fontSize: 18 }}>⚠️</span>
+            <span style={{ fontSize: 13, color: '#92400e', fontWeight: 500 }}>
+              O valor mínimo para simulação é de R$ 300,00
+            </span>
+          </div>
+        )}
+
         {/* Aviso valor > renda */}
-        {valorMaiorQueRenda && (
+        {valorMaiorQueRenda && !valorAbaixoMinimo && (
           <div style={{
             display: 'flex', alignItems: 'center', gap: 8,
             marginBottom: 18, padding: '4px 0',
@@ -136,47 +150,25 @@ export function Simulation() {
           />
         </div>
 
-        {/* Instagram */}
-        <div style={{
-          background: '#f0faf0', border: '2px solid #c8e6c9', borderRadius: 12,
-          padding: '14px 16px', marginBottom: 18,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-              <defs>
-                <linearGradient id="igGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#feda75"/>
-                  <stop offset="25%" stopColor="#fa7e1e"/>
-                  <stop offset="50%" stopColor="#d62976"/>
-                  <stop offset="75%" stopColor="#962fbf"/>
-                  <stop offset="100%" stopColor="#4f5bd5"/>
-                </linearGradient>
-              </defs>
-              <rect x="2" y="2" width="20" height="20" rx="6" stroke="url(#igGrad)" strokeWidth="2" fill="none"/>
-              <circle cx="12" cy="12" r="5" stroke="url(#igGrad)" strokeWidth="2" fill="none"/>
-              <circle cx="17.5" cy="6.5" r="1.5" fill="url(#igGrad)"/>
-            </svg>
-            <span style={{ fontWeight: 700, fontSize: 15, color: '#374151' }}>Instagram</span>
-            <span style={{ fontSize: 13, color: '#6b7280' }}>(opcional)</span>
-            <span style={{ fontWeight: 700, fontSize: 13, color: '#2e7d32' }}>Mais chances de aprovação!</span>
-          </div>
-          <input
-            type="text" placeholder="@seuusuario (opcional)"
-            value={state.instagram}
-            onChange={e => dispatch({ type: 'SET_FIELD', field: 'instagram', value: e.target.value })}
-            style={{
-              width: '100%', padding: '12px 14px', border: '2px solid #d1d9e6',
-              borderRadius: 10, fontSize: 16, fontWeight: 500, color: '#1f2937',
-              background: '#fff', boxSizing: 'border-box',
-            }}
-          />
-        </div>
+        {/* Quem indicou */}
+        <label style={labelStyle}>Quem indicou você?</label>
+        <input
+          type="text" placeholder="Digite o nome de quem indicou (opcional)"
+          value={state.indicacao}
+          onChange={e => dispatch({ type: 'SET_FIELD', field: 'indicacao', value: e.target.value })}
+          style={{
+            width: '100%', padding: '13px 16px', border: '2px solid #d1d9e6',
+            borderRadius: 12, fontSize: 16, fontWeight: 500, color: '#1f2937',
+            background: '#fff', boxSizing: 'border-box', marginBottom: 18,
+          }}
+        />
 
         {/* Calcular */}
         <button onClick={handleCalc} style={{
           width: '100%', padding: '16px', borderRadius: 12, border: 'none',
-          background: canCalc ? '#0d2b5e' : '#b0bec5',
+          background: canCalc ? 'linear-gradient(135deg, #6d28d9, #4c1d95)' : 'linear-gradient(135deg, #a78bda, #8b6fc0)',
           color: '#fff', fontWeight: 700, fontSize: 17, cursor: canCalc ? 'pointer' : 'not-allowed',
+          opacity: canCalc ? 1 : 0.7,
           marginTop: 8,
         }}>Calcular Simulação</button>
       </div>

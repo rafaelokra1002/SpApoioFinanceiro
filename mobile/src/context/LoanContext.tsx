@@ -10,6 +10,7 @@ export interface LoanState {
   cidade: string;
   renda: string;
   instagram: string;
+  indicacao: string;
   simulation: SimulationResult | null;
   // personal data (documents page)
   nome: string;
@@ -36,7 +37,7 @@ type Action =
 
 const initial: LoanState = {
   step: 0, categoria: '', valor: 0, parcelas: 12, cidade: '',
-  renda: '', instagram: '', simulation: null,
+  renda: '', instagram: '', indicacao: '', simulation: null,
   nome: '', telefone: '', cpf: '', email: '',
   nomeEmpresa: '', bairroTrabalho: '',
   documents: {}, loading: false,
