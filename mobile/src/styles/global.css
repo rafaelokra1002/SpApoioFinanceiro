@@ -50,7 +50,7 @@ body {
 }
 
 @media (min-width: 481px) {
-  body { background: #140b2e; }
+  body { background: #3d2a6e; }
   #root { box-shadow: 0 0 40px rgba(80,30,150,0.3); }
 }
 

@@ -213,7 +213,8 @@ export async function handleSeedCategories(
       {
         value: 'CARTEIRA_ASSINADA', label: 'Carteira Assinada', icon: 'ðŸ‘”', order: 0,
         documents: [
-          { key: 'RG ou CNH (frente e verso)', label: 'RG ou CNH (frente e verso)', description: 'Documento de identificaÃ§Ã£o', icon: 'ðŸªª' },
+          { key: 'RG ou CNH (frente)', label: 'RG ou CNH (frente)', description: 'Documento de identificaÃ§Ã£o', icon: 'ðŸªª' },
+          { key: 'RG ou CNH (verso)', label: 'RG ou CNH (verso)', description: 'Documento de identificaÃ§Ã£o', icon: 'ðŸªª' },
           { key: 'Selfie (rosto)', label: 'Selfie (rosto nÃ­tido)', description: 'Sem filtro, rosto bem visÃ­vel', icon: 'ðŸ“·' },
           { key: 'Comprovante de residÃªncia', label: 'Comprovante de residÃªncia', description: 'Ãgua ou luz â€“ Ãºltimos 2 meses', icon: 'ðŸ ' },
           { key: 'Carteira de trabalho digital', label: 'Carteira de trabalho digital (PDF)', description: 'Envie em formato PDF', icon: 'ðŸ’¼' },
@@ -222,7 +223,8 @@ export async function handleSeedCategories(
       {
         value: 'CLT_SEM_REGISTRO', label: 'CLT sem Registro', icon: 'ðŸ“', order: 1,
         documents: [
-          { key: 'RG ou CNH (frente e verso)', label: 'RG ou CNH (frente e verso)', description: 'Documento de identificaÃ§Ã£o', icon: 'ðŸªª' },
+          { key: 'RG ou CNH (frente)', label: 'RG ou CNH (frente)', description: 'Documento de identificaÃ§Ã£o', icon: 'ðŸªª' },
+          { key: 'RG ou CNH (verso)', label: 'RG ou CNH (verso)', description: 'Documento de identificaÃ§Ã£o', icon: 'ðŸªª' },
           { key: 'Selfie (rosto)', label: 'Selfie (rosto nÃ­tido)', description: 'Sem filtro, rosto bem visÃ­vel', icon: 'ðŸ“·' },
           { key: 'Comprovante de residÃªncia', label: 'Comprovante de residÃªncia', description: 'Ãgua ou luz â€“ Ãºltimos 2 meses', icon: 'ðŸ ' },
           { key: 'Extrato bancÃ¡rio (Ãºltimos 30 dias) ou comprovante do Ãºltimo pagamento', label: 'Extrato bancÃ¡rio (Ãºltimos 30 dias) ou comprovante do Ãºltimo pagamento', description: 'Envie uma das duas opÃ§Ãµes', icon: 'ðŸ“„' },
@@ -231,7 +233,8 @@ export async function handleSeedCategories(
       {
         value: 'AUTONOMO', label: 'AutÃ´nomo', icon: 'ðŸ”§', order: 2,
         documents: [
-          { key: 'RG ou CNH (frente e verso)', label: 'RG ou CNH (frente e verso)', description: 'Documento de identificaÃ§Ã£o', icon: 'ðŸªª' },
+          { key: 'RG ou CNH (frente)', label: 'RG ou CNH (frente)', description: 'Documento de identificaÃ§Ã£o', icon: 'ðŸªª' },
+          { key: 'RG ou CNH (verso)', label: 'RG ou CNH (verso)', description: 'Documento de identificaÃ§Ã£o', icon: 'ðŸªª' },
           { key: 'Selfie (rosto)', label: 'Selfie (rosto nÃ­tido)', description: 'Sem filtro, rosto bem visÃ­vel', icon: 'ðŸ“·' },
           { key: 'Comprovante de residÃªncia', label: 'Comprovante de residÃªncia', description: 'Ãgua ou luz â€“ Ãºltimos 2 meses', icon: 'ðŸ ' },
           { key: 'Extrato bancÃ¡rio', label: 'Extrato bancÃ¡rio (Ãºltimos 30 dias)', description: 'Extrato completo do Ãºltimo mÃªs', icon: 'ðŸ“„' },
@@ -240,7 +243,8 @@ export async function handleSeedCategories(
       {
         value: 'BENEFICIARIO', label: 'BeneficiÃ¡rio', icon: 'ðŸ“‹', order: 3,
         documents: [
-          { key: 'RG ou CNH (frente e verso)', label: 'RG ou CNH (frente e verso)', description: 'Documento de identificaÃ§Ã£o', icon: 'ðŸªª' },
+          { key: 'RG ou CNH (frente)', label: 'RG ou CNH (frente)', description: 'Documento de identificaÃ§Ã£o', icon: 'ðŸªª' },
+          { key: 'RG ou CNH (verso)', label: 'RG ou CNH (verso)', description: 'Documento de identificaÃ§Ã£o', icon: 'ðŸªª' },
           { key: 'Selfie (rosto)', label: 'Selfie (rosto nÃ­tido)', description: 'Sem filtro, rosto bem visÃ­vel', icon: 'ðŸ“·' },
           { key: 'Comprovante de residÃªncia', label: 'Comprovante de residÃªncia', description: 'Ãgua ou luz â€“ Ãºltimos 2 meses', icon: 'ðŸ ' },
           { key: 'Extrato bancÃ¡rio', label: 'Extrato bancÃ¡rio (Ãºltimos 30 dias)', description: 'Print do app com nome e valor visÃ­vel', icon: 'ðŸ“„' },
@@ -249,7 +253,8 @@ export async function handleSeedCategories(
       {
         value: 'ESTAGIARIO', label: 'EstagiÃ¡rio', icon: 'ðŸŽ“', order: 4,
         documents: [
-          { key: 'RG ou CNH (frente e verso)', label: 'RG ou CNH (frente e verso)', description: 'Documento de identificaÃ§Ã£o', icon: 'ðŸªª' },
+          { key: 'RG ou CNH (frente)', label: 'RG ou CNH (frente)', description: 'Documento de identificaÃ§Ã£o', icon: 'ðŸªª' },
+          { key: 'RG ou CNH (verso)', label: 'RG ou CNH (verso)', description: 'Documento de identificaÃ§Ã£o', icon: 'ðŸªª' },
           { key: 'Selfie (rosto)', label: 'Selfie (rosto nÃ­tido)', description: 'Sem filtro, rosto bem visÃ­vel', icon: 'ðŸ“·' },
           { key: 'Comprovante de residÃªncia', label: 'Comprovante de residÃªncia', description: 'Ãgua ou luz â€“ Ãºltimos 2 meses', icon: 'ðŸ ' },
           { key: 'Contrato de estÃ¡gio ou comprovante do Ãºltimo pagamento', label: 'Contrato de estÃ¡gio ou comprovante do Ãºltimo pagamento', description: 'Envie uma das duas opÃ§Ãµes', icon: 'ðŸ“„' },
@@ -258,7 +263,8 @@ export async function handleSeedCategories(
       {
         value: 'SEM_COMPROVACAO', label: 'NÃ£o Precisa Comprovar Renda', icon: 'âŒ', order: 5,
         documents: [
-          { key: 'RG ou CNH (frente e verso)', label: 'RG ou CNH (frente e verso)', description: 'Documento de identificaÃ§Ã£o', icon: 'ðŸªª' },
+          { key: 'RG ou CNH (frente)', label: 'RG ou CNH (frente)', description: 'Documento de identificaÃ§Ã£o', icon: 'ðŸªª' },
+          { key: 'RG ou CNH (verso)', label: 'RG ou CNH (verso)', description: 'Documento de identificaÃ§Ã£o', icon: 'ðŸªª' },
           { key: 'Selfie (rosto)', label: 'Selfie (rosto nÃ­tido)', description: 'Sem filtro, rosto bem visÃ­vel', icon: 'ðŸ“·' },
           { key: 'Comprovante de residÃªncia', label: 'Comprovante de residÃªncia', description: 'Ãgua ou luz â€“ Ãºltimos 2 meses', icon: 'ðŸ ' },
         ],
