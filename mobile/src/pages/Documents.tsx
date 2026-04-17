@@ -94,7 +94,7 @@ export function Documents() {
   };
 
   return (
-    <div style={{ padding: '120px 20px 24px', minHeight: 'calc(100vh - 56px)', background: 'linear-gradient(135deg, #1e1040 0%, #2d1b69 40%, #1e1040 100%)' }}>
+    <div style={{ padding: '90px 20px 24px', minHeight: 'calc(100vh - 56px)', background: 'linear-gradient(135deg, #1e1040 0%, #2d1b69 40%, #1e1040 100%)' }}>
       <input ref={fileInputRef} type="file" accept="image/*,.pdf,application/pdf" capture="environment"
         onChange={handleFileSelect} style={{ display: 'none' }} />
       <input ref={galleryInputRef} type="file" accept="image/*,.pdf,application/pdf"
