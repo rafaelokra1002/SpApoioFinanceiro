@@ -57,7 +57,7 @@ export function Category() {
   const { state, dispatch } = useLoan();
 
   return (
-    <div style={{ padding: '120px 20px 24px', minHeight: 'calc(100vh - 56px)', background: 'linear-gradient(135deg, #1e1040 0%, #2d1b69 40%, #1e1040 100%)' }}>
+    <div style={{ padding: '100px 20px 24px', minHeight: 'calc(100vh - 56px)', background: 'linear-gradient(135deg, #1e1040 0%, #2d1b69 40%, #1e1040 100%)' }}>
       <div style={{
         background: 'rgba(255,255,255,0.95)', borderRadius: 20, padding: '28px 20px 24px',
         boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
