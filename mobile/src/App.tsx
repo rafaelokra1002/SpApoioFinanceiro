@@ -66,6 +66,7 @@ function ComoFuncionaModal() {
     { n: 1, title: 'Escolha sua Categoria', desc: 'Selecione o tipo de empréstimo que melhor se encaixa no seu perfil.' },
     { n: 2, title: 'Simule seu Empréstimo', desc: 'Informe o valor, parcelas, cidade e renda para ver as condições.' },
     { n: 3, title: 'Envie seus Dados', desc: 'Se estiver de acordo, envie seus documentos e aguarde nossa análise.' },
+    { n: 4, title: 'Pague em Até 30 Dias', desc: 'Após a aprovação, você terá até 30 dias para realizar o pagamento.' },
   ];
   return (
     <Modal onClose={() => dispatch({ type: 'SHOW_MODAL', modal: 'comoFunciona', show: false })}>
