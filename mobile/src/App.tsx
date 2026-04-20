@@ -15,7 +15,7 @@ function Header() {
 
   return (
     <header style={{
-      background: 'linear-gradient(90deg, #5b3a9e 0%, #7c5cbf 30%, #a78bfa 60%, #c4b5fd 100%)',
+      background: 'linear-gradient(135deg, #0b1a6e 0%, #2546f0 40%, #0b1a6e 100%)',
       color: '#fff', padding: '14px 18px', display: 'flex',
       alignItems: 'center',
     }}>
@@ -39,7 +39,7 @@ function Header() {
 function HomeHeader() {
   return (
     <header style={{
-      background: 'linear-gradient(90deg, #5b3a9e 0%, #7c5cbf 30%, #a78bfa 60%, #c4b5fd 100%)',
+      background: 'linear-gradient(135deg, #0b1a6e 0%, #2546f0 40%, #0b1a6e 100%)',
       color: '#fff', padding: '14px 18px', display: 'flex',
       alignItems: 'center',
     }}>

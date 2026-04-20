@@ -18,6 +18,7 @@ export async function createLead(data: LeadInput) {
       perfil: data.perfil,
       nomeEmpresa: data.nomeEmpresa || null,
       bairroTrabalho: data.bairroTrabalho || null,
+      indicacao: data.indicacao || null,
     },
   });
 

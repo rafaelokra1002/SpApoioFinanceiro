@@ -98,6 +98,7 @@ export async function handleCreateLeadWithDocs(
       perfil: body.perfil || '',
       nomeEmpresa: body.nomeEmpresa || undefined,
       bairroTrabalho: body.bairroTrabalho || undefined,
+      indicacao: body.indicacao || undefined,
     };
 
     const lead = await leadService.createLead(leadData);

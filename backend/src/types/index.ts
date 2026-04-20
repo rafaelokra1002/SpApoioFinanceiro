@@ -24,6 +24,7 @@ export interface LeadInput {
   perfil: string;
   nomeEmpresa?: string;
   bairroTrabalho?: string;
+  indicacao?: string;
 }
 
 export interface DocumentInput {

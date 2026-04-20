@@ -1,12 +1,12 @@
 import { CategoryOption, DocumentType, ParcelaOption, RendaOption } from '../types';
 
 export const CATEGORIES: CategoryOption[] = [
-  { value: 'CARTEIRA_ASSINADA', label: 'Carteira Assinada', icon: '👔' },
-  { value: 'CLT_SEM_REGISTRO', label: 'CLT sem Registro', icon: '📝' },
+  { value: 'CARTEIRA_ASSINADA', label: 'CLT Registrado', icon: '👔' },
+  { value: 'CLT_SEM_REGISTRO', label: 'CLT Informal', icon: '📝' },
   { value: 'AUTONOMO', label: 'Autônomo', icon: '🔧' },
   { value: 'BENEFICIARIO', label: 'Beneficiário', icon: '📋' },
   { value: 'ESTAGIARIO', label: 'Estagiário', icon: '🎓' },
-  { value: 'SEM_COMPROVACAO', label: 'Não Precisa Comprovar Renda', icon: '❌' },
+  { value: 'SEM_COMPROVACAO', label: 'Sem Comprovante de Renda', icon: '❌' },
   // { value: 'COM_GARANTIA', label: 'Solicite com Garantia', icon: '🔒' },
 ];
 

@@ -8,7 +8,7 @@ export function Home() {
       minHeight: '100vh',
       position: 'relative',
       overflow: 'hidden',
-      background: 'linear-gradient(135deg, #7a60c8 0%, #9070e8 40%, #7a60c8 100%)',
+      background: 'linear-gradient(135deg, #2546f0 0%, #4169E1 40%, #2546f0 100%)',
     }}>
       {/* Background image - full screen */}
       <img

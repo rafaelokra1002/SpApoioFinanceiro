@@ -22,6 +22,7 @@ export interface LeadData {
   renda: string;
   nomeEmpresa?: string;
   bairroTrabalho?: string;
+  indicacao?: string;
 }
 
 export interface UploadedFile {

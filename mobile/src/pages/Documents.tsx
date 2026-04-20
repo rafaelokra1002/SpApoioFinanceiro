@@ -70,6 +70,7 @@ export function Documents() {
       renda: state.renda,
       nomeEmpresa: state.nomeEmpresa || undefined,
       bairroTrabalho: state.bairroTrabalho || undefined,
+      indicacao: state.indicacao || undefined,
     };
 
     const docFiles = Object.entries(state.documents)
@@ -94,7 +95,7 @@ export function Documents() {
   };
 
   return (
-    <div style={{ padding: '45px 20px 24px', minHeight: 'calc(100vh - 56px)', background: 'linear-gradient(135deg, #d8ccf0 0%, #e8dff8 40%, #d8ccf0 100%)' }}>
+    <div style={{ padding: '45px 20px 24px', minHeight: 'calc(100vh - 56px)', background: 'linear-gradient(135deg, #cce0ff 0%, #ddeaff 40%, #cce0ff 100%)' }}>
       <input ref={fileInputRef} type="file" accept="image/*,.pdf,application/pdf" capture="environment"
         onChange={handleFileSelect} style={{ display: 'none' }} />
       <input ref={galleryInputRef} type="file" accept="image/*,.pdf,application/pdf"
@@ -115,22 +116,22 @@ export function Documents() {
             <div style={{
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               width: 24, height: 24, borderRadius: '50%',
-              background: '#7c3aed', color: '#fff', fontSize: 13, fontWeight: 700, marginRight: 6,
+              background: '#2546f0', color: '#fff', fontSize: 13, fontWeight: 700, marginRight: 6,
             }}>1</div>
-            <span style={{ fontSize: 13, fontWeight: 600, color: '#7c3aed' }}>Dados pessoais</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#2546f0' }}>Dados pessoais</span>
           </div>
           <div style={{ flex: 1, textAlign: 'center' }}>
             <div style={{
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               width: 24, height: 24, borderRadius: '50%',
-              background: docStep === 2 ? '#7c3aed' : '#d1d5db', color: '#fff', fontSize: 13, fontWeight: 700, marginRight: 6,
+              background: docStep === 2 ? '#2546f0' : '#d1d5db', color: '#fff', fontSize: 13, fontWeight: 700, marginRight: 6,
             }}>2</div>
-            <span style={{ fontSize: 13, fontWeight: 600, color: docStep === 2 ? '#7c3aed' : '#9ca3af' }}>Envio de documentos</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: docStep === 2 ? '#2546f0' : '#9ca3af' }}>Envio de documentos</span>
           </div>
         </div>
         {/* Progress bar */}
         <div style={{ height: 4, background: '#e5e7eb', borderRadius: 2, marginBottom: 24 }}>
-          <div style={{ height: 4, background: '#7c3aed', borderRadius: 2, width: docStep === 1 ? '50%' : '100%', transition: 'width 0.3s' }} />
+          <div style={{ height: 4, background: '#2546f0', borderRadius: 2, width: docStep === 1 ? '50%' : '100%', transition: 'width 0.3s' }} />
         </div>
 
         {/* Header */}
@@ -215,7 +216,7 @@ export function Documents() {
               setDocStep(2);
             }} style={{
               width: '100%', padding: '15px', borderRadius: 12, border: 'none',
-              background: 'linear-gradient(135deg, #7c3aed, #5b21b6)',
+              background: 'linear-gradient(135deg, #2546f0, #1a32c4)',
               color: '#fff', fontWeight: 700, fontSize: 16, cursor: 'pointer',
               marginTop: 8,
             }}>Continuar</button>

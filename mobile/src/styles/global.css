@@ -7,7 +7,7 @@
   --secondary-light: #e6f9ee;
   --green-gradient: linear-gradient(135deg, #2e8b57 0%, #3ba06a 100%);
   --white: #ffffff;
-  --bg: #1e1040;
+  --bg: #0b1a6e;
   --bg-card: #eef1f7;
   --text: #1f2937;
   --text-secondary: #6b7280;
@@ -50,8 +50,8 @@ body {
 }
 
 @media (min-width: 481px) {
-  body { background: #3d2a6e; }
-  #root { box-shadow: 0 0 40px rgba(80,30,150,0.3); }
+  body { background: #081456; }
+  #root { box-shadow: 0 0 40px rgba(11,26,110,0.4); }
 }
 
 input, select, textarea, button { font-family: inherit; }

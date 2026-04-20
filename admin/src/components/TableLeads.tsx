@@ -62,7 +62,7 @@ export default function TableLeads({
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b-2 border-gray-100">
-                {['Nome', 'Telefone', 'Valor', 'Cidade', 'Perfil', 'Status', 'Data', 'Ações'].map((h) => (
+                {['Nome', 'Telefone', 'Valor', 'Cidade', 'Perfil', 'Indicação', 'Status', 'Data', 'Ações'].map((h) => (
                   <th key={h} className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
                     {h}
                   </th>
@@ -86,6 +86,7 @@ export default function TableLeads({
                   </td>
                   <td className="px-4 py-3.5 text-gray-600">{lead.cidade}</td>
                   <td className="px-4 py-3.5 text-gray-600 text-xs">{lead.perfil}</td>
+                  <td className="px-4 py-3.5 text-gray-600 text-xs">{lead.indicacao || '—'}</td>
                   <td className="px-4 py-3.5">
                     <span className={`inline-block px-2.5 py-1 rounded-full text-[11px] font-semibold ${statusStyles[lead.status] || 'bg-gray-100 text-gray-500'}`}>
                       {statusLabels[lead.status] || lead.status}

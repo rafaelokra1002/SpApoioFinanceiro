@@ -46,6 +46,7 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
     { label: 'Perfil', value: lead.perfil },
     lead.nomeEmpresa ? { label: 'Empresa', value: lead.nomeEmpresa } : null,
     lead.bairroTrabalho ? { label: 'Bairro Trab.', value: lead.bairroTrabalho } : null,
+    lead.indicacao ? { label: 'Quem Indicou', value: lead.indicacao } : null,
   ].filter(Boolean) as { label: string; value: string; highlight?: boolean; bold?: boolean }[];
 
   const handleDownloadDossier = async () => {

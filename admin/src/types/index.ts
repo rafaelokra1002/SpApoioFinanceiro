@@ -14,6 +14,7 @@ export interface Lead {
   perfil: string;
   nomeEmpresa: string | null;
   bairroTrabalho: string | null;
+  indicacao: string | null;
   status: string;
   createdAt: string;
   updatedAt: string;
