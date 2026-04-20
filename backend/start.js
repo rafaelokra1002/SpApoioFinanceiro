@@ -1,7 +1,14 @@
-const { execSync } = require('child_process');
-try {
-  execSync('npx prisma migrate deploy', { stdio: 'inherit' });
-} catch (e) {
-  console.log('Migration skipped:', e.message);
+const { PrismaClient } = require('@prisma/client');
+async function start() {
+  const prisma = new PrismaClient();
+  try {
+    await prisma.$queryRawUnsafe('ALTER TABLE "Lead" ADD COLUMN IF NOT EXISTS "indicacao" TEXT');
+    console.log('DB schema verified');
+  } catch (e) {
+    console.log('DB check skipped:', e.message);
+  } finally {
+    await prisma.$disconnect();
+  }
+  require('./dist/server.js');
 }
-require('./dist/server.js');
+start();
