@@ -107,7 +107,7 @@ export default function Sidebar({ page, filter, onNavigate, onRefresh }: Sidebar
       {/* Mobile toggle */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center shadow-lg"
+        className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 rounded-xl bg-[#0D47FF] text-white flex items-center justify-center shadow-lg"
       >
         {mobileOpen ? <X size={20} /> : <Menu size={20} />}
       </button>
@@ -122,7 +122,7 @@ export default function Sidebar({ page, filter, onNavigate, onRefresh }: Sidebar
 
       {/* Sidebar */}
       <aside className={`
-        fixed top-0 left-0 bottom-0 w-[240px] bg-gradient-to-b from-[#0f1a3e] to-[#1e3a8a]
+        fixed top-0 left-0 bottom-0 w-[240px] bg-[#0D47FF]
         flex flex-col z-40
         transition-transform duration-300 ease-in-out
         lg:translate-x-0
