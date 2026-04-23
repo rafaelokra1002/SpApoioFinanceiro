@@ -44,7 +44,7 @@ export function Home() {
           textShadow: '0 2px 12px rgba(0,0,0,0.5)',
           letterSpacing: 0.5,
         }}>
-          SP Empréstimos
+          SP Apoio Financeiro
         </h1>
 
         {/* Menu Buttons */}
