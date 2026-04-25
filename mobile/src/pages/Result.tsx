@@ -118,7 +118,7 @@ export function Result() {
           background: 'linear-gradient(135deg, #2e8b57 0%, #3ba06a 100%)',
           color: '#fff', fontWeight: 700, fontSize: 17, cursor: 'pointer',
           boxShadow: '0 4px 14px rgba(46,139,87,0.3)',
-        }}>Solicitar Análise Agora</button>
+        }}>Solicitar Empréstimo Agora</button>
       </div>
     </div>
   );
