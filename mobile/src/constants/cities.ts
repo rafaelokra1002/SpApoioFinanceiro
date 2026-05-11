@@ -7,4 +7,7 @@ export const CITIES: City[] = [
   { value: 'Abrantes', label: 'Abrantes - BA' },
   { value: 'Lauro de Freitas', label: 'Lauro de Freitas - BA' },
   { value: 'Feira de Santana', label: 'Feira de Santana - BA' },
+  { value: 'São Sebastião do Passé', label: 'São Sebastião do Passé - BA' },
+  { value: 'Mata de São João', label: 'Mata de São João - BA' },
+  { value: 'Pojuca', label: 'Pojuca - BA' },
 ];
