@@ -4,7 +4,7 @@ import {
   deleteLead, fetchCategories, fetchLeads, getWhatsAppStatus,
   sendWhatsAppByLead, updateLeadStatus,
 } from './services/api';
-import Sidebar, { PageKey, SettingsTab } from './components/Sidebar';
+import Sidebar, { PageKey } from './components/Sidebar';
 import Topbar from './components/Topbar';
 import Dashboard from './components/dashboard/Dashboard';
 import RankingCard from './components/dashboard/RankingCard';
@@ -12,6 +12,10 @@ import LeadListing from './components/leads/LeadListing';
 import LeadDetail from './components/LeadDetail';
 import CategoryManager from './components/CategoryManager';
 import WhatsAppManager from './components/WhatsAppManager';
+import PhotosGallery from './components/PhotosGallery';
+import BackupPanel from './components/BackupPanel';
+import Placeholder from './components/Placeholder';
+import { ClipboardList, UserCircle } from 'lucide-react';
 import { MetricKey, StatusKey, isInternalStatus, statusLabel } from './constants/status';
 import { countMetrics, origemOf, rank } from './utils/analytics';
 import { useTheme } from './hooks/useTheme';
@@ -35,7 +39,13 @@ const PAGE_TITLES: Record<PageKey, { title: string; subtitle: string }> = {
   colaborador: { title: 'Passei para colaborador', subtitle: 'Solicitações encaminhadas a um colaborador' },
   origem: { title: 'Origem dos clientes', subtitle: 'De onde vêm as suas solicitações' },
   cidades: { title: 'Cidades', subtitle: 'Distribuição das solicitações por cidade' },
-  configuracoes: { title: 'Configurações', subtitle: 'Categorias, documentos e WhatsApp' },
+  relatorio: { title: 'Relatório Diário', subtitle: 'Resumo das solicitações do dia' },
+  perfil: { title: 'Meu Perfil', subtitle: 'Seus dados de acesso' },
+  mensagens: { title: 'Edição de Mensagem', subtitle: 'Modelos de mensagem enviados via WhatsApp' },
+  backup: { title: 'Backup', subtitle: 'Exportação e cópia de segurança dos dados' },
+  fotos: { title: 'Fotos', subtitle: 'Imagens e documentos enviados pelos clientes' },
+  categorias: { title: 'Categorias', subtitle: 'Perfis e documentos exigidos' },
+  configuracoes: { title: 'Configurações', subtitle: 'Ajustes gerais do painel' },
 };
 
 interface CardLabels {
@@ -93,7 +103,6 @@ export default function App() {
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [catLoading, setCatLoading] = useState(false);
-  const [settingsTab, setSettingsTab] = useState<SettingsTab>('categorias');
 
   /**
    * Uma única carga com todos os leads alimenta o dashboard e as listagens —
@@ -124,13 +133,10 @@ export default function App() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  const handleNavigate = (next: PageKey, tab?: SettingsTab) => {
+  const handleNavigate = (next: PageKey) => {
     setPage(next);
     setSelectedLead(null);
-    if (next === 'configuracoes') {
-      if (tab) setSettingsTab(tab);
-      loadCategories();
-    }
+    if (next === 'categorias') loadCategories();
   };
 
   const sendWhatsApp = async (lead: Lead) => {
@@ -279,25 +285,37 @@ export default function App() {
           </div>
         )}
 
-        {page === 'configuracoes' && (
-          <div className="space-y-5">
-            <div className="flex w-fit rounded-xl bg-surface p-1 shadow-sm ring-1 ring-line">
-              {(['categorias', 'whatsapp'] as const).map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setSettingsTab(tab)}
-                  className={`rounded-lg px-5 py-2 text-[13px] font-semibold capitalize transition-colors cursor-pointer
-                    ${settingsTab === tab ? 'bg-brand text-white' : 'text-muted hover:text-ink-2'}`}
-                >
-                  {tab === 'whatsapp' ? 'WhatsApp' : 'Categorias'}
-                </button>
-              ))}
-            </div>
+        {page === 'categorias' && (
+          <CategoryManager categories={categories} loading={catLoading} onReload={loadCategories} />
+        )}
 
-            {settingsTab === 'categorias'
-              ? <CategoryManager categories={categories} loading={catLoading} onReload={loadCategories} />
-              : <WhatsAppManager />}
-          </div>
+        {page === 'mensagens' && <WhatsAppManager />}
+
+        {page === 'relatorio' && (
+          <Placeholder
+            icon={ClipboardList}
+            title="Relatório Diário"
+            description="Aqui vai o resumo diário das solicitações. Em construção — me diga o que o relatório deve mostrar e como é enviado."
+          />
+        )}
+
+        {page === 'perfil' && (
+          <Placeholder
+            icon={UserCircle}
+            title="Meu Perfil"
+            description="Gerenciamento de perfil e acesso. Em construção — hoje o painel não tem login/usuários."
+          />
+        )}
+
+        {page === 'backup' && <BackupPanel leads={leads} loading={loading} />}
+
+        {page === 'fotos' && <PhotosGallery leads={leads} loading={loading} />}
+
+        {page === 'configuracoes' && (
+          <Placeholder
+            title="Configurações"
+            description="Ajustes gerais do painel. Em construção — me diga o que deve ficar aqui."
+          />
         )}
         </div>
       </main>

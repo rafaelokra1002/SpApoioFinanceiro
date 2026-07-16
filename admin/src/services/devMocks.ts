@@ -83,3 +83,20 @@ export const DEV_SAMPLE_LEADS: Lead[] = [
   mk('Larissa Menezes', 'Camaçari', 1300, 'PASSEI_COLABORADOR', 'Prima', 45, 9),
   mk('Otávio Ramos', 'Dias d\'Ávila', 2300, 'PASSEI_COLABORADOR', 'Amigo', 60, 75),
 ];
+
+// Anexa documentos de exemplo a alguns leads, só para pré-visualizar Fotos e Backup.
+// URLs públicas do picsum (exigem internet); um PDF para exercitar o ícone de arquivo.
+function devDoc(leadId: string, n: number, filename: string, url: string): Lead['documentos'][number] {
+  return { id: `${leadId}-doc-${n}`, leadId, tipo: 'documento', url, filename, createdAt: ago(1) };
+}
+[0, 1, 2, 3, 4, 7].forEach((idx) => {
+  const lead = DEV_SAMPLE_LEADS[idx];
+  if (!lead) return;
+  const seedA = 100 + idx;
+  const seedB = 200 + idx;
+  lead.documentos = [
+    devDoc(lead.id, 1, 'rg-frente.jpg', `https://picsum.photos/seed/${seedA}/600/600`),
+    devDoc(lead.id, 2, 'comprovante-residencia.jpg', `https://picsum.photos/seed/${seedB}/600/600`),
+    devDoc(lead.id, 3, 'contracheque.pdf', 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'),
+  ];
+});

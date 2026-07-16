@@ -1,22 +1,21 @@
 import { useState } from 'react';
 import {
-  LayoutGrid, FileText, Clock, CheckCircle2, XCircle, UserX, UserRoundCheck,
-  Boxes, MapPin, Settings, MessageCircle, FolderOpen, ChevronRight, ChevronLeft,
-  Headset, Menu, X, type LucideIcon,
+  LayoutGrid, ClipboardList, UserCircle, Clock, CheckCircle2, XCircle, UserX,
+  UserRoundCheck, MessageSquare, HardDrive, ImageIcon, FolderOpen, Settings,
+  ChevronRight, ChevronLeft, Headset, Menu, X, type LucideIcon,
 } from 'lucide-react';
 import { Counts } from '../utils/analytics';
 import { MetricKey } from '../constants/status';
 
 export type PageKey =
   | 'dashboard' | 'solicitacoes' | 'pendentes' | 'aprovados' | 'recusados'
-  | 'nao-contrataram' | 'colaborador' | 'origem' | 'cidades' | 'configuracoes';
+  | 'nao-contrataram' | 'colaborador' | 'origem' | 'cidades'
+  | 'relatorio' | 'perfil' | 'mensagens' | 'backup' | 'fotos'
+  | 'categorias' | 'configuracoes';
 
-export type SettingsTab = 'categorias' | 'whatsapp';
-
-/** Atalhos em destaque no topo — cada um leva a uma tela que já existe. */
+/** Atalhos em destaque no topo do sidebar. */
 interface Shortcut {
   page: PageKey;
-  tab?: SettingsTab;
   label: string;
   hint: string;
   icon: LucideIcon;
@@ -27,30 +26,20 @@ interface Shortcut {
 
 const SHORTCUTS: Shortcut[] = [
   {
-    page: 'solicitacoes',
-    label: 'Solicitações',
-    hint: 'Ver todas as solicitações',
-    icon: FileText,
+    page: 'relatorio',
+    label: 'Relatório Diário',
+    hint: 'Resumo do dia',
+    icon: ClipboardList,
     card: 'from-[#0d3f2a] to-[#155e3c]',
     chip: 'bg-emerald-400/20 text-emerald-300',
   },
   {
-    page: 'configuracoes',
-    tab: 'whatsapp',
-    label: 'WhatsApp',
-    hint: 'Mensagens automáticas',
-    icon: MessageCircle,
+    page: 'perfil',
+    label: 'Meu Perfil',
+    hint: 'Seus dados',
+    icon: UserCircle,
     card: 'from-[#0e4a52] to-[#14707d]',
     chip: 'bg-cyan-400/20 text-cyan-200',
-  },
-  {
-    page: 'configuracoes',
-    tab: 'categorias',
-    label: 'Categorias',
-    hint: 'Documentos e perfis',
-    icon: FolderOpen,
-    card: 'from-[#544510] to-[#7a651c]',
-    chip: 'bg-amber-400/20 text-amber-200',
   },
 ];
 
@@ -67,25 +56,27 @@ const NAV: NavItem[] = [
   { key: 'pendentes', label: 'Pendentes', icon: Clock, badge: 'PENDENTE' },
   { key: 'aprovados', label: 'Aprovados', icon: CheckCircle2, badge: 'APROVADO' },
   { key: 'recusados', label: 'Recusados', icon: XCircle, badge: 'RECUSADO' },
-  { key: 'nao-contrataram', label: 'Não contrataram', icon: UserX, badge: 'NAO_CONTRATOU' },
-  { key: 'colaborador', label: 'Passei para colaborador', icon: UserRoundCheck, badge: 'PASSEI_COLABORADOR' },
-  { key: 'origem', label: 'Origem dos clientes', icon: Boxes },
-  { key: 'cidades', label: 'Cidades', icon: MapPin },
+  { key: 'nao-contrataram', label: 'Não Contratou', icon: UserX, badge: 'NAO_CONTRATOU' },
+  { key: 'colaborador', label: 'Passei para Colaborador', icon: UserRoundCheck, badge: 'PASSEI_COLABORADOR' },
+  { key: 'backup', label: 'Backup', icon: HardDrive },
+  { key: 'fotos', label: 'Fotos', icon: ImageIcon },
+  { key: 'categorias', label: 'Categorias', icon: FolderOpen },
   { key: 'configuracoes', label: 'Configurações', icon: Settings },
+  { key: 'mensagens', label: 'Edição de Mensagem', icon: MessageSquare },
 ];
 
 interface SidebarProps {
   page: PageKey;
   counts: Counts;
-  onNavigate: (page: PageKey, tab?: SettingsTab) => void;
+  onNavigate: (page: PageKey) => void;
 }
 
 export default function Sidebar({ page, counts, onNavigate }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const go = (key: PageKey, tab?: SettingsTab) => {
-    onNavigate(key, tab);
+  const go = (key: PageKey) => {
+    onNavigate(key);
     setMobileOpen(false);
   };
 
@@ -136,7 +127,7 @@ export default function Sidebar({ page, counts, onNavigate }: SidebarProps) {
                 return (
                   <button
                     key={s.label}
-                    onClick={() => go(s.page, s.tab)}
+                    onClick={() => go(s.page)}
                     className={`flex w-full items-center gap-3 rounded-xl bg-gradient-to-r ${s.card}
                       px-3 py-3 text-left shadow-lg shadow-black/10 transition-transform
                       hover:-translate-y-0.5 cursor-pointer`}

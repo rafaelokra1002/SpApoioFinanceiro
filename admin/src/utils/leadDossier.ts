@@ -168,17 +168,21 @@ function triggerDownload(blob: Blob, fileName: string) {
   URL.revokeObjectURL(blobUrl);
 }
 
-export async function downloadLeadDossier(lead: Lead, logs: LeadMessageLog[]) {
-  const zip = new JSZip();
-  const folderName = [sanitizeSegment(lead.nome) || 'lead', sanitizeSegment(lead.telefone) || lead.id.slice(0, 8)]
+function leadFolderName(lead: Lead) {
+  return [sanitizeSegment(lead.nome) || 'lead', sanitizeSegment(lead.telefone) || lead.id.slice(0, 8)]
     .filter(Boolean)
     .join('_');
+}
 
-  const rootFolder = zip.folder(folderName) || zip;
+/**
+ * Escreve a pasta de um cliente (resumo + documentos) dentro de um JSZip já criado.
+ * Reaproveitada pelo dossiê individual e pelo backup completo.
+ */
+async function addLeadFolder(zip: JSZip, lead: Lead, logs: LeadMessageLog[]) {
+  const rootFolder = zip.folder(leadFolderName(lead)) || zip;
   const docsFolder = rootFolder.folder('documentos') || rootFolder;
-  const summaryLines = buildSummaryLines(lead, logs);
 
-  rootFolder.file('resumo.txt', summaryLines.join('\n'));
+  rootFolder.file('resumo.txt', buildSummaryLines(lead, logs).join('\n'));
   rootFolder.file('resumo.pdf', buildSummaryPdf(lead, logs));
 
   const failedDocuments: string[] = [];
@@ -198,7 +202,31 @@ export async function downloadLeadDossier(lead: Lead, logs: LeadMessageLog[]) {
   if (failedDocuments.length > 0) {
     rootFolder.file('documentos_nao_baixados.txt', failedDocuments.join('\n'));
   }
+}
 
+export async function downloadLeadDossier(lead: Lead, logs: LeadMessageLog[]) {
+  const zip = new JSZip();
+  await addLeadFolder(zip, lead, logs);
   const archive = await zip.generateAsync({ type: 'blob' });
-  triggerDownload(archive, `${folderName || 'lead'}_dossie.zip`);
+  triggerDownload(archive, `${leadFolderName(lead) || 'lead'}_dossie.zip`);
+}
+
+/**
+ * Backup completo: um ZIP com uma pasta por cliente (resumo + documentos).
+ * `onProgress(feito, total)` permite mostrar andamento. Sem logs de mensagem
+ * (evita N chamadas ao backend); o resumo cobre os dados do cadastro.
+ */
+export async function downloadAllLeadsBackup(
+  leads: Lead[],
+  onProgress?: (done: number, total: number) => void,
+) {
+  const zip = new JSZip();
+  for (const [i, lead] of leads.entries()) {
+    await addLeadFolder(zip, lead, []);
+    onProgress?.(i + 1, leads.length);
+  }
+
+  const stamp = new Date().toISOString().slice(0, 10);
+  const archive = await zip.generateAsync({ type: 'blob' });
+  triggerDownload(archive, `backup_clientes_${stamp}.zip`);
 }
