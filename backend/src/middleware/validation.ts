@@ -34,7 +34,14 @@ export const leadSchema = z.object({
 });
 
 export const statusSchema = z.object({
-  status: z.enum(['PENDENTE', 'APROVADO', 'RECUSADO', 'EM_ANALISE']),
+  status: z.enum([
+    'PENDENTE',
+    'APROVADO',
+    'RECUSADO',
+    'EM_ANALISE',
+    'NAO_CONTRATOU',
+    'PASSEI_COLABORADOR',
+  ]),
 });
 
 export function validate(schema: z.ZodSchema) {

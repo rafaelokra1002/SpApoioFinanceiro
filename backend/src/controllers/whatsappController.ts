@@ -17,6 +17,8 @@ const DEFAULT_TEMPLATES: Record<string, string> = {
   RECUSADO: `Olá *{{nome}}*, tudo bem?\n\nAqui é da *SP Apoio Financeiro*.\n\nApós análise criteriosa, infelizmente não foi possível aprovar sua solicitação de crédito no valor de *{{valor}}* neste momento.\n\nIsso não significa que não poderemos ajudá-lo(a) no futuro. Você pode realizar uma nova solicitação após 30 dias ou entrar em contato para avaliarmos outras opções.\n\nAgradecemos seu interesse e confiança.\n\nAtenciosamente,\n*Equipe SP Apoio Financeiro*`,
 };
 
+const INTERNAL_STATUSES = ['NAO_CONTRATOU', 'PASSEI_COLABORADOR'];
+
 function parseTemplate(template: string, data: Record<string, string>): string {
   return template.replace(/\{\{(\w+)\}\}/g, (_, key) => data[key] ?? '');
 }
@@ -210,6 +212,16 @@ export async function handleWhatsAppSendLead(
     const lead = await prisma.lead.findUnique({ where: { id: leadId } });
     if (!lead) {
       res.status(404).json({ success: false, error: 'Lead não encontrado' });
+      return;
+    }
+
+    // Status de controle interno não têm mensagem para o cliente. Sem esta guarda,
+    // o fallback abaixo enviaria o template de PENDENTE por engano.
+    if (INTERNAL_STATUSES.includes(lead.status)) {
+      res.status(400).json({
+        success: false,
+        error: 'Este status é de controle interno e não envia mensagem ao cliente',
+      });
       return;
     }
 

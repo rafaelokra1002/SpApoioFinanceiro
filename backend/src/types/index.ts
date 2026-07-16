@@ -34,7 +34,13 @@ export interface DocumentInput {
   filename: string;
 }
 
-export type LeadStatus = 'PENDENTE' | 'APROVADO' | 'RECUSADO' | 'EM_ANALISE';
+export type LeadStatus =
+  | 'PENDENTE'
+  | 'APROVADO'
+  | 'RECUSADO'
+  | 'EM_ANALISE'
+  | 'NAO_CONTRATOU'
+  | 'PASSEI_COLABORADOR';
 
 export interface ApiResponse<T = any> {
   success: boolean;

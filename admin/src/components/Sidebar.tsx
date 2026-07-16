@@ -1,135 +1,241 @@
 import { useState } from 'react';
 import {
-  LayoutDashboard, Users, Clock, CheckCircle, XCircle,
-  FolderOpen, RefreshCw, Menu, X, ChevronDown, MessageCircle,
+  LayoutGrid, FileText, Clock, CheckCircle2, XCircle, UserX, UserRoundCheck,
+  Boxes, MapPin, Settings, MessageCircle, FolderOpen, ChevronRight, ChevronLeft,
+  Headset, Menu, X, type LucideIcon,
 } from 'lucide-react';
+import { Counts } from '../utils/analytics';
+import { MetricKey } from '../constants/status';
 
-interface SidebarProps {
-  page: 'leads' | 'categories' | 'whatsapp';
-  filter: string;
-  onNavigate: (page: 'leads' | 'categories' | 'whatsapp', filter?: string) => void;
-  onRefresh: () => void;
+export type PageKey =
+  | 'dashboard' | 'solicitacoes' | 'pendentes' | 'aprovados' | 'recusados'
+  | 'nao-contrataram' | 'colaborador' | 'origem' | 'cidades' | 'configuracoes';
+
+export type SettingsTab = 'categorias' | 'whatsapp';
+
+/** Atalhos em destaque no topo — cada um leva a uma tela que já existe. */
+interface Shortcut {
+  page: PageKey;
+  tab?: SettingsTab;
+  label: string;
+  hint: string;
+  icon: LucideIcon;
+  /** Gradiente do card + cor do ícone. */
+  card: string;
+  chip: string;
 }
 
-const navItems = [
-  { key: '', label: 'Dashboard', icon: LayoutDashboard },
-  { key: 'PENDENTE', label: 'Pendentes', icon: Clock },
-  { key: 'APROVADO', label: 'Aprovados', icon: CheckCircle },
-  { key: 'RECUSADO', label: 'Recusados', icon: XCircle },
+const SHORTCUTS: Shortcut[] = [
+  {
+    page: 'solicitacoes',
+    label: 'Solicitações',
+    hint: 'Ver todas as solicitações',
+    icon: FileText,
+    card: 'from-[#0d3f2a] to-[#155e3c]',
+    chip: 'bg-emerald-400/20 text-emerald-300',
+  },
+  {
+    page: 'configuracoes',
+    tab: 'whatsapp',
+    label: 'WhatsApp',
+    hint: 'Mensagens automáticas',
+    icon: MessageCircle,
+    card: 'from-[#0e4a52] to-[#14707d]',
+    chip: 'bg-cyan-400/20 text-cyan-200',
+  },
+  {
+    page: 'configuracoes',
+    tab: 'categorias',
+    label: 'Categorias',
+    hint: 'Documentos e perfis',
+    icon: FolderOpen,
+    card: 'from-[#544510] to-[#7a651c]',
+    chip: 'bg-amber-400/20 text-amber-200',
+  },
 ];
 
-export default function Sidebar({ page, filter, onNavigate, onRefresh }: SidebarProps) {
+interface NavItem {
+  key: PageKey;
+  label: string;
+  icon: LucideIcon;
+  /** Métrica exibida como badge de contagem. */
+  badge?: MetricKey;
+}
+
+const NAV: NavItem[] = [
+  { key: 'dashboard', label: 'Dashboard', icon: LayoutGrid },
+  { key: 'pendentes', label: 'Pendentes', icon: Clock, badge: 'PENDENTE' },
+  { key: 'aprovados', label: 'Aprovados', icon: CheckCircle2, badge: 'APROVADO' },
+  { key: 'recusados', label: 'Recusados', icon: XCircle, badge: 'RECUSADO' },
+  { key: 'nao-contrataram', label: 'Não contrataram', icon: UserX, badge: 'NAO_CONTRATOU' },
+  { key: 'colaborador', label: 'Passei para colaborador', icon: UserRoundCheck, badge: 'PASSEI_COLABORADOR' },
+  { key: 'origem', label: 'Origem dos clientes', icon: Boxes },
+  { key: 'cidades', label: 'Cidades', icon: MapPin },
+  { key: 'configuracoes', label: 'Configurações', icon: Settings },
+];
+
+interface SidebarProps {
+  page: PageKey;
+  counts: Counts;
+  onNavigate: (page: PageKey, tab?: SettingsTab) => void;
+}
+
+export default function Sidebar({ page, counts, onNavigate }: SidebarProps) {
+  const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const content = (
-    <>
-      {/* Logo */}
-      <div className="flex items-center gap-3 px-4 py-6 border-b border-white/10">
-        <img
-          src="/favicon.svg"
-          alt="SP Apoio Financeiro"
-          className="w-11 h-11 shrink-0 drop-shadow-[0_10px_18px_rgba(0,0,0,0.28)]"
-        />
-        <div>
-          <h2 className="text-[15px] font-extrabold text-white tracking-tight">SP Apoio</h2>
-          <p className="text-[11px] text-white/50">Painel Administrativo</p>
-        </div>
-      </div>
-
-      {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3 mb-2">
-          Leads
-        </p>
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const active = page === 'leads' && filter === item.key;
-          return (
-            <button
-              key={item.key}
-              onClick={() => { onNavigate('leads', item.key); setMobileOpen(false); }}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 cursor-pointer
-                ${active
-                  ? 'bg-white/15 text-white shadow-lg shadow-black/10'
-                  : 'text-white/60 hover:text-white hover:bg-white/8'
-                }`}
-            >
-              <Icon size={18} strokeWidth={active ? 2.5 : 1.8} />
-              {item.label}
-            </button>
-          );
-        })}
-
-        <div className="pt-4 pb-1">
-          <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3 mb-2">
-            Configurações
-          </p>
-        </div>
-        <button
-          onClick={() => { onNavigate('categories'); setMobileOpen(false); }}
-          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 cursor-pointer
-            ${page === 'categories'
-              ? 'bg-white/15 text-white shadow-lg shadow-black/10'
-              : 'text-white/60 hover:text-white hover:bg-white/8'
-            }`}
-        >
-          <FolderOpen size={18} strokeWidth={page === 'categories' ? 2.5 : 1.8} />
-          Categorias
-        </button>
-        <button
-          onClick={() => { onNavigate('whatsapp'); setMobileOpen(false); }}
-          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 cursor-pointer
-            ${page === 'whatsapp'
-              ? 'bg-white/15 text-white shadow-lg shadow-black/10'
-              : 'text-white/60 hover:text-white hover:bg-white/8'
-            }`}
-        >
-          <MessageCircle size={18} strokeWidth={page === 'whatsapp' ? 2.5 : 1.8} />
-          WhatsApp
-        </button>
-      </nav>
-
-      {/* Footer */}
-      <div className="px-3 py-4 border-t border-white/10">
-        <button
-          onClick={onRefresh}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-white/60 hover:text-white hover:bg-white/8 transition-all duration-200 cursor-pointer"
-        >
-          <RefreshCw size={18} strokeWidth={1.8} />
-          Atualizar
-        </button>
-      </div>
-    </>
-  );
+  const go = (key: PageKey, tab?: SettingsTab) => {
+    onNavigate(key, tab);
+    setMobileOpen(false);
+  };
 
   return (
     <>
-      {/* Mobile toggle */}
+      {/* Toggle mobile */}
       <button
-        onClick={() => setMobileOpen(!mobileOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 rounded-xl bg-[#0D47FF] text-white flex items-center justify-center shadow-lg"
+        onClick={() => setMobileOpen((v) => !v)}
+        aria-label="Abrir menu"
+        className="fixed left-4 top-4 z-50 flex h-10 w-10 items-center justify-center rounded-xl
+          bg-brand-deep text-white shadow-lg lg:hidden cursor-pointer"
       >
         {mobileOpen ? <X size={20} /> : <Menu size={20} />}
       </button>
 
-      {/* Mobile overlay */}
       {mobileOpen && (
-        <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-40"
-          onClick={() => setMobileOpen(false)}
-        />
+        <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setMobileOpen(false)} />
       )}
 
-      {/* Sidebar */}
-      <aside className={`
-        fixed top-0 left-0 bottom-0 w-[240px] bg-[#0D47FF]
-        flex flex-col z-40
-        transition-transform duration-300 ease-in-out
-        lg:translate-x-0
-        ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
-      `}>
-        {content}
+      <aside
+        className={`fixed bottom-0 left-0 top-0 z-40 flex flex-col
+          bg-gradient-to-b from-[#17a453] to-[#0d8043]
+          transition-[width,transform] duration-300 ease-in-out lg:translate-x-0
+          ${collapsed ? 'w-[84px]' : 'w-[280px]'}
+          ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}
+      >
+        {/* A marca fica dentro da área rolável: sobe junto com o menu. */}
+        <div className="flex-1 overflow-y-auto px-3 pb-3">
+          <div className={`mb-1 flex items-center gap-3 py-5 ${collapsed ? 'justify-center px-0' : 'px-2'}`}>
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15">
+              <LayoutGrid size={19} className="text-white" strokeWidth={2.5} />
+            </span>
+            {!collapsed && (
+              <div className="min-w-0">
+                <h1 className="truncate text-[19px] font-extrabold leading-tight tracking-[-0.01em] text-white">
+                  SP Análise
+                </h1>
+                <p className="truncate text-[12px] font-medium text-white/70">Painel Administrativo</p>
+              </div>
+            )}
+          </div>
+
+          {/* Atalhos */}
+          {!collapsed && (
+            <div className="space-y-2.5">
+              {SHORTCUTS.map((s) => {
+                const Icon = s.icon;
+                return (
+                  <button
+                    key={s.label}
+                    onClick={() => go(s.page, s.tab)}
+                    className={`flex w-full items-center gap-3 rounded-xl bg-gradient-to-r ${s.card}
+                      px-3 py-3 text-left shadow-lg shadow-black/10 transition-transform
+                      hover:-translate-y-0.5 cursor-pointer`}
+                  >
+                    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${s.chip}`}>
+                      <Icon size={17} strokeWidth={2.2} />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[14px] font-bold leading-tight text-white">{s.label}</span>
+                      <span className="mt-0.5 block truncate text-[11.5px] font-normal text-white/60">{s.hint}</span>
+                    </span>
+                    <ChevronRight size={16} className="shrink-0 text-white/40" />
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Menu */}
+          <p className={`mb-2 mt-5 px-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/55
+            ${collapsed ? 'text-center' : ''}`}>
+            {collapsed ? '•••' : 'Menu'}
+          </p>
+
+          <nav className="space-y-1">
+            {NAV.map(({ key, label, icon: Icon, badge }) => {
+              const active = page === key;
+              const count = badge ? counts[badge] : 0;
+
+              return (
+                <button
+                  key={key}
+                  onClick={() => go(key)}
+                  title={collapsed ? label : undefined}
+                  className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-[14.5px]
+                    transition-colors duration-200 cursor-pointer
+                    ${collapsed ? 'justify-center' : ''}
+                    ${active
+                      ? 'bg-gradient-to-r from-[#0b3d29] to-[#12563a] font-bold text-white shadow-lg shadow-black/20 ring-1 ring-white/15'
+                      : 'font-medium text-white/85 hover:bg-white/10 hover:text-white'}`}
+                >
+                  <Icon size={19} strokeWidth={active ? 2.4 : 1.9} className="shrink-0" />
+
+                  {!collapsed && (
+                    <>
+                      <span className="min-w-0 flex-1 truncate text-left leading-snug">{label}</span>
+                      {badge && count > 0 && (
+                        <span className="shrink-0 rounded-full bg-white/20 px-1.5 py-0.5 text-[11px] font-semibold text-white">
+                          {count}
+                        </span>
+                      )}
+                      <ChevronRight size={15} className={active ? 'shrink-0 text-white/60' : 'shrink-0 text-white/25'} />
+                    </>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Rodapé fixo */}
+        <div className="shrink-0 border-t border-white/15 px-3 py-4">
+          {collapsed ? (
+            <button
+              onClick={() => setCollapsed(false)}
+              aria-label="Expandir menu"
+              className="mx-auto flex h-9 w-9 items-center justify-center rounded-xl bg-white/15
+                text-white transition-colors hover:bg-white/25 cursor-pointer"
+            >
+              <ChevronLeft size={18} className="rotate-180" />
+            </button>
+          ) : (
+            <>
+              <div className="mb-3 text-center">
+                <p className="flex items-center justify-center gap-1.5 text-[13px] font-bold text-white">
+                  <Headset size={14} />
+                  Precisa de ajuda?
+                </p>
+                <p className="mt-0.5 text-[11px] font-normal text-white/60">Fale com o suporte</p>
+              </div>
+
+              <div className="flex items-center justify-between border-t border-white/10 pt-3">
+                <span className="text-[11.5px] font-medium text-white/55">© 2026 SP Apoio Financeiro</span>
+                <button
+                  onClick={() => setCollapsed(true)}
+                  aria-label="Recolher menu"
+                  className="hidden h-7 w-7 items-center justify-center rounded-lg bg-white/10 text-white/70
+                    transition-colors hover:bg-white/20 hover:text-white lg:flex cursor-pointer"
+                >
+                  <ChevronLeft size={15} />
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </aside>
+
+      {/* Espaçador que empurra o conteúdo conforme a largura da sidebar */}
+      <div className={`hidden shrink-0 transition-[width] duration-300 lg:block ${collapsed ? 'w-[84px]' : 'w-[280px]'}`} />
     </>
   );
 }

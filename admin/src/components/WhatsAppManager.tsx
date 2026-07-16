@@ -124,42 +124,42 @@ export default function WhatsAppManager() {
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-xl font-extrabold text-gray-900">WhatsApp</h2>
-        <p className="text-sm text-gray-400 mt-0.5">
+        <h2 className="text-xl font-extrabold text-ink">WhatsApp</h2>
+        <p className="text-sm text-subtle mt-0.5">
           Conecte seu WhatsApp para enviar mensagens diretamente do painel
         </p>
       </div>
 
       {/* Connection Status Card */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+      <div className="bg-surface rounded-2xl shadow-sm border border-line p-6 mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${
-              status.connected ? 'bg-success/10' : 'bg-gray-100'
+              status.connected ? 'bg-success/10' : 'bg-line'
             }`}>
               {status.connected
                 ? <Wifi size={24} className="text-success" />
-                : <WifiOff size={24} className="text-gray-400" />}
+                : <WifiOff size={24} className="text-subtle" />}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-lg font-bold text-gray-900">
+                <h3 className="text-lg font-bold text-ink">
                   {status.connected ? 'Conectado' : 'Desconectado'}
                 </h3>
                 <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${
-                  status.connected ? 'bg-success/10 text-success' : 'bg-gray-100 text-gray-500'
+                  status.connected ? 'bg-success/10 text-success' : 'bg-line text-muted'
                 }`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${status.connected ? 'bg-success animate-pulse' : 'bg-gray-400'}`} />
+                  <span className={`w-1.5 h-1.5 rounded-full ${status.connected ? 'bg-success animate-pulse' : 'bg-subtle'}`} />
                   {status.connected ? 'Online' : 'Offline'}
                 </span>
               </div>
               {status.connected && status.name && (
-                <p className="text-sm text-gray-500 mt-0.5">
+                <p className="text-sm text-muted mt-0.5">
                   {status.name} • {status.number}
                 </p>
               )}
               {!status.connected && (
-                <p className="text-sm text-gray-400 mt-0.5">
+                <p className="text-sm text-subtle mt-0.5">
                   Escaneie o QR Code para conectar
                 </p>
               )}
@@ -170,9 +170,9 @@ export default function WhatsAppManager() {
             <button
               onClick={checkStatus}
               disabled={loading}
-              className="p-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-50"
+              className="p-2.5 rounded-xl border border-line hover:bg-canvas transition-colors cursor-pointer disabled:opacity-50"
             >
-              <RefreshCw size={16} className={`text-gray-500 ${loading ? 'animate-spin' : ''}`} />
+              <RefreshCw size={16} className={`text-muted ${loading ? 'animate-spin' : ''}`} />
             </button>
             {status.connected ? (
               <button
@@ -196,18 +196,18 @@ export default function WhatsAppManager() {
       </div>
 
       {qrcode && !status.connected && (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">
+        <div className="bg-surface rounded-2xl shadow-sm border border-line p-8 mb-6">
           <div className="flex flex-col items-center">
-            <div className="bg-white p-4 rounded-2xl shadow-lg border border-gray-200 mb-4">
+            <div className="bg-surface p-4 rounded-2xl shadow-lg border border-line mb-4">
               <img src={qrcode} alt="QR Code WhatsApp" className="w-64 h-64" />
             </div>
             <div className="text-center">
-              <h3 className="text-base font-bold text-gray-900 mb-1">Escaneie o QR Code</h3>
-              <p className="text-sm text-gray-400 max-w-sm">
+              <h3 className="text-base font-bold text-ink mb-1">Escaneie o QR Code</h3>
+              <p className="text-sm text-subtle max-w-sm">
                 Abra o WhatsApp no celular → Menu → Dispositivos conectados → Conectar dispositivo
               </p>
             </div>
-            <div className="flex items-center gap-2 mt-4 text-xs text-gray-400">
+            <div className="flex items-center gap-2 mt-4 text-xs text-subtle">
               <Loader2 size={12} className="animate-spin" />
               Aguardando conexão...
             </div>
@@ -216,14 +216,14 @@ export default function WhatsAppManager() {
       )}
 
       {/* Message Templates Editor */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+      <div className="bg-surface rounded-2xl shadow-sm border border-line p-6 mb-6">
         <div className="flex items-center gap-3 mb-5">
           <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
             <MessageSquare size={18} className="text-primary" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-gray-900">Templates de Mensagem</h3>
-            <p className="text-xs text-gray-400">Edite as mensagens enviadas para cada status</p>
+            <h3 className="text-base font-bold text-ink">Templates de Mensagem</h3>
+            <p className="text-xs text-subtle">Edite as mensagens enviadas para cada status</p>
           </div>
           <button
             onClick={() => setTemplates(DEFAULT_TEMPLATES)}
@@ -233,10 +233,10 @@ export default function WhatsAppManager() {
           </button>
         </div>
 
-        <div className="flex flex-wrap gap-1.5 mb-5 p-3 bg-gray-50 rounded-xl">
-          <span className="text-[11px] text-gray-500 font-medium mr-1 self-center">Variáveis:</span>
+        <div className="flex flex-wrap gap-1.5 mb-5 p-3 bg-canvas rounded-xl">
+          <span className="text-[11px] text-muted font-medium mr-1 self-center">Variáveis:</span>
           {VARIABLES.map(v => (
-            <span key={v} className="px-2 py-0.5 bg-white border border-gray-200 rounded-md text-[11px] font-mono text-primary">
+            <span key={v} className="px-2 py-0.5 bg-surface border border-line rounded-md text-[11px] font-mono text-primary">
               {v}
             </span>
           ))}
@@ -244,7 +244,7 @@ export default function WhatsAppManager() {
 
         <div className="space-y-4">
           {Object.entries(STATUS_LABELS).map(([key, { label, color }]) => (
-            <div key={key} className="border border-gray-100 rounded-xl p-4">
+            <div key={key} className="border border-line rounded-xl p-4">
               <div className="flex items-center justify-between mb-3">
                 <span className={`px-2.5 py-1 rounded-lg text-[12px] font-bold ${color}`}>
                   {label}
@@ -269,7 +269,7 @@ export default function WhatsAppManager() {
                 onChange={e => setTemplates(prev => ({ ...prev, [key]: e.target.value }))}
                 placeholder={`Mensagem para leads com status ${label}...\nUse {{nome}}, {{valor}} etc.`}
                 rows={6}
-                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-[13px] text-gray-700 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-y"
+                className="w-full px-3 py-2.5 rounded-xl border border-line text-[13px] text-ink-2 placeholder:text-subtle focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-y"
               />
             </div>
           ))}
@@ -277,41 +277,41 @@ export default function WhatsAppManager() {
       </div>
 
       {/* How it works */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-        <h3 className="text-sm font-bold text-gray-700 mb-4">Como funciona</h3>
+      <div className="bg-surface rounded-2xl shadow-sm border border-line p-6">
+        <h3 className="text-sm font-bold text-ink-2 mb-4">Como funciona</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+          <div className="flex items-start gap-3 p-4 bg-canvas rounded-xl">
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
               <QrCode size={16} className="text-primary" />
             </div>
             <div>
-              <p className="text-[13px] font-semibold text-gray-800">1. Conecte</p>
-              <p className="text-[12px] text-gray-400 mt-0.5">Escaneie o QR Code com o WhatsApp</p>
+              <p className="text-[13px] font-semibold text-ink">1. Conecte</p>
+              <p className="text-[12px] text-subtle mt-0.5">Escaneie o QR Code com o WhatsApp</p>
             </div>
           </div>
-          <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+          <div className="flex items-start gap-3 p-4 bg-canvas rounded-xl">
             <div className="w-8 h-8 rounded-lg bg-warning/10 flex items-center justify-center shrink-0 mt-0.5">
               <Phone size={16} className="text-warning" />
             </div>
             <div>
-              <p className="text-[13px] font-semibold text-gray-800">2. Mude o Status</p>
-              <p className="text-[12px] text-gray-400 mt-0.5">Altere o status do lead na tabela</p>
+              <p className="text-[13px] font-semibold text-ink">2. Mude o Status</p>
+              <p className="text-[12px] text-subtle mt-0.5">Altere o status do lead na tabela</p>
             </div>
           </div>
-          <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+          <div className="flex items-start gap-3 p-4 bg-canvas rounded-xl">
             <div className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center shrink-0 mt-0.5">
               <CheckCircle2 size={16} className="text-success" />
             </div>
             <div>
-              <p className="text-[13px] font-semibold text-gray-800">3. Envio Direto</p>
-              <p className="text-[12px] text-gray-400 mt-0.5">A mensagem é enviada direto pelo painel quando o WhatsApp estiver conectado</p>
+              <p className="text-[13px] font-semibold text-ink">3. Envio Direto</p>
+              <p className="text-[12px] text-subtle mt-0.5">A mensagem é enviada direto pelo painel quando o WhatsApp estiver conectado</p>
             </div>
           </div>
         </div>
 
         <div className="mt-4 p-3 bg-warning/5 border border-warning/20 rounded-xl flex items-start gap-2">
           <AlertCircle size={16} className="text-warning shrink-0 mt-0.5" />
-          <p className="text-[12px] text-gray-600">
+          <p className="text-[12px] text-ink-2">
             <strong>Atenção:</strong> O servidor precisa continuar rodando com a sessão salva e acesso ao Chrome/Edge para manter o WhatsApp conectado.
           </p>
         </div>

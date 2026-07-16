@@ -8,8 +8,22 @@ export async function fetchLeads(status?: string) {
   const url = status
     ? `${API_BASE}/admin/leads?status=${status}`
     : `${API_BASE}/admin/leads`;
-  const res = await fetch(url);
-  return res.json();
+  try {
+    const res = await fetch(url);
+    return res.json();
+  } catch (err) {
+    // Só em desenvolvimento: sem backend local, devolve dados de exemplo para
+    // pré-visualizar o layout. Em produção o erro sobe normalmente.
+    if (import.meta.env.DEV) {
+      const { DEV_SAMPLE_LEADS } = await import('./devMocks');
+      const data = status
+        ? DEV_SAMPLE_LEADS.filter((l) => l.status === status)
+        : DEV_SAMPLE_LEADS;
+      console.warn('[dev] backend offline — usando dados de exemplo (devMocks.ts)');
+      return { success: true, data };
+    }
+    throw err;
+  }
 }
 
 export async function fetchLeadById(id: string) {

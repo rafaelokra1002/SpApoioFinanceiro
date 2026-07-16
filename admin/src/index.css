@@ -1,23 +1,59 @@
 @import "tailwindcss";
 
+/* Tema por classe: `document.documentElement.classList.toggle('dark')` (ver useTheme). */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
-  --color-primary: #1e3a8a;
-  --color-primary-light: #2563eb;
-  --color-success: #22c55e;
+  /* Marca — verde SP Análise (igual nos dois temas) */
+  --color-brand: #16a34a;
+  --color-brand-deep: #15803d;
+  --color-brand-dark: #0b4a2e;
+  --color-brand-darker: #093d26;
+
+  /* Aliases herdados pelas telas antigas (Categorias, WhatsApp, LeadDetail) */
+  --color-primary: #15803d;
+  --color-primary-light: #16a34a;
+
+  /* Status */
+  --color-success: #16a34a;
   --color-warning: #f59e0b;
   --color-danger: #ef4444;
+  --color-orange: #fb923c;
   --color-info: #3b82f6;
-  --color-purple: #8b5cf6;
+
+  /* Tokens semânticos — é o que troca entre claro e escuro.
+     Os componentes usam estes, nunca bg-white/text-gray-* direto. */
+  --color-surface: #ffffff;  /* cartões, barras, inputs */
+  --color-canvas: #f4f6f5;   /* fundo da página */
+  --color-line: #e8ebe9;     /* bordas e trilhos */
+  --color-ink: #111827;      /* texto principal */
+  --color-ink-2: #374151;    /* texto secundário */
+  --color-muted: #6b7280;    /* rótulos */
+  --color-subtle: #9ca3af;   /* legendas, eixos */
+}
+
+.dark {
+  --color-surface: #141d2c;
+  --color-canvas: #0a0f18;
+  --color-line: #26324a;
+  --color-ink: #e8eaee;
+  --color-ink-2: #c3c9d4;
+  --color-muted: #97a1b0;
+  --color-subtle: #6f7987;
 }
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
 }
 
 ::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--color-line);
   border-radius: 3px;
 }

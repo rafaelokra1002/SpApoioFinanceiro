@@ -3,6 +3,7 @@ import { Lead } from '../types';
 import { X, CheckCircle, XCircle, Trash2, MessageCircle, ExternalLink, Clock, Download, Loader2 } from 'lucide-react';
 import { fetchMessageLogs } from '../services/api';
 import { downloadLeadDossier } from '../utils/leadDossier';
+import { METRICS, STATUS_ORDER, isInternalStatus } from '../constants/status';
 
 interface MessageLog {
   id: string;
@@ -62,23 +63,23 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
   };
 
   return (
-    <div className="w-[360px] bg-white rounded-2xl shadow-sm border border-gray-100 self-start sticky top-6 overflow-hidden">
+    <div className="w-[360px] max-w-full bg-surface rounded-2xl shadow-xl border border-line overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-        <h3 className="text-[15px] font-bold text-gray-900">Detalhes do Lead</h3>
+      <div className="flex items-center justify-between px-5 py-4 border-b border-line">
+        <h3 className="text-[15px] font-bold text-ink">Detalhes do Lead</h3>
         <button
           onClick={onClose}
-          className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center transition-colors cursor-pointer"
+          className="w-8 h-8 rounded-lg hover:bg-line flex items-center justify-center transition-colors cursor-pointer"
         >
-          <X size={16} className="text-gray-400" />
+          <X size={16} className="text-subtle" />
         </button>
       </div>
 
       <div className="px-5 py-4 space-y-0">
         {rows.map((row, i) => (
-          <div key={i} className="flex justify-between items-center py-2.5 border-b border-gray-50 last:border-0">
-            <span className="text-xs font-medium text-gray-400">{row.label}</span>
-            <span className={`text-[13px] ${row.highlight ? 'text-primary-light font-bold' : row.bold ? 'font-bold text-gray-900' : 'text-gray-700'}`}>
+          <div key={i} className="flex justify-between items-center py-2.5 border-b border-line last:border-0">
+            <span className="text-xs font-medium text-subtle">{row.label}</span>
+            <span className={`text-[13px] ${row.highlight ? 'text-primary-light font-bold' : row.bold ? 'font-bold text-ink' : 'text-ink-2'}`}>
               {row.value}
             </span>
           </div>
@@ -88,7 +89,7 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
       {/* Documents */}
       {lead.documentos && lead.documentos.length > 0 && (
         <div className="px-5 pb-4">
-          <h4 className="text-xs font-bold text-gray-500 mb-3 flex items-center gap-1.5">
+          <h4 className="text-xs font-bold text-muted mb-3 flex items-center gap-1.5">
             📄 Documentos ({lead.documentos.length})
           </h4>
           <div className="grid grid-cols-2 gap-2">
@@ -100,7 +101,7 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
                   href={doc.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group flex flex-col bg-gray-50 rounded-xl overflow-hidden hover:shadow-md transition-all"
+                  className="group flex flex-col bg-canvas rounded-xl overflow-hidden hover:shadow-md transition-all"
                 >
                   {isPdf ? (
                     <div className="w-full h-20 flex flex-col items-center justify-center bg-red-50 text-red-500">
@@ -119,8 +120,8 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
                     />
                   )}
                   <div className="flex items-center justify-between px-2 py-1.5">
-                    <span className="text-[10px] text-gray-500 truncate">{doc.tipo}</span>
-                    <ExternalLink size={10} className="text-gray-300 group-hover:text-primary-light" />
+                    <span className="text-[10px] text-muted truncate">{doc.tipo}</span>
+                    <ExternalLink size={10} className="text-subtle group-hover:text-primary-light" />
                   </div>
                 </a>
               );
@@ -132,12 +133,12 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
       {/* Message History */}
       {logs.length > 0 && (
         <div className="px-5 pb-4">
-          <h4 className="text-xs font-bold text-gray-500 mb-3 flex items-center gap-1.5">
+          <h4 className="text-xs font-bold text-muted mb-3 flex items-center gap-1.5">
             <Clock size={12} /> Mensagens ({logs.length})
           </h4>
           <div className="space-y-2 max-h-48 overflow-y-auto">
             {logs.map((log) => (
-              <div key={log.id} className="p-2.5 bg-gray-50 rounded-xl">
+              <div key={log.id} className="p-2.5 bg-canvas rounded-xl">
                 <div className="flex items-center justify-between mb-1">
                   <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
                     log.status === 'ENVIADO'
@@ -146,11 +147,11 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
                   }`}>
                     {log.status}
                   </span>
-                  <span className="text-[10px] text-gray-400">
+                  <span className="text-[10px] text-subtle">
                     {new Date(log.createdAt).toLocaleString('pt-BR')}
                   </span>
                 </div>
-                <p className="text-[11px] text-gray-600 line-clamp-3 whitespace-pre-line">{log.mensagem}</p>
+                <p className="text-[11px] text-ink-2 line-clamp-3 whitespace-pre-line">{log.mensagem}</p>
               </div>
             ))}
           </div>
@@ -167,31 +168,57 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
           {downloadingDossier ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
           {downloadingDossier ? 'Gerando dossiê...' : 'Baixar Dossiê para Análise'}
         </button>
+        <select
+          value={STATUS_ORDER.includes(lead.status as never) ? lead.status : ''}
+          onChange={(e) => onStatusChange(lead.id, e.target.value)}
+          className="w-full cursor-pointer rounded-xl border border-line bg-surface px-3 py-2.5 text-[13px]
+            font-medium text-ink-2 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15"
+        >
+          {!STATUS_ORDER.includes(lead.status as never) && (
+            <option value="" disabled>{lead.status}</option>
+          )}
+          {STATUS_ORDER.map((s) => (
+            <option key={s} value={s}>{METRICS[s].label}</option>
+          ))}
+        </select>
+
+        {/* Aprovar/Recusar são atalhos só para leads ainda pendentes de análise. */}
         <div className="flex gap-2">
-          <button
-            onClick={() => onStatusChange(lead.id, 'APROVADO')}
-            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-success text-white text-[13px] font-semibold hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer"
-          >
-            <CheckCircle size={14} /> Aprovar
-          </button>
-          <button
-            onClick={() => onStatusChange(lead.id, 'RECUSADO')}
-            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-danger text-white text-[13px] font-semibold hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer"
-          >
-            <XCircle size={14} /> Recusar
-          </button>
+          {lead.status === 'PENDENTE' && (
+            <>
+              <button
+                onClick={() => onStatusChange(lead.id, 'APROVADO')}
+                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-success text-white text-[13px] font-semibold hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer"
+              >
+                <CheckCircle size={14} /> Aprovar
+              </button>
+              <button
+                onClick={() => onStatusChange(lead.id, 'RECUSADO')}
+                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-danger text-white text-[13px] font-semibold hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer"
+              >
+                <XCircle size={14} /> Recusar
+              </button>
+            </>
+          )}
           <button
             onClick={() => onDelete(lead.id)}
-            className="w-10 flex items-center justify-center rounded-xl bg-gray-100 text-danger hover:bg-danger/10 transition-colors cursor-pointer"
+            title="Excluir solicitação"
+            className={`flex items-center justify-center gap-1.5 rounded-xl bg-line py-2.5 text-danger transition-colors hover:bg-danger/10 cursor-pointer
+              ${lead.status === 'PENDENTE' ? 'w-10' : 'flex-1 px-3 text-[13px] font-semibold'}`}
           >
             <Trash2 size={15} />
+            {lead.status !== 'PENDENTE' && 'Excluir'}
           </button>
         </div>
         <button
           onClick={() => onWhatsApp(lead)}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#25D366] text-white text-[13px] font-bold hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer"
+          disabled={isInternalStatus(lead.status)}
+          title={isInternalStatus(lead.status)
+            ? 'Status interno — não envia mensagem ao cliente'
+            : undefined}
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#25D366] text-white text-[13px] font-bold hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer disabled:cursor-not-allowed disabled:bg-line disabled:text-subtle"
         >
-          <MessageCircle size={16} fill="#fff" />
+          <MessageCircle size={16} fill={isInternalStatus(lead.status) ? 'transparent' : '#fff'} />
           Enviar Status via WhatsApp
         </button>
       </div>
