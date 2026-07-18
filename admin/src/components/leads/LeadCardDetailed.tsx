@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { Lead } from '../../types';
 import { formatCurrency, modalidade, origemOf } from '../../utils/analytics';
-import { avatarColor, initials } from '../../utils/avatar';
+import { avatarColor, clientPhotoUrl, initials } from '../../utils/avatar';
 import { isInternalStatus, statusBadge, statusLabel } from '../../constants/status';
 import OrigemIcon from '../dashboard/OrigemIcon';
 
@@ -43,8 +43,17 @@ export default function LeadCardDetailed({ lead, onView, onWhatsApp }: LeadCardD
       <div className="p-4">
         {/* Identidade */}
         <div className="flex items-start gap-3">
-          <span className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-[18px] font-bold text-white ${avatarColor(lead.nome)}`}>
+          <span className={`relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full text-[18px] font-bold text-white ${avatarColor(lead.nome)}`}>
             {initials(lead.nome)}
+            {clientPhotoUrl(lead.documentos) && (
+              <img
+                src={clientPhotoUrl(lead.documentos)}
+                alt={lead.nome}
+                loading="lazy"
+                className="absolute inset-0 h-full w-full object-cover"
+                onError={(e) => e.currentTarget.remove()}
+              />
+            )}
           </span>
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-2">

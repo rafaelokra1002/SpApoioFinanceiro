@@ -9,7 +9,7 @@ import { fetchMessageLogs } from '../services/api';
 import { downloadLeadDossier } from '../utils/leadDossier';
 import { METRICS, STATUS_ORDER, isInternalStatus, statusLabel } from '../constants/status';
 import { modalidade } from '../utils/analytics';
-import { avatarColor, initials } from '../utils/avatar';
+import { avatarColor, clientPhotoUrl, initials } from '../utils/avatar';
 
 interface MessageLog {
   id: string;
@@ -79,12 +79,7 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
   const hasLocation = typeof lead.latitude === 'number' && typeof lead.longitude === 'number';
   const mapsUrl = `https://www.google.com/maps?q=${lead.latitude},${lead.longitude}`;
 
-  // Foto de perfil: usamos a selfie enviada pelo cliente. O nome real vem no
-  // filename ("Selfie (rosto).jpg"), não no tipo — então olhamos os dois.
-  const photoDoc = lead.documentos?.find((d) => {
-    const hay = `${d.tipo} ${d.filename}`.toLowerCase();
-    return /selfie|rosto|foto|perfil/.test(hay) && (IMAGE_EXT.test(d.filename) || IMAGE_EXT.test(d.url));
-  });
+  const photoUrl = clientPhotoUrl(lead.documentos);
 
   return (
     <div className="flex max-h-[90vh] w-[min(940px,95vw)] flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-xl">
@@ -102,9 +97,9 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
           <div className="flex flex-col items-center text-center">
             <span className={`relative flex h-28 w-28 items-center justify-center overflow-hidden rounded-2xl text-[36px] font-bold text-white ${avatarColor(lead.nome)}`}>
               {initials(lead.nome)}
-              {photoDoc && (
+              {photoUrl && (
                 <img
-                  src={photoDoc.url}
+                  src={photoUrl}
                   alt={lead.nome}
                   loading="lazy"
                   className="absolute inset-0 h-full w-full object-cover"
@@ -215,19 +210,6 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
             )}
           </div>
 
-          {/* Backup completo */}
-          <button
-            onClick={handleDownload}
-            disabled={downloading}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-info py-3 text-[13.5px] font-bold text-white transition-colors hover:brightness-110 disabled:cursor-wait disabled:opacity-70 cursor-pointer"
-          >
-            {downloading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
-            {downloading ? 'Gerando backup...' : 'Baixar backup completo (dados + documentos)'}
-          </button>
-          <p className="-mt-3 text-center text-[11px] text-subtle">
-            Será baixado um arquivo ZIP com todas as informações e documentos do cliente.
-          </p>
-
           {/* Ações da análise */}
           <div>
             <p className="mb-2 text-[14px] font-bold text-ink">Ações da análise</p>
@@ -267,7 +249,10 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
                 onClick={() => onUpdateGroups(lead.id, { analiseCliente: !lead.analiseCliente })} />
               <ActionBtn icon={<Send size={15} />} label="Sistema Cobrança Fácil (em breve)"
                 disabled className="bg-canvas text-subtle" />
-              <ActionBtn icon={<Download size={15} />} label="Baixar backup"
+              <ActionBtn
+                icon={downloading ? <Loader2 size={15} className="animate-spin" /> : <Download size={15} />}
+                label={downloading ? 'Gerando...' : 'Baixar backup'}
+                disabled={downloading}
                 className="bg-canvas text-ink-2 hover:bg-line" onClick={handleDownload} />
               <ActionBtn icon={<MapPin size={15} />} label="Ver localização"
                 disabled={!hasLocation}
