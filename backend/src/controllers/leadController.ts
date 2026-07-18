@@ -99,6 +99,12 @@ export async function handleCreateLeadWithDocs(
       nomeEmpresa: body.nomeEmpresa || undefined,
       bairroTrabalho: body.bairroTrabalho || undefined,
       indicacao: body.indicacao || undefined,
+      endereco: body.endereco || undefined,
+      cep: body.cep || undefined,
+      enderecoTrabalho: body.enderecoTrabalho || undefined,
+      observacao: body.observacao || undefined,
+      latitude: body.latitude ? parseFloat(body.latitude) : undefined,
+      longitude: body.longitude ? parseFloat(body.longitude) : undefined,
     };
 
     const lead = await leadService.createLead(leadData);
