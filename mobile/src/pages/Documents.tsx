@@ -33,13 +33,14 @@ export function Documents() {
     pdfInputRef.current?.click();
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && currentDocKey) {
-      const preview = file.type === 'application/pdf' ? '' : URL.createObjectURL(file);
-      dispatch({ type: 'SET_DOCUMENT', key: currentDocKey, file: { file, preview } });
-    }
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.files?.[0];
     e.target.value = '';
+    if (!raw || !currentDocKey) return;
+    // Comprime fotos antes de guardar (evita "File too large" e agiliza o upload).
+    const file = await compressImage(raw);
+    const preview = file.type === 'application/pdf' ? '' : URL.createObjectURL(file);
+    dispatch({ type: 'SET_DOCUMENT', key: currentDocKey, file: { file, preview } });
   };
 
   const handleSubmit = async () => {
@@ -422,6 +423,43 @@ export function Documents() {
       </div>
     </div>
   );
+}
+
+/** Redimensiona/comprime imagens no navegador antes do upload. PDFs passam direto. */
+async function compressImage(file: File, maxDim = 1600, quality = 0.8): Promise<File> {
+  if (!file.type.startsWith('image/')) return file;
+  try {
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const i = new Image();
+      i.onload = () => resolve(i);
+      i.onerror = reject;
+      i.src = dataUrl;
+    });
+    let { width, height } = img;
+    if (width > maxDim || height > maxDim) {
+      const scale = Math.min(maxDim / width, maxDim / height);
+      width = Math.round(width * scale);
+      height = Math.round(height * scale);
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return file;
+    ctx.drawImage(img, 0, 0, width, height);
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality));
+    if (!blob || blob.size >= file.size) return file;
+    const name = file.name.replace(/\.[^.]+$/, '') + '.jpg';
+    return new File([blob], name, { type: 'image/jpeg' });
+  } catch {
+    return file;
+  }
 }
 
 function InputField({ label, value, onChange, placeholder, type, inputMode }: {
