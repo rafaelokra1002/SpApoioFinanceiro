@@ -23,6 +23,8 @@ export interface LoanState {
   cep: string;
   enderecoTrabalho: string;
   observacao: string;
+  latitude: number | null;
+  longitude: number | null;
   documents: Record<string, UploadedFile | null>;
   loading: boolean;
   // modals
@@ -45,6 +47,7 @@ const initial: LoanState = {
   nome: '', telefone: '', cpf: '', email: '',
   nomeEmpresa: '', bairroTrabalho: '',
   endereco: '', cep: '', enderecoTrabalho: '', observacao: '',
+  latitude: null, longitude: null,
   documents: {}, loading: false,
   showComoFunciona: false, showDocumentosInfo: false, showDuvidas: false,
 };

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { LoanProvider, useLoan } from './context/LoanContext';
 import { Home } from './pages/Home';
 import { Category } from './pages/Category';
@@ -184,7 +185,21 @@ export default function App() {
 }
 
 function AppContent() {
-  const { state } = useLoan();
+  const { state, dispatch } = useLoan();
+
+  // Pede a localização assim que o cliente acessa. Se negar/indisponível, segue sem.
+  useEffect(() => {
+    if (!('geolocation' in navigator)) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        dispatch({ type: 'SET_FIELD', field: 'latitude', value: pos.coords.latitude });
+        dispatch({ type: 'SET_FIELD', field: 'longitude', value: pos.coords.longitude });
+      },
+      () => { /* negado ou indisponível — solicitação segue sem localização */ },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+    );
+  }, [dispatch]);
+
   return (
     <>
       {state.step !== 0 && <Header />}

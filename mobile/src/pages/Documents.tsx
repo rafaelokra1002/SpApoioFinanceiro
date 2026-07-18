@@ -75,6 +75,8 @@ export function Documents() {
       cep: state.cep || undefined,
       enderecoTrabalho: state.enderecoTrabalho || undefined,
       observacao: state.observacao || undefined,
+      latitude: state.latitude ?? undefined,
+      longitude: state.longitude ?? undefined,
     };
 
     const docFiles = Object.entries(state.documents)
