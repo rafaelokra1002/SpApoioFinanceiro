@@ -374,8 +374,9 @@ export function Documents() {
         {/* Endereço e observação */}
         <div style={{ marginTop: 12, marginBottom: 12 }}>
           <p style={{ fontSize: 14, fontWeight: 600, color: '#0d2b5e', marginBottom: 10 }}>Endereço</p>
-          <InputField placeholder="Endereço residencial (rua, número, bairro) (opcional)"
-            value={state.endereco} onChange={v => dispatch({ type: 'SET_FIELD', field: 'endereco', value: v })} />
+          <p style={{ fontSize: 12, color: '#7c7c9a', marginBottom: 10 }}>
+            Seu endereço é preenchido automaticamente pela localização que você compartilhou ao entrar.
+          </p>
           <InputField placeholder="CEP (opcional)" inputMode="numeric"
             value={state.cep}
             onChange={v => dispatch({ type: 'SET_FIELD', field: 'cep', value: v.replace(/\D/g, '').replace(/(\d{5})(\d)/, '$1-$2').slice(0, 9) })} />
