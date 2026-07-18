@@ -71,6 +71,10 @@ export function Documents() {
       nomeEmpresa: state.nomeEmpresa || undefined,
       bairroTrabalho: state.bairroTrabalho || undefined,
       indicacao: state.indicacao || undefined,
+      endereco: state.endereco || undefined,
+      cep: state.cep || undefined,
+      enderecoTrabalho: state.enderecoTrabalho || undefined,
+      observacao: state.observacao || undefined,
     };
 
     const docFiles = Object.entries(state.documents)
@@ -364,6 +368,29 @@ export function Documents() {
               value={state.bairroTrabalho} onChange={v => dispatch({ type: 'SET_FIELD', field: 'bairroTrabalho', value: v })} />
           </div>
         )}
+
+        {/* Endereço e observação */}
+        <div style={{ marginTop: 12, marginBottom: 12 }}>
+          <p style={{ fontSize: 14, fontWeight: 600, color: '#0d2b5e', marginBottom: 10 }}>Endereço</p>
+          <InputField placeholder="Endereço residencial (rua, número, bairro) (opcional)"
+            value={state.endereco} onChange={v => dispatch({ type: 'SET_FIELD', field: 'endereco', value: v })} />
+          <InputField placeholder="CEP (opcional)" inputMode="numeric"
+            value={state.cep}
+            onChange={v => dispatch({ type: 'SET_FIELD', field: 'cep', value: v.replace(/\D/g, '').replace(/(\d{5})(\d)/, '$1-$2').slice(0, 9) })} />
+          <InputField placeholder="Endereço do trabalho (opcional)"
+            value={state.enderecoTrabalho} onChange={v => dispatch({ type: 'SET_FIELD', field: 'enderecoTrabalho', value: v })} />
+
+          <p style={{ fontSize: 14, fontWeight: 600, color: '#0d2b5e', marginBottom: 10, marginTop: 16 }}>Observação</p>
+          <textarea placeholder="Conte brevemente para que você precisa do valor (opcional)"
+            value={state.observacao}
+            onChange={e => dispatch({ type: 'SET_FIELD', field: 'observacao', value: e.target.value })}
+            rows={3}
+            style={{
+              width: '100%', padding: '12px 14px', borderRadius: 12, border: '1.5px solid #e5e7eb',
+              background: '#fff', fontSize: 15, color: '#1f2937', boxSizing: 'border-box',
+              resize: 'vertical', fontFamily: 'inherit',
+            }} />
+        </div>
 
         {error && (
           <div style={{ background: '#fee2e2', borderRadius: 10, padding: '10px 14px', marginBottom: 12 }}>

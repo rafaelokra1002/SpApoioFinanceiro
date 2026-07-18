@@ -19,6 +19,10 @@ export interface LoanState {
   email: string;
   nomeEmpresa: string;
   bairroTrabalho: string;
+  endereco: string;
+  cep: string;
+  enderecoTrabalho: string;
+  observacao: string;
   documents: Record<string, UploadedFile | null>;
   loading: boolean;
   // modals
@@ -40,6 +44,7 @@ const initial: LoanState = {
   renda: '', instagram: '', indicacao: '', simulation: null,
   nome: '', telefone: '', cpf: '', email: '',
   nomeEmpresa: '', bairroTrabalho: '',
+  endereco: '', cep: '', enderecoTrabalho: '', observacao: '',
   documents: {}, loading: false,
   showComoFunciona: false, showDocumentosInfo: false, showDuvidas: false,
 };
