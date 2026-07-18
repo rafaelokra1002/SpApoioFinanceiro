@@ -2,23 +2,27 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Category, Lead } from './types';
 import {
   deleteLead, fetchCategories, fetchLeads, getWhatsAppStatus,
-  sendWhatsAppByLead, updateLeadStatus,
+  sendWhatsAppByLead, updateLeadGroups, updateLeadStatus,
 } from './services/api';
 import Sidebar, { PageKey } from './components/Sidebar';
 import Topbar from './components/Topbar';
 import Dashboard from './components/dashboard/Dashboard';
 import RankingCard from './components/dashboard/RankingCard';
 import LeadListing from './components/leads/LeadListing';
+import PendentesView from './components/leads/PendentesView';
 import LeadDetail from './components/LeadDetail';
 import CategoryManager from './components/CategoryManager';
-import WhatsAppManager from './components/WhatsAppManager';
+import MessageTemplates from './components/MessageTemplates';
 import PhotosGallery from './components/PhotosGallery';
 import BackupPanel from './components/BackupPanel';
 import Placeholder from './components/Placeholder';
-import { ClipboardList, UserCircle } from 'lucide-react';
+import { ClipboardList } from 'lucide-react';
 import { MetricKey, StatusKey, isInternalStatus, statusLabel } from './constants/status';
 import { countMetrics, origemOf, rank } from './utils/analytics';
 import { useTheme } from './hooks/useTheme';
+import { useAuth } from './hooks/useAuth';
+import Login from './components/Login';
+import Profile from './components/Profile';
 
 /** Páginas que são apenas a listagem recortada por um status. */
 const STATUS_PAGES: Partial<Record<PageKey, StatusKey>> = {
@@ -95,6 +99,7 @@ const METRIC_TO_PAGE: Record<MetricKey, PageKey> = {
 
 export default function App() {
   const { theme, toggleTheme } = useTheme();
+  const { authed, signIn, signOut } = useAuth();
 
   const [page, setPage] = useState<PageKey>('dashboard');
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -176,6 +181,16 @@ export default function App() {
     loadData();
   };
 
+  const handleUpdateGroups = async (id: string, data: { evitarGolpes?: boolean; analiseCliente?: boolean }) => {
+    const res = await updateLeadGroups(id, data);
+    if (!res.success) {
+      alert(res.error || 'Não foi possível atualizar os grupos.');
+      return;
+    }
+    setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, ...data } : l)));
+    setSelectedLead((prev) => (prev?.id === id ? { ...prev, ...data } : prev));
+  };
+
   const handleDelete = async (id: string) => {
     if (!window.confirm('Tem certeza que deseja excluir esta solicitação?')) return;
     const res = await deleteLead(id);
@@ -199,9 +214,13 @@ export default function App() {
   const cidadeRank = useMemo(() => rank(leads, (l) => l.cidade, 20), [leads]);
 
   const { title, subtitle } = PAGE_TITLES[page];
-  // Todas as listagens de leads usam o grid de cards.
+  // Pendentes tem visão própria (cards detalhados + solicitações anteriores);
+  // as demais listagens usam o grid padrão.
+  const isPendentes = page === 'pendentes';
   const cardLabels = CARD_LABELS[page];
-  const isCardPage = Boolean(cardLabels);
+  const isCardPage = Boolean(cardLabels) && !isPendentes;
+
+  if (!authed) return <Login onSuccess={signIn} />;
 
   return (
     <div className="flex min-h-screen bg-canvas">
@@ -212,6 +231,7 @@ export default function App() {
           theme={theme}
           onToggleTheme={toggleTheme}
           onOpenSettings={() => handleNavigate('configuracoes')}
+          onSignOut={signOut}
         />
 
         <div className="flex-1 p-5 lg:p-6">
@@ -228,35 +248,43 @@ export default function App() {
           />
         )}
 
-        {isCardPage && cardLabels && (
-          <>
-            <LeadListing
-              leads={tableLeads}
-              loading={loading}
-              countLabel={cardLabels.countLabel}
-              countCaption={cardLabels.countCaption}
-              valueLabel={cardLabels.valueLabel}
-              valueCaption={cardLabels.valueCaption}
-              onView={setSelectedLead}
-              onWhatsApp={sendWhatsApp}
-            />
+        {isPendentes && (
+          <PendentesView
+            leads={leads}
+            loading={loading}
+            onView={setSelectedLead}
+            onWhatsApp={sendWhatsApp}
+          />
+        )}
 
-            {/* O detalhe abre como modal centralizado, sobrepondo a tela. */}
-            {selectedLead && (
-              <div className="fixed inset-0 z-40 flex items-center justify-center p-4" role="dialog" aria-modal="true">
-                <div className="absolute inset-0 bg-black/40" onClick={() => setSelectedLead(null)} />
-                <div className="relative z-10 max-h-[90vh] overflow-y-auto">
-                  <LeadDetail
-                    lead={selectedLead}
-                    onClose={() => setSelectedLead(null)}
-                    onStatusChange={handleStatusChange}
-                    onDelete={handleDelete}
-                    onWhatsApp={sendWhatsApp}
-                  />
-                </div>
-              </div>
-            )}
-          </>
+        {isCardPage && cardLabels && (
+          <LeadListing
+            leads={tableLeads}
+            loading={loading}
+            countLabel={cardLabels.countLabel}
+            countCaption={cardLabels.countCaption}
+            valueLabel={cardLabels.valueLabel}
+            valueCaption={cardLabels.valueCaption}
+            onView={setSelectedLead}
+            onWhatsApp={sendWhatsApp}
+          />
+        )}
+
+        {/* Detalhe do lead: modal centralizado, compartilhado entre as listagens. */}
+        {selectedLead && (
+          <div className="fixed inset-0 z-40 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+            <div className="absolute inset-0 bg-black/40" onClick={() => setSelectedLead(null)} />
+            <div className="relative z-10 max-h-[90vh] overflow-y-auto">
+              <LeadDetail
+                lead={selectedLead}
+                onClose={() => setSelectedLead(null)}
+                onStatusChange={handleStatusChange}
+                onDelete={handleDelete}
+                onWhatsApp={sendWhatsApp}
+                onUpdateGroups={handleUpdateGroups}
+              />
+            </div>
+          </div>
         )}
 
         {page === 'origem' && (
@@ -289,7 +317,7 @@ export default function App() {
           <CategoryManager categories={categories} loading={catLoading} onReload={loadCategories} />
         )}
 
-        {page === 'mensagens' && <WhatsAppManager />}
+        {page === 'mensagens' && <MessageTemplates />}
 
         {page === 'relatorio' && (
           <Placeholder
@@ -299,13 +327,7 @@ export default function App() {
           />
         )}
 
-        {page === 'perfil' && (
-          <Placeholder
-            icon={UserCircle}
-            title="Meu Perfil"
-            description="Gerenciamento de perfil e acesso. Em construção — hoje o painel não tem login/usuários."
-          />
-        )}
+        {page === 'perfil' && <Profile />}
 
         {page === 'backup' && <BackupPanel leads={leads} loading={loading} />}
 

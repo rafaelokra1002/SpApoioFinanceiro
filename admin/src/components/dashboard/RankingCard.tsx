@@ -11,6 +11,8 @@ interface RankingCardProps {
   total: number;
   /** Numeração 1., 2., 3.… à esquerda (usado no ranking de cidades). */
   numbered?: boolean;
+  /** Ícone opcional por linha, a partir do rótulo (usado na origem). */
+  iconFor?: (label: string) => ReactNode;
   /** Ação no canto superior direito (ex.: seletor de status). */
   action?: ReactNode;
   emptyLabel?: string;
@@ -18,7 +20,7 @@ interface RankingCardProps {
 
 export default function RankingCard({
   title, hint, labelHeader, valueHeader, rows, total,
-  numbered, action, emptyLabel = 'Sem dados no período',
+  numbered, iconFor, action, emptyLabel = 'Sem dados no período',
 }: RankingCardProps) {
   const max = Math.max(1, ...rows.map((r) => r.count));
 
@@ -53,6 +55,7 @@ export default function RankingCard({
                   )}
                   <td className="py-3 pr-4 align-middle">
                     <div className="flex items-center gap-3">
+                      {iconFor && <span className="flex shrink-0 items-center">{iconFor(row.label)}</span>}
                       <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-ink-2"
                         title={row.label}>
                         {row.label}

@@ -16,6 +16,7 @@ function mk(
   nome: string, cidade: string, valor: number, status: string,
   indicacao: string | null, prazo: number, daysAgo: number,
   instagram: string | null = null,
+  extra: Partial<Lead> = {},
 ): Lead {
   seq += 1;
   return {
@@ -35,10 +36,17 @@ function mk(
     nomeEmpresa: null,
     bairroTrabalho: null,
     indicacao,
+    endereco: null,
+    cep: null,
+    enderecoTrabalho: null,
+    observacao: null,
+    evitarGolpes: false,
+    analiseCliente: false,
     status,
     createdAt: ago(daysAgo),
     updatedAt: ago(Math.max(0, daysAgo - 2)),
     documentos: [],
+    ...extra,
   };
 }
 
@@ -61,11 +69,33 @@ export const DEV_SAMPLE_LEADS: Lead[] = [
   mk('Rodrigo Nogueira Melo', 'Lauro de Freitas', 900, 'APROVADO', null, 30, 128),
   mk('Fernanda Alves Pinto', 'Feira de Santana', 1500, 'APROVADO', 'Vizinho', 60, 150),
 
-  // Pendentes (4)
-  mk('Marcela Teixeira', 'Catu', 800, 'PENDENTE', 'Instagram', 30, 0),
-  mk('Gustavo Ramos', 'Camaçari', 1700, 'PENDENTE', null, 60, 3),
+  // Pendentes (4) — com empresa/endereço para o card detalhado
+  mk('Marcela Teixeira', 'Catu', 800, 'PENDENTE', 'Instagram', 30, 0, null,
+    { nomeEmpresa: 'Indústria Bahia LTDA', enderecoTrabalho: 'Rua do Trabalho, 123 – Polo Industrial', perfil: 'CLT_SEM_REGISTRO',
+      endereco: 'Rua das Flores, 123 – Parafuso, Catu/BA', cep: '48110-000',
+      observacao: 'Preciso do apoio para quitar minhas contas atrasadas e organizar minhas finanças.' }),
+  mk('Gustavo Ramos', 'Camaçari', 1700, 'PENDENTE', null, 60, 3, null,
+    { nomeEmpresa: 'Autônomo', enderecoTrabalho: 'Rua da Liberdade, 45 – Centro', perfil: 'Autônomo',
+      endereco: 'Rua do Sol, 88 – Centro, Camaçari/BA', cep: '42800-100',
+      observacao: 'Preciso de um empréstimo para investir no meu pequeno negócio e aumentar meu estoque.' }),
   mk('Sérgio Barbosa', 'Pojuca', 1400, 'PENDENTE', 'Amigo', 30, 47),
   mk('Patrícia Nunes', 'Camaçari', 2100, 'PENDENTE', 'panfleto', 90, 101),
+
+  // Clientes que JÁ solicitaram antes (mesmo telefone) — alimentam "Solicitações anteriores".
+  mk('Eliana Santana dos Santos', 'Camaçari', 900, 'RECUSADO', 'Achei pelo instagram', 30, 66, 'eliana.ss',
+    { telefone: '(71) 99251-8849' }),
+  mk('Eliana Santana dos Santos', 'Camaçari', 800, 'PENDENTE', 'Achei pelo instagram', 30, 2, 'eliana.ss',
+    { telefone: '(71) 99251-8849', nomeEmpresa: 'Indústria Bahia LTDA', enderecoTrabalho: 'Rua do Trabalho, 123 – Polo Industrial, Camaçari/BA', perfil: 'CLT_SEM_REGISTRO',
+      endereco: 'Rua das Flores, 123 – Parafuso, Camaçari/BA', cep: '42800-000',
+      observacao: 'Preciso do apoio para quitar minhas contas atrasadas e organizar minhas finanças. Pretendo pagar antes do vencimento.',
+      evitarGolpes: true, analiseCliente: true }),
+
+  mk('Dislaikdila Moura', 'Catu', 1600, 'APROVADO', 'Amigo', 60, 85, null, { telefone: '(71) 99348-4694' }),
+  mk('Dislaikdila Moura', 'Catu', 1600, 'PENDENTE', 'Amigo', 60, 1, null,
+    { telefone: '(71) 99348-4694', nomeEmpresa: 'Autônomo', enderecoTrabalho: 'Rua da Liberdade, 45 – Centro', perfil: 'Autônomo',
+      endereco: 'Rua do Sol, 88 – Centro, Catu/BA', cep: '48110-000',
+      observacao: 'Preciso de um empréstimo para investir no meu pequeno negócio e aumentar meu estoque.',
+      analiseCliente: true }),
 
   // Recusados (5) — presentes em vários meses
   mk('Tatiane Sousa', 'Dias d\'Ávila', 1100, 'RECUSADO', 'panfleto', 30, 6),
@@ -84,19 +114,33 @@ export const DEV_SAMPLE_LEADS: Lead[] = [
   mk('Otávio Ramos', 'Dias d\'Ávila', 2300, 'PASSEI_COLABORADOR', 'Amigo', 60, 75),
 ];
 
-// Anexa documentos de exemplo a alguns leads, só para pré-visualizar Fotos e Backup.
-// URLs públicas do picsum (exigem internet); um PDF para exercitar o ícone de arquivo.
-function devDoc(leadId: string, n: number, filename: string, url: string): Lead['documentos'][number] {
-  return { id: `${leadId}-doc-${n}`, leadId, tipo: 'documento', url, filename, createdAt: ago(1) };
+// Anexa documentos de exemplo (só para pré-visualizar o detalhe, Fotos e Backup).
+// Imagens do picsum (exigem internet); um PDF para exercitar o ícone de arquivo.
+const DEV_PDF = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
+
+function devDoc(leadId: string, n: number, tipo: string, filename: string, url: string): Lead['documentos'][number] {
+  return { id: `${leadId}-doc-${n}`, leadId, tipo, url, filename, createdAt: ago(2) };
 }
-[0, 1, 2, 3, 4, 7].forEach((idx) => {
-  const lead = DEV_SAMPLE_LEADS[idx];
-  if (!lead) return;
-  const seedA = 100 + idx;
-  const seedB = 200 + idx;
-  lead.documentos = [
-    devDoc(lead.id, 1, 'rg-frente.jpg', `https://picsum.photos/seed/${seedA}/600/600`),
-    devDoc(lead.id, 2, 'comprovante-residencia.jpg', `https://picsum.photos/seed/${seedB}/600/600`),
-    devDoc(lead.id, 3, 'contracheque.pdf', 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'),
+
+function fullDocs(lead: Lead, seed: number): Lead['documentos'] {
+  const img = (i: number) => `https://picsum.photos/seed/${seed + i}/600/600`;
+  return [
+    devDoc(lead.id, 1, 'RG (Frente)', 'rg-frente.jpg', img(1)),
+    devDoc(lead.id, 2, 'RG (Verso)', 'rg-verso.jpg', img(2)),
+    devDoc(lead.id, 3, 'CPF', 'cpf.jpg', img(3)),
+    devDoc(lead.id, 4, 'Comprovante de residência', 'comprovante-residencia.jpg', img(4)),
+    devDoc(lead.id, 5, 'Comprovante de renda', 'comprovante-renda.jpg', img(5)),
+    devDoc(lead.id, 6, 'Carteira de trabalho', 'ctps.pdf', DEV_PDF),
+    devDoc(lead.id, 7, 'Selfie com documento', 'selfie.jpg', img(7)),
   ];
+}
+
+let docSeed = 100;
+DEV_SAMPLE_LEADS.forEach((lead) => {
+  if (lead.status === 'PENDENTE') {
+    lead.documentos = fullDocs(lead, docSeed);
+  } else if (lead.status === 'APROVADO') {
+    lead.documentos = fullDocs(lead, docSeed).slice(0, 3);
+  }
+  docSeed += 10;
 });

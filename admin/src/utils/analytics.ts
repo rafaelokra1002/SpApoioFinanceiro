@@ -8,6 +8,16 @@ import { MetricKey, StatusKey, STATUS_ORDER } from '../constants/status';
  */
 
 const MONTHS_SHORT = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+const MONTHS_PT = [
+  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+];
+
+/** `2025-05` → `Maio/2025`. */
+export function fullMonthLabel(key: string): string {
+  const [y, m] = key.split('-');
+  return `${MONTHS_PT[Number(m) - 1]}/${y}`;
+}
 
 /** Chave de mês no formato `YYYY-MM`. */
 export function monthKey(date: Date): string {
@@ -38,7 +48,8 @@ export function addMonths(key: string, delta: number): string {
  */
 export function origemOf(lead: Lead): string {
   const raw = (lead.indicacao || '').trim();
-  if (!raw) return 'Não informado';
+  // Sem indicação preenchida, consideramos origem "Panfleto".
+  if (!raw) return 'Panfleto';
 
   const t = raw.toLowerCase();
   if (t.includes('instagram') || t.includes('blogueir') || t.includes('@')) return 'Instagram e Blogueiros';
@@ -64,6 +75,28 @@ export function countMetrics(leads: Lead[]): Counts {
     }
   }
   return counts;
+}
+
+/** Modalidade derivada do prazo (não é campo real): até 30 dias = À vista. */
+export function modalidade(prazoDias: number): string {
+  return prazoDias <= 30 ? 'À vista' : 'Parcelado';
+}
+
+/** Telefone só com dígitos, para casar o mesmo cliente entre solicitações. */
+function phoneKey(lead: Lead): string {
+  return (lead.telefone || '').replace(/\D/g, '');
+}
+
+/**
+ * Solicitações anteriores do mesmo cliente (mesmo telefone), mais recentes primeiro.
+ * Usado para sinalizar quem "já solicitou antes".
+ */
+export function priorRequestsOf(lead: Lead, all: Lead[]): Lead[] {
+  const key = phoneKey(lead);
+  if (!key) return [];
+  return all
+    .filter((o) => o.id !== lead.id && phoneKey(o) === key && new Date(o.createdAt) < new Date(lead.createdAt))
+    .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
 }
 
 /** Contagens apenas dos leads criados nos últimos `days` dias. */

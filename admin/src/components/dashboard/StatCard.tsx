@@ -3,13 +3,15 @@ import { METRICS, MetricKey } from '../../constants/status';
 interface StatCardProps {
   metric: MetricKey;
   value: number;
-  /** Quantos entraram nos últimos 7 dias. */
+  /** Quantos entraram nos últimos 7 dias (usado quando não há filtro de mês). */
   week: number;
+  /** Se informado, substitui a linha "+N esta semana" (ex.: mês filtrado). */
+  caption?: string;
   active?: boolean;
   onClick?: () => void;
 }
 
-export default function StatCard({ metric, value, week, active, onClick }: StatCardProps) {
+export default function StatCard({ metric, value, week, caption, active, onClick }: StatCardProps) {
   const meta = METRICS[metric];
   const Icon = meta.icon;
 
@@ -31,12 +33,16 @@ export default function StatCard({ metric, value, week, active, onClick }: StatC
 
       <p className="mt-2.5 text-[26px] font-bold leading-none text-ink">{value}</p>
 
-      <p className="mt-2 text-[12px] text-subtle">
-        <span className="font-bold" style={{ color: week > 0 ? meta.hex : undefined }}>
-          +{week}
-        </span>{' '}
-        esta semana
-      </p>
+      {caption ? (
+        <p className="mt-2 truncate text-[12px] text-subtle">{caption}</p>
+      ) : (
+        <p className="mt-2 text-[12px] text-subtle">
+          <span className="font-bold" style={{ color: week > 0 ? meta.hex : undefined }}>
+            +{week}
+          </span>{' '}
+          esta semana
+        </p>
+      )}
     </button>
   );
 }

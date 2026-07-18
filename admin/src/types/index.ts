@@ -15,6 +15,12 @@ export interface Lead {
   nomeEmpresa: string | null;
   bairroTrabalho: string | null;
   indicacao: string | null;
+  endereco: string | null;
+  cep: string | null;
+  enderecoTrabalho: string | null;
+  observacao: string | null;
+  evitarGolpes: boolean;
+  analiseCliente: boolean;
   status: string;
   createdAt: string;
   updatedAt: string;

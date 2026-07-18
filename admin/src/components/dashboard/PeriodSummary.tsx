@@ -1,9 +1,12 @@
-import { Award, BadgeCheck, MapPin, Users } from 'lucide-react';
-import { Summary, formatPercent } from '../../utils/analytics';
+import { Award, BadgeCheck, MapPin } from 'lucide-react';
+import { Summary, formatPercent, fullMonthLabel } from '../../utils/analytics';
 
 interface PeriodSummaryProps {
   summary: Summary;
-  periodLabel: string;
+  /** '' = todos os meses; senão 'YYYY-MM'. */
+  month: string;
+  monthOptions: string[];
+  onMonthChange: (month: string) => void;
 }
 
 interface Tile {
@@ -14,7 +17,7 @@ interface Tile {
   big?: boolean;
 }
 
-export default function PeriodSummary({ summary, periodLabel }: PeriodSummaryProps) {
+export default function PeriodSummary({ summary, month, monthOptions, onMonthChange }: PeriodSummaryProps) {
   const { topCidade, topOrigem } = summary;
 
   const tiles: Tile[] = [
@@ -23,14 +26,6 @@ export default function PeriodSummary({ summary, periodLabel }: PeriodSummaryPro
       value: formatPercent(summary.taxaAprovacao),
       caption: `${summary.aprovados} de ${summary.totalClientes} clientes`,
       icon: BadgeCheck,
-    },
-    {
-      title: 'Taxa de contratação',
-      value: summary.decididos ? formatPercent(summary.taxaContratacao) : '—',
-      caption: summary.decididos
-        ? `${summary.contratados} de ${summary.decididos} aprovados`
-        : 'Sem aprovados com desfecho',
-      icon: Users,
     },
     {
       title: 'Cidade com mais aprovados',
@@ -54,11 +49,27 @@ export default function PeriodSummary({ summary, periodLabel }: PeriodSummaryPro
 
   return (
     <section className="rounded-2xl border border-line bg-surface p-4 shadow-sm">
-      <h2 className="mb-3 text-[14px] font-bold text-ink">
-        Resumo do período <span className="font-medium text-subtle">({periodLabel})</span>
-      </h2>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-[14px] font-bold text-ink">
+          Resumo do período{' '}
+          <span className="font-medium text-subtle">
+            ({month ? fullMonthLabel(month) : 'Todo o período'})
+          </span>
+        </h2>
+        <select
+          value={month}
+          onChange={(e) => onMonthChange(e.target.value)}
+          className="cursor-pointer rounded-lg border border-line bg-surface px-2.5 py-1 text-[12px]
+            font-medium text-ink-2 focus:border-brand focus:outline-none"
+        >
+          <option value="">Todos os meses</option>
+          {monthOptions.map((m) => (
+            <option key={m} value={m}>{fullMonthLabel(m)}</option>
+          ))}
+        </select>
+      </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {tiles.map((tile) => {
           const Icon = tile.icon;
           return (

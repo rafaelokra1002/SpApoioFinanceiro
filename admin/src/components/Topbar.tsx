@@ -1,16 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronDown, Moon, Settings, Sun, User } from 'lucide-react';
+import { ChevronDown, LogOut, Moon, Settings, Sun, User } from 'lucide-react';
 import { Theme } from '../hooks/useTheme';
+import { ADMIN_EMAIL } from '../services/api';
 
 interface TopbarProps {
   theme: Theme;
   onToggleTheme: () => void;
   onOpenSettings: () => void;
+  onSignOut: () => void;
 }
 
-const USER_EMAIL = 'contato@spapoiofinanceiro.com';
+const USER_EMAIL = ADMIN_EMAIL;
 
-export default function Topbar({ theme, onToggleTheme, onOpenSettings }: TopbarProps) {
+export default function Topbar({ theme, onToggleTheme, onOpenSettings, onSignOut }: TopbarProps) {
   const dark = theme === 'dark';
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -79,6 +81,15 @@ export default function Topbar({ theme, onToggleTheme, onOpenSettings }: TopbarP
               >
                 <Settings size={16} className="shrink-0 text-muted" strokeWidth={2} />
                 Configurações
+              </button>
+              <button
+                role="menuitem"
+                onClick={() => { setMenuOpen(false); onSignOut(); }}
+                className="flex w-full items-center gap-2.5 border-t border-line px-4 py-2.5 text-left text-[13.5px]
+                  text-danger transition-colors hover:bg-danger/5 cursor-pointer"
+              >
+                <LogOut size={16} className="shrink-0" strokeWidth={2} />
+                Sair
               </button>
             </div>
           )}

@@ -4,21 +4,71 @@ const API_BASE = import.meta.env.VITE_API_BASE || (
     : 'https://api.spapoiofinanceiro.com/api'
 );
 
+/* ----------------------------------------------------------------- token */
+
+const TOKEN_KEY = 'sp-admin-token';
+
+export function getToken(): string {
+  return localStorage.getItem(TOKEN_KEY) || '';
+}
+export function setToken(token: string): void {
+  localStorage.setItem(TOKEN_KEY, token);
+}
+export function clearToken(): void {
+  localStorage.removeItem(TOKEN_KEY);
+}
+
+/** Disparado quando o backend recusa o token (sessão expirada/inválida). */
+export const UNAUTHORIZED_EVENT = 'sp-admin-unauthorized';
+
+interface ReqOpts {
+  /** Não redirecionar para login em 401 (ex.: a própria tela de login). */
+  skipAuthRedirect?: boolean;
+}
+
+async function req(path: string, init: RequestInit = {}, opts: ReqOpts = {}) {
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${getToken()}`,
+    ...(init.headers as Record<string, string>),
+  };
+  if (init.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
+
+  const res = await fetch(`${API_BASE}${path}`, { ...init, headers });
+
+  if (res.status === 401 && !opts.skipAuthRedirect) {
+    clearToken();
+    window.dispatchEvent(new Event(UNAUTHORIZED_EVENT));
+  }
+  return res.json();
+}
+
+/* ------------------------------------------------------------------ auth */
+
+/** E-mail da conta de admin (exibido no login/topbar/perfil). */
+export const ADMIN_EMAIL = 'santanavv33@gmail.com';
+
+export async function login(email: string, password: string) {
+  return req('/admin/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }, { skipAuthRedirect: true });
+}
+
+export async function changePassword(currentPassword: string, newPassword: string) {
+  return req('/admin/auth/change-password', {
+    method: 'POST',
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+}
+
+/* ----------------------------------------------------------------- leads */
+
 export async function fetchLeads(status?: string) {
-  const url = status
-    ? `${API_BASE}/admin/leads?status=${status}`
-    : `${API_BASE}/admin/leads`;
+  const path = status ? `/admin/leads?status=${status}` : '/admin/leads';
   try {
-    const res = await fetch(url);
-    return res.json();
+    return await req(path);
   } catch (err) {
-    // Só em desenvolvimento: sem backend local, devolve dados de exemplo para
-    // pré-visualizar o layout. Em produção o erro sobe normalmente.
+    // Só em desenvolvimento: sem backend local, devolve dados de exemplo.
     if (import.meta.env.DEV) {
       const { DEV_SAMPLE_LEADS } = await import('./devMocks');
-      const data = status
-        ? DEV_SAMPLE_LEADS.filter((l) => l.status === status)
-        : DEV_SAMPLE_LEADS;
+      const data = status ? DEV_SAMPLE_LEADS.filter((l) => l.status === status) : DEV_SAMPLE_LEADS;
       console.warn('[dev] backend offline — usando dados de exemplo (devMocks.ts)');
       return { success: true, data };
     }
@@ -27,152 +77,93 @@ export async function fetchLeads(status?: string) {
 }
 
 export async function fetchLeadById(id: string) {
-  const res = await fetch(`${API_BASE}/admin/leads/${id}`);
-  return res.json();
+  return req(`/admin/leads/${id}`);
 }
 
 export async function updateLeadStatus(id: string, status: string) {
-  const res = await fetch(`${API_BASE}/admin/leads/${id}/status`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ status }),
-  });
-  return res.json();
+  return req(`/admin/leads/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) });
+}
+
+export async function updateLeadGroups(id: string, data: { evitarGolpes?: boolean; analiseCliente?: boolean }) {
+  return req(`/admin/leads/${id}/grupos`, { method: 'PATCH', body: JSON.stringify(data) });
 }
 
 export async function deleteLead(id: string) {
-  const res = await fetch(`${API_BASE}/admin/leads/${id}`, {
-    method: 'DELETE',
-  });
-  return res.json();
+  return req(`/admin/leads/${id}`, { method: 'DELETE' });
 }
 
 export async function fetchStats() {
-  const res = await fetch(`${API_BASE}/admin/stats`);
-  return res.json();
+  return req('/admin/stats');
 }
 
-// Categories API
+/* ------------------------------------------------------------- categories */
+
 export async function fetchCategories() {
-  const res = await fetch(`${API_BASE}/admin/categories`);
-  return res.json();
+  return req('/admin/categories');
 }
 
 export async function createCategory(data: { value: string; label: string; icon?: string; order?: number; documents?: any[] }) {
-  const res = await fetch(`${API_BASE}/admin/categories`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-  return res.json();
+  return req('/admin/categories', { method: 'POST', body: JSON.stringify(data) });
 }
 
 export async function updateCategory(id: string, data: { label?: string; icon?: string; order?: number; active?: boolean }) {
-  const res = await fetch(`${API_BASE}/admin/categories/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-  return res.json();
+  return req(`/admin/categories/${id}`, { method: 'PUT', body: JSON.stringify(data) });
 }
 
 export async function deleteCategory(id: string) {
-  const res = await fetch(`${API_BASE}/admin/categories/${id}`, {
-    method: 'DELETE',
-  });
-  return res.json();
+  return req(`/admin/categories/${id}`, { method: 'DELETE' });
 }
 
 export async function addCategoryDocument(categoryId: string, data: { key: string; label: string; description?: string; icon?: string; order?: number }) {
-  const res = await fetch(`${API_BASE}/admin/categories/${categoryId}/documents`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-  return res.json();
+  return req(`/admin/categories/${categoryId}/documents`, { method: 'POST', body: JSON.stringify(data) });
 }
 
 export async function updateCategoryDocument(docId: string, data: { key?: string; label?: string; description?: string; icon?: string; order?: number }) {
-  const res = await fetch(`${API_BASE}/admin/categories/documents/${docId}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-  return res.json();
+  return req(`/admin/categories/documents/${docId}`, { method: 'PUT', body: JSON.stringify(data) });
 }
 
 export async function deleteCategoryDocument(docId: string) {
-  const res = await fetch(`${API_BASE}/admin/categories/documents/${docId}`, {
-    method: 'DELETE',
-  });
-  return res.json();
+  return req(`/admin/categories/documents/${docId}`, { method: 'DELETE' });
 }
 
 export async function seedCategories() {
-  const res = await fetch(`${API_BASE}/admin/categories/seed`, {
-    method: 'POST',
-  });
-  return res.json();
+  return req('/admin/categories/seed', { method: 'POST' });
 }
 
-// WhatsApp API
+/* -------------------------------------------------------------- whatsapp */
+
 export async function getWhatsAppStatus() {
-  const res = await fetch(`${API_BASE}/admin/whatsapp/status`);
-  return res.json();
+  return req('/admin/whatsapp/status');
 }
 
 export async function getWhatsAppQRCode() {
-  const res = await fetch(`${API_BASE}/admin/whatsapp/qrcode`, { cache: 'no-store' });
-  return res.json();
+  return req('/admin/whatsapp/qrcode', { cache: 'no-store' });
 }
 
 export async function disconnectWhatsApp() {
-  const res = await fetch(`${API_BASE}/admin/whatsapp/disconnect`, {
-    method: 'DELETE',
-  });
-  return res.json();
+  return req('/admin/whatsapp/disconnect', { method: 'DELETE' });
 }
 
 export async function sendWhatsAppMessage(phone: string, message: string) {
-  const res = await fetch(`${API_BASE}/admin/whatsapp/send`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ phone, message }),
-  });
-  return res.json();
+  return req('/admin/whatsapp/send', { method: 'POST', body: JSON.stringify({ phone, message }) });
 }
 
 export async function sendWhatsAppByLead(leadId: string) {
-  const res = await fetch(`${API_BASE}/admin/whatsapp/send-lead`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ leadId }),
-  });
-  return res.json();
+  return req('/admin/whatsapp/send-lead', { method: 'POST', body: JSON.stringify({ leadId }) });
 }
 
 export async function fetchMessageLogs(leadId: string) {
-  const res = await fetch(`${API_BASE}/admin/whatsapp/logs/${leadId}`);
-  return res.json();
+  return req(`/admin/whatsapp/logs/${leadId}`);
 }
 
 export async function fetchMessageTemplates() {
-  const res = await fetch(`${API_BASE}/admin/whatsapp/templates`);
-  return res.json();
+  return req('/admin/whatsapp/templates');
 }
 
 export async function seedMessageTemplates() {
-  const res = await fetch(`${API_BASE}/admin/whatsapp/templates/seed`, {
-    method: 'POST',
-  });
-  return res.json();
+  return req('/admin/whatsapp/templates/seed', { method: 'POST' });
 }
 
 export async function upsertMessageTemplate(status: string, content: string) {
-  const res = await fetch(`${API_BASE}/admin/whatsapp/templates/${status}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ content }),
-  });
-  return res.json();
+  return req(`/admin/whatsapp/templates/${status}`, { method: 'PUT', body: JSON.stringify({ content }) });
 }

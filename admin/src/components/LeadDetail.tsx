@@ -1,9 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ReactNode } from 'react';
+import {
+  X, CheckCircle, XCircle, Trash2, MessageCircle, Download, Loader2, Banknote,
+  Wallet, CalendarClock, MapPin, Briefcase, Building2, UserRound, CreditCard, Home,
+  Send, Shield, Users, FileText,
+} from 'lucide-react';
 import { Lead } from '../types';
-import { X, CheckCircle, XCircle, Trash2, MessageCircle, ExternalLink, Clock, Download, Loader2 } from 'lucide-react';
 import { fetchMessageLogs } from '../services/api';
 import { downloadLeadDossier } from '../utils/leadDossier';
-import { METRICS, STATUS_ORDER, isInternalStatus } from '../constants/status';
+import { METRICS, STATUS_ORDER, isInternalStatus, statusLabel } from '../constants/status';
+import { modalidade } from '../utils/analytics';
+import { avatarColor, initials } from '../utils/avatar';
 
 interface MessageLog {
   id: string;
@@ -18,15 +24,27 @@ interface LeadDetailProps {
   onStatusChange: (id: string, status: string) => void;
   onDelete: (id: string) => void;
   onWhatsApp: (lead: Lead) => void;
+  onUpdateGroups: (id: string, data: { evitarGolpes?: boolean; analiseCliente?: boolean }) => void;
 }
 
 function formatCurrency(value: number) {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, onWhatsApp }: LeadDetailProps) {
+function formatMoney(value: string | null): string {
+  const n = Number(value);
+  return value && !Number.isNaN(n) ? formatCurrency(n) : '—';
+}
+
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('pt-BR');
+}
+
+const IMAGE_EXT = /\.(jpe?g|png|webp|gif|bmp|heic)$/i;
+
+export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, onWhatsApp, onUpdateGroups }: LeadDetailProps) {
   const [logs, setLogs] = useState<MessageLog[]>([]);
-  const [downloadingDossier, setDownloadingDossier] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     fetchMessageLogs(lead.id).then(res => {
@@ -34,194 +52,258 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
     }).catch(() => {});
   }, [lead.id]);
 
-  const rows = [
-    { label: 'Nome', value: lead.nome },
-    { label: 'Telefone', value: lead.telefone },
-    lead.cpf ? { label: 'CPF', value: lead.cpf } : null,
-    lead.email ? { label: 'Email', value: lead.email } : null,
-    lead.instagram ? { label: 'Instagram', value: lead.instagram } : null,
-    { label: 'Renda', value: lead.renda ? formatCurrency(Number(lead.renda)) : '—' },
-    { label: 'Valor Solicitado', value: formatCurrency(lead.valorSolicitado), highlight: true },
-    { label: 'Total (c/ juros)', value: formatCurrency(lead.valorTotal), bold: true },
-    { label: 'Cidade', value: lead.cidade },
-    { label: 'Perfil', value: lead.perfil },
-    lead.nomeEmpresa ? { label: 'Empresa', value: lead.nomeEmpresa } : null,
-    lead.bairroTrabalho ? { label: 'Bairro Trab.', value: lead.bairroTrabalho } : null,
-    lead.indicacao ? { label: 'Quem Indicou', value: lead.indicacao } : null,
-  ].filter(Boolean) as { label: string; value: string; highlight?: boolean; bold?: boolean }[];
-
-  const handleDownloadDossier = async () => {
+  const handleDownload = async () => {
     try {
-      setDownloadingDossier(true);
+      setDownloading(true);
       await downloadLeadDossier(lead, logs);
     } catch (error) {
       console.error('Erro ao gerar dossiê:', error);
-      alert('Não foi possível gerar o dossiê deste lead.');
+      alert('Não foi possível gerar o backup deste cliente.');
     } finally {
-      setDownloadingDossier(false);
+      setDownloading(false);
     }
   };
 
+  const endereco = lead.endereco
+    ? `${lead.endereco}${lead.cep ? ` — CEP: ${lead.cep}` : ''}`
+    : '—';
+
+  // Foto de perfil: usamos a selfie enviada pelo cliente, se houver.
+  const photoDoc = lead.documentos?.find(
+    (d) => /selfie|rosto|foto|perfil/i.test(d.tipo) && (IMAGE_EXT.test(d.filename) || IMAGE_EXT.test(d.url)),
+  );
+
   return (
-    <div className="w-[360px] max-w-full bg-surface rounded-2xl shadow-xl border border-line overflow-hidden">
+    <div className="flex max-h-[90vh] w-[min(940px,95vw)] flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-xl">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-line">
-        <h3 className="text-[15px] font-bold text-ink">Detalhes do Lead</h3>
-        <button
-          onClick={onClose}
-          className="w-8 h-8 rounded-lg hover:bg-line flex items-center justify-center transition-colors cursor-pointer"
-        >
-          <X size={16} className="text-subtle" />
+      <div className="flex shrink-0 items-center justify-between border-b border-line px-5 py-3.5">
+        <h3 className="text-[16px] font-bold text-ink">Detalhes do cliente</h3>
+        <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-line cursor-pointer">
+          <X size={17} className="text-subtle" />
         </button>
       </div>
 
-      <div className="px-5 py-4 space-y-0">
-        {rows.map((row, i) => (
-          <div key={i} className="flex justify-between items-center py-2.5 border-b border-line last:border-0">
-            <span className="text-xs font-medium text-subtle">{row.label}</span>
-            <span className={`text-[13px] ${row.highlight ? 'text-primary-light font-bold' : row.bold ? 'font-bold text-ink' : 'text-ink-2'}`}>
-              {row.value}
+      <div className="grid flex-1 grid-cols-1 gap-5 overflow-y-auto p-5 lg:grid-cols-[300px_1fr]">
+        {/* Coluna esquerda */}
+        <div className="space-y-4">
+          <div className="flex flex-col items-center text-center">
+            <span className={`relative flex h-28 w-28 items-center justify-center overflow-hidden rounded-2xl text-[36px] font-bold text-white ${avatarColor(lead.nome)}`}>
+              {initials(lead.nome)}
+              {photoDoc && (
+                <img
+                  src={photoDoc.url}
+                  alt={lead.nome}
+                  loading="lazy"
+                  className="absolute inset-0 h-full w-full object-cover"
+                  onError={(e) => e.currentTarget.remove()}
+                />
+              )}
             </span>
+            <p className="mt-3 text-[17px] font-bold text-ink">{lead.nome}</p>
+            <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-muted">
+              {lead.telefone}
+              {!isInternalStatus(lead.status) && (
+                <button onClick={() => onWhatsApp(lead)} title="WhatsApp" className="text-[#25D366] hover:scale-110 transition-transform cursor-pointer">
+                  <MessageCircle size={14} fill="currentColor" />
+                </button>
+              )}
+            </p>
           </div>
-        ))}
-      </div>
 
-      {/* Documents */}
-      {lead.documentos && lead.documentos.length > 0 && (
-        <div className="px-5 pb-4">
-          <h4 className="text-xs font-bold text-muted mb-3 flex items-center gap-1.5">
-            📄 Documentos ({lead.documentos.length})
-          </h4>
-          <div className="grid grid-cols-2 gap-2">
-            {lead.documentos.map((doc) => {
-              const isPdf = doc.url?.toLowerCase().endsWith('.pdf') || doc.filename?.toLowerCase().endsWith('.pdf');
-              return (
-                <a
-                  key={doc.id}
-                  href={doc.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex flex-col bg-canvas rounded-xl overflow-hidden hover:shadow-md transition-all"
-                >
-                  {isPdf ? (
-                    <div className="w-full h-20 flex flex-col items-center justify-center bg-red-50 text-red-500">
-                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                        <rect x="5" y="3" width="14" height="18" rx="2" />
-                        <path d="M9 8h6M9 12h6M9 16h3" />
-                      </svg>
-                      <span className="text-[10px] font-bold mt-1">PDF</span>
+          <div className="divide-y divide-line rounded-xl border border-line">
+            <InfoRow icon={<Banknote size={15} />} label="Renda mensal">{formatMoney(lead.renda)}</InfoRow>
+            <InfoRow icon={<Wallet size={15} />} label="Valor solicitado">
+              <span className="font-bold text-info">{formatCurrency(lead.valorSolicitado)}</span>
+            </InfoRow>
+            <InfoRow icon={<CalendarClock size={15} />} label="Total a pagar c/ juros">{formatCurrency(lead.valorTotal)}</InfoRow>
+            <InfoRow icon={<MapPin size={15} />} label="Cidade">{lead.cidade}</InfoRow>
+            <InfoRow icon={<Briefcase size={15} />} label="Perfil profissional">
+              <span className="rounded-md bg-brand/10 px-2 py-0.5 text-[12px] text-brand-deep">{lead.perfil}</span>
+            </InfoRow>
+            <InfoRow icon={<Building2 size={15} />} label="Empresa">{lead.nomeEmpresa || '—'}</InfoRow>
+            <InfoRow icon={<Briefcase size={15} />} label="Local de trabalho">{lead.enderecoTrabalho || lead.bairroTrabalho || '—'}</InfoRow>
+            <InfoRow icon={<UserRound size={15} />} label="Indicado por">{lead.indicacao || '—'}</InfoRow>
+            <InfoRow icon={<CreditCard size={15} />} label="Modalidade">
+              <span className="rounded-md bg-brand/10 px-2 py-0.5 text-[12px] text-brand-deep">{modalidade(lead.prazo)}</span>
+            </InfoRow>
+            <InfoRow icon={<Home size={15} />} label="Endereço">{endereco}</InfoRow>
+          </div>
+
+          {/* Localização — recurso a implementar no app do cliente */}
+          <div>
+            <p className="mb-2 flex items-center gap-1.5 text-[12px] font-semibold text-ink-2">
+              <MapPin size={14} className="text-info" /> Localização da solicitação
+            </p>
+            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-line bg-canvas/60 py-6 text-center">
+              <MapPin size={22} className="text-subtle" />
+              <p className="mt-1.5 px-4 text-[11.5px] text-subtle">
+                Em breve: o cliente compartilha a localização ao acessar o link.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Coluna direita */}
+        <div className="space-y-5">
+          {/* Documentos */}
+          <div>
+            <p className="mb-3 flex items-center gap-1.5 text-[14px] font-bold text-ink">
+              <FileText size={16} className="text-info" /> Documentos e fotos enviados
+              {lead.documentos?.length > 0 && <span className="text-subtle">({lead.documentos.length})</span>}
+            </p>
+            {lead.documentos?.length > 0 ? (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                {lead.documentos.map((doc) => {
+                  const isImage = IMAGE_EXT.test(doc.filename) || IMAGE_EXT.test(doc.url);
+                  return (
+                    <div key={doc.id} className="overflow-hidden rounded-xl border border-line">
+                      <a href={doc.url} target="_blank" rel="noopener noreferrer"
+                        className="flex h-24 items-center justify-center bg-canvas">
+                        {isImage
+                          ? <img src={doc.url} alt={doc.tipo} loading="lazy" className="h-full w-full object-cover"
+                              onError={(e) => { (e.target as HTMLImageElement).style.opacity = '0'; }} />
+                          : <FileText size={30} className="text-subtle" strokeWidth={1.5} />}
+                      </a>
+                      <div className="px-2 py-1.5">
+                        <p className="truncate text-[11.5px] font-semibold text-ink" title={doc.tipo}>{doc.tipo}</p>
+                        <p className="text-[10px] text-subtle">Enviado em {formatDate(doc.createdAt)}</p>
+                        <a href={doc.url} target="_blank" rel="noopener noreferrer"
+                          className="mt-1 flex items-center justify-center gap-1 rounded-lg bg-brand/10 py-1 text-[11px] font-semibold text-brand-deep transition-colors hover:bg-brand/20">
+                          <Download size={11} /> Baixar
+                        </a>
+                      </div>
                     </div>
-                  ) : (
-                    <img
-                      src={doc.url}
-                      alt={doc.tipo}
-                      className="w-full h-20 object-cover"
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                    />
-                  )}
-                  <div className="flex items-center justify-between px-2 py-1.5">
-                    <span className="text-[10px] text-muted truncate">{doc.tipo}</span>
-                    <ExternalLink size={10} className="text-subtle group-hover:text-primary-light" />
-                  </div>
-                </a>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Message History */}
-      {logs.length > 0 && (
-        <div className="px-5 pb-4">
-          <h4 className="text-xs font-bold text-muted mb-3 flex items-center gap-1.5">
-            <Clock size={12} /> Mensagens ({logs.length})
-          </h4>
-          <div className="space-y-2 max-h-48 overflow-y-auto">
-            {logs.map((log) => (
-              <div key={log.id} className="p-2.5 bg-canvas rounded-xl">
-                <div className="flex items-center justify-between mb-1">
-                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                    log.status === 'ENVIADO'
-                      ? 'bg-success/10 text-success'
-                      : 'bg-danger/10 text-danger'
-                  }`}>
-                    {log.status}
-                  </span>
-                  <span className="text-[10px] text-subtle">
-                    {new Date(log.createdAt).toLocaleString('pt-BR')}
-                  </span>
-                </div>
-                <p className="text-[11px] text-ink-2 line-clamp-3 whitespace-pre-line">{log.mensagem}</p>
+                  );
+                })}
               </div>
-            ))}
+            ) : (
+              <p className="rounded-xl border border-line bg-canvas/60 py-8 text-center text-[13px] text-subtle">
+                Nenhum documento enviado.
+              </p>
+            )}
           </div>
-        </div>
-      )}
 
-      {/* Actions */}
-      <div className="px-5 pb-5 space-y-2">
-        <button
-          onClick={handleDownloadDossier}
-          disabled={downloadingDossier}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary-light text-white text-[13px] font-bold hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer disabled:cursor-wait disabled:opacity-70"
-        >
-          {downloadingDossier ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
-          {downloadingDossier ? 'Gerando dossiê...' : 'Baixar Dossiê para Análise'}
-        </button>
-        <select
-          value={STATUS_ORDER.includes(lead.status as never) ? lead.status : ''}
-          onChange={(e) => onStatusChange(lead.id, e.target.value)}
-          className="w-full cursor-pointer rounded-xl border border-line bg-surface px-3 py-2.5 text-[13px]
-            font-medium text-ink-2 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15"
-        >
-          {!STATUS_ORDER.includes(lead.status as never) && (
-            <option value="" disabled>{lead.status}</option>
-          )}
-          {STATUS_ORDER.map((s) => (
-            <option key={s} value={s}>{METRICS[s].label}</option>
-          ))}
-        </select>
-
-        {/* Aprovar/Recusar são atalhos só para leads ainda pendentes de análise. */}
-        <div className="flex gap-2">
-          {lead.status === 'PENDENTE' && (
-            <>
-              <button
-                onClick={() => onStatusChange(lead.id, 'APROVADO')}
-                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-success text-white text-[13px] font-semibold hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer"
-              >
-                <CheckCircle size={14} /> Aprovar
-              </button>
-              <button
-                onClick={() => onStatusChange(lead.id, 'RECUSADO')}
-                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-danger text-white text-[13px] font-semibold hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer"
-              >
-                <XCircle size={14} /> Recusar
-              </button>
-            </>
-          )}
+          {/* Backup completo */}
           <button
-            onClick={() => onDelete(lead.id)}
-            title="Excluir solicitação"
-            className={`flex items-center justify-center gap-1.5 rounded-xl bg-line py-2.5 text-danger transition-colors hover:bg-danger/10 cursor-pointer
-              ${lead.status === 'PENDENTE' ? 'w-10' : 'flex-1 px-3 text-[13px] font-semibold'}`}
+            onClick={handleDownload}
+            disabled={downloading}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-info py-3 text-[13.5px] font-bold text-white transition-colors hover:brightness-110 disabled:cursor-wait disabled:opacity-70 cursor-pointer"
           >
-            <Trash2 size={15} />
-            {lead.status !== 'PENDENTE' && 'Excluir'}
+            {downloading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+            {downloading ? 'Gerando backup...' : 'Baixar backup completo (dados + documentos)'}
           </button>
+          <p className="-mt-3 text-center text-[11px] text-subtle">
+            Será baixado um arquivo ZIP com todas as informações e documentos do cliente.
+          </p>
+
+          {/* Ações da análise */}
+          <div>
+            <p className="mb-2 text-[14px] font-bold text-ink">Ações da análise</p>
+
+            {/* Status para leads não pendentes */}
+            {lead.status !== 'PENDENTE' && (
+              <select
+                value={STATUS_ORDER.includes(lead.status as never) ? lead.status : ''}
+                onChange={(e) => onStatusChange(lead.id, e.target.value)}
+                className="mb-3 w-full cursor-pointer rounded-xl border border-line bg-surface px-3 py-2.5 text-[13px] font-medium text-ink-2 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15"
+              >
+                {!STATUS_ORDER.includes(lead.status as never) && <option value="" disabled>{statusLabel(lead.status)}</option>}
+                {STATUS_ORDER.map((s) => <option key={s} value={s}>{METRICS[s].label}</option>)}
+              </select>
+            )}
+
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {lead.status === 'PENDENTE' && (
+                <>
+                  <ActionBtn icon={<CheckCircle size={15} />} label="Aprovar"
+                    className="bg-success text-white hover:brightness-110"
+                    onClick={() => onStatusChange(lead.id, 'APROVADO')} />
+                  <ActionBtn icon={<XCircle size={15} />} label="Recusar"
+                    className="bg-danger text-white hover:brightness-110"
+                    onClick={() => onStatusChange(lead.id, 'RECUSADO')} />
+                </>
+              )}
+              <ActionBtn icon={<MessageCircle size={15} />} label="Enviar status ao cliente"
+                disabled={isInternalStatus(lead.status)}
+                className="bg-info/10 text-info hover:bg-info/20 disabled:opacity-50"
+                onClick={() => onWhatsApp(lead)} />
+              <ActionBtn icon={<Shield size={15} />} label="Evitar golpes"
+                className={lead.evitarGolpes ? 'bg-purple-500/15 text-purple-600 ring-1 ring-purple-500' : 'bg-canvas text-ink-2 hover:bg-line'}
+                onClick={() => onUpdateGroups(lead.id, { evitarGolpes: !lead.evitarGolpes })} />
+              <ActionBtn icon={<Users size={15} />} label="Análise de clientes"
+                className={lead.analiseCliente ? 'bg-orange/15 text-orange ring-1 ring-orange' : 'bg-canvas text-ink-2 hover:bg-line'}
+                onClick={() => onUpdateGroups(lead.id, { analiseCliente: !lead.analiseCliente })} />
+              <ActionBtn icon={<Send size={15} />} label="Sistema Cobrança Fácil (em breve)"
+                disabled className="bg-canvas text-subtle" />
+              <ActionBtn icon={<Download size={15} />} label="Baixar backup"
+                className="bg-canvas text-ink-2 hover:bg-line" onClick={handleDownload} />
+              <ActionBtn icon={<MapPin size={15} />} label="Ver localização (em breve)"
+                disabled className="bg-canvas text-subtle" />
+              <ActionBtn icon={<Trash2 size={15} />} label="Excluir solicitação"
+                className="bg-danger/10 text-danger hover:bg-danger/20"
+                onClick={() => onDelete(lead.id)} />
+            </div>
+          </div>
+
+          {/* Observação */}
+          {lead.observacao && (
+            <div className="flex gap-2.5 rounded-xl border-l-4 border-info bg-info/5 p-3">
+              <MessageCircle size={16} className="mt-0.5 shrink-0 text-info" />
+              <div>
+                <p className="text-[11px] font-semibold text-info">Observação do cliente</p>
+                <p className="mt-0.5 text-[12.5px] text-ink-2">{lead.observacao}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Histórico de mensagens */}
+          {logs.length > 0 && (
+            <div>
+              <p className="mb-2 text-[13px] font-bold text-ink-2">Mensagens enviadas ({logs.length})</p>
+              <div className="max-h-40 space-y-2 overflow-y-auto">
+                {logs.map((log) => (
+                  <div key={log.id} className="rounded-xl bg-canvas p-2.5">
+                    <div className="mb-1 flex items-center justify-between">
+                      <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${log.status === 'ENVIADO' ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'}`}>
+                        {log.status}
+                      </span>
+                      <span className="text-[10px] text-subtle">{new Date(log.createdAt).toLocaleString('pt-BR')}</span>
+                    </div>
+                    <p className="line-clamp-3 whitespace-pre-line text-[11px] text-ink-2">{log.mensagem}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-        <button
-          onClick={() => onWhatsApp(lead)}
-          disabled={isInternalStatus(lead.status)}
-          title={isInternalStatus(lead.status)
-            ? 'Status interno — não envia mensagem ao cliente'
-            : undefined}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#25D366] text-white text-[13px] font-bold hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer disabled:cursor-not-allowed disabled:bg-line disabled:text-subtle"
-        >
-          <MessageCircle size={16} fill={isInternalStatus(lead.status) ? 'transparent' : '#fff'} />
-          Enviar Status via WhatsApp
-        </button>
       </div>
     </div>
+  );
+}
+
+function InfoRow({ icon, label, children }: { icon: ReactNode; label: string; children: ReactNode }) {
+  return (
+    <div className="flex items-center gap-2.5 px-3 py-2.5">
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-canvas text-muted">{icon}</span>
+      <span className="w-28 shrink-0 text-[11.5px] text-muted">{label}</span>
+      <span className="min-w-0 flex-1 truncate text-right text-[12.5px] font-semibold text-ink" title={typeof children === 'string' ? children : undefined}>
+        {children}
+      </span>
+    </div>
+  );
+}
+
+function ActionBtn({ icon, label, className = '', disabled, onClick }: {
+  icon: ReactNode; label: string; className?: string; disabled?: boolean; onClick?: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-3 text-center text-[12px] font-semibold transition-all cursor-pointer disabled:cursor-not-allowed ${className}`}
+    >
+      {icon}
+      <span className="leading-tight">{label}</span>
+    </button>
   );
 }

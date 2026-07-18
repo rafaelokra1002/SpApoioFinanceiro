@@ -1,14 +1,16 @@
 import { useMemo, useState } from 'react';
-import { Info, Loader2 } from 'lucide-react';
+import { CalendarDays, Info, Loader2 } from 'lucide-react';
 import { Lead } from '../../types';
 import { CARD_ORDER, CHART_SERIES, METRICS, MetricKey, STATUS_ORDER } from '../../constants/status';
 import {
-  buildSummary, countLastDays, countMetrics, currentMonth, monthSeries, origemOf, rank,
+  buildSummary, countLastDays, countMetrics, currentMonth, fullMonthLabel,
+  monthKey, monthSeries, origemOf, rank,
 } from '../../utils/analytics';
 import LineChart, { ChartMode } from '../charts/LineChart';
 import StatCard from './StatCard';
 import RankingCard from './RankingCard';
 import PeriodSummary from './PeriodSummary';
+import OrigemIcon from './OrigemIcon';
 
 interface DashboardProps {
   leads: Lead[];
@@ -19,25 +21,50 @@ interface DashboardProps {
 
 const CHART_MONTHS = 6;
 
-/**
- * O dashboard mostra o acumulado de todas as solicitações. Os gráficos continuam
- * recortados por mês (últimos 6/12), ancorados no mês corrente.
- */
 export default function Dashboard({ leads, loading, onDrillDown }: DashboardProps) {
   const [chartMode, setChartMode] = useState<ChartMode>('quantidade');
   const [cityStatus, setCityStatus] = useState<MetricKey>('APROVADO');
+  // '' = todos os meses; senão 'YYYY-MM'.
+  const [month, setMonth] = useState<string>('');
 
-  const counts = useMemo(() => countMetrics(leads), [leads]);
+  // Meses disponíveis (dos leads + mês atual), mais recentes primeiro.
+  const monthOptions = useMemo(() => {
+    const set = new Set(leads.map((l) => monthKey(new Date(l.createdAt))));
+    set.add(currentMonth());
+    return [...set].sort().reverse();
+  }, [leads]);
+
+  // Recorte pelo mês selecionado (ou todos).
+  const scoped = useMemo(
+    () => (month ? leads.filter((l) => monthKey(new Date(l.createdAt)) === month) : leads),
+    [leads, month],
+  );
+
+  const counts = useMemo(() => countMetrics(scoped), [scoped]);
   const weekCounts = useMemo(() => countLastDays(leads, 7), [leads]);
 
-  const chartSeries = useMemo(() => monthSeries(leads, currentMonth(), CHART_MONTHS), [leads]);
+  // O gráfico mostra a tendência dos últimos 6 meses até o mês selecionado.
+  const chartSeries = useMemo(
+    () => monthSeries(leads, month || currentMonth(), CHART_MONTHS),
+    [leads, month],
+  );
 
   const cityRank = useMemo(
-    () => rank(leads.filter((l) => l.status === cityStatus), (l) => l.cidade, 10),
-    [leads, cityStatus],
+    () => rank(scoped.filter((l) => l.status === cityStatus), (l) => l.cidade, 10),
+    [scoped, cityStatus],
   );
-  const origemRank = useMemo(() => rank(leads, origemOf, 10), [leads]);
-  const summary = useMemo(() => buildSummary(leads), [leads]);
+  const origemRank = useMemo(() => rank(scoped, origemOf, 10), [scoped]);
+
+  // O Resumo do período tem o seu próprio seletor de mês, independente do filtro geral.
+  const [summaryMonth, setSummaryMonth] = useState<string>('');
+  const summaryScoped = useMemo(
+    () => (summaryMonth ? leads.filter((l) => monthKey(new Date(l.createdAt)) === summaryMonth) : leads),
+    [leads, summaryMonth],
+  );
+  const summary = useMemo(() => buildSummary(summaryScoped), [summaryScoped]);
+
+  const periodLabel = month ? fullMonthLabel(month) : 'Todo o período';
+  const cardCaption = month ? `em ${periodLabel}` : undefined;
 
   if (loading) {
     return (
@@ -50,6 +77,24 @@ export default function Dashboard({ leads, loading, onDrillDown }: DashboardProp
 
   return (
     <div className="space-y-4">
+      {/* Filtro por mês */}
+      <div className="flex items-center justify-end">
+        <label className="flex items-center gap-2 rounded-xl border border-line bg-surface px-3 py-2 shadow-sm">
+          <CalendarDays size={16} className="text-muted" />
+          <span className="text-[12.5px] font-medium text-muted">Mês:</span>
+          <select
+            value={month}
+            onChange={(e) => setMonth(e.target.value)}
+            className="cursor-pointer bg-transparent text-[13px] font-semibold text-ink focus:outline-none"
+          >
+            <option value="">Todos</option>
+            {monthOptions.map((m) => (
+              <option key={m} value={m}>{fullMonthLabel(m)}</option>
+            ))}
+          </select>
+        </label>
+      </div>
+
       {/* Cards — 3 por linha */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {CARD_ORDER.map((metric) => (
@@ -58,6 +103,7 @@ export default function Dashboard({ leads, loading, onDrillDown }: DashboardProp
             metric={metric}
             value={counts[metric]}
             week={weekCounts[metric]}
+            caption={cardCaption}
             onClick={() => onDrillDown(metric)}
           />
         ))}
@@ -133,12 +179,20 @@ export default function Dashboard({ leads, loading, onDrillDown }: DashboardProp
           valueHeader="Clientes"
           rows={origemRank.rows}
           total={origemRank.total}
+          iconFor={(label) => <OrigemIcon label={label} />}
         />
-        <PeriodSummary summary={summary} periodLabel="Todo o período" />
+        <PeriodSummary
+          summary={summary}
+          month={summaryMonth}
+          monthOptions={monthOptions}
+          onMonthChange={setSummaryMonth}
+        />
       </div>
 
       <p className="pb-2 text-center text-[12px] text-subtle">
-        Os dados exibidos consideram todas as solicitações recebidas e podem sofrer alterações.
+        {month
+          ? `Dados referentes a ${periodLabel}. O gráfico mostra os últimos ${CHART_MONTHS} meses.`
+          : 'Os dados exibidos consideram todas as solicitações recebidas e podem sofrer alterações.'}
       </p>
     </div>
   );
