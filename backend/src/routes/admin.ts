@@ -3,6 +3,7 @@ import {
   handleGetLeads,
   handleGetLeadById,
   handleUpdateStatus,
+  handleUpdateGroups,
   handleDeleteLead,
   handleGetStats,
 } from '../controllers/adminController';
@@ -28,13 +29,23 @@ import {
   handleSeedTemplates,
 } from '../controllers/whatsappController';
 import { validate, statusSchema } from '../middleware/validation';
+import { handleLogin, handleChangePassword } from '../controllers/authController';
+import { requireAuth } from '../middleware/requireAuth';
 
 const router = Router();
+
+// Público: login. Tudo abaixo de router.use(requireAuth) exige token.
+router.post('/auth/login', handleLogin);
+
+router.use(requireAuth);
+
+router.post('/auth/change-password', handleChangePassword);
 
 router.get('/stats', handleGetStats);
 router.get('/leads', handleGetLeads);
 router.get('/leads/:id', handleGetLeadById);
 router.patch('/leads/:id/status', validate(statusSchema), handleUpdateStatus);
+router.patch('/leads/:id/grupos', handleUpdateGroups);
 router.delete('/leads/:id', handleDeleteLead);
 
 // Category management

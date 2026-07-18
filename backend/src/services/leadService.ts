@@ -19,6 +19,10 @@ export async function createLead(data: LeadInput) {
       nomeEmpresa: data.nomeEmpresa || null,
       bairroTrabalho: data.bairroTrabalho || null,
       indicacao: data.indicacao || null,
+      endereco: data.endereco || null,
+      cep: data.cep || null,
+      enderecoTrabalho: data.enderecoTrabalho || null,
+      observacao: data.observacao || null,
     },
   });
 
@@ -62,6 +66,19 @@ export async function updateLeadStatus(id: string, status: LeadStatus) {
   return prisma.lead.update({
     where: { id },
     data: { status },
+  });
+}
+
+export async function updateLeadGroups(
+  id: string,
+  data: { evitarGolpes?: boolean; analiseCliente?: boolean }
+) {
+  return prisma.lead.update({
+    where: { id },
+    data: {
+      ...(typeof data.evitarGolpes === 'boolean' ? { evitarGolpes: data.evitarGolpes } : {}),
+      ...(typeof data.analiseCliente === 'boolean' ? { analiseCliente: data.analiseCliente } : {}),
+    },
   });
 }
 

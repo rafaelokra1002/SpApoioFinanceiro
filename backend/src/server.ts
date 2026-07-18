@@ -7,6 +7,7 @@ import leadRoutes from './routes/lead';
 import adminRoutes from './routes/admin';
 import categoryRoutes from './routes/category';
 import { errorHandler } from './middleware/errorHandler';
+import { ensureAuthReady } from './services/authService';
 
 dotenv.config();
 
@@ -47,6 +48,11 @@ app.listen(PORT, () => {
   console.log(`📁 Uploads em: ${path.resolve(uploadDir)}`);
   console.log(`📊 Admin API: http://localhost:${PORT}/api/admin`);
   console.log(`💰 Simulation API: http://localhost:${PORT}/api/simulation\n`);
+
+  // Garante a tabela de settings e a senha padrão do painel.
+  ensureAuthReady()
+    .then(() => console.log('🔐 Autenticação do painel pronta'))
+    .catch((err) => console.error('Falha ao preparar autenticação:', err));
 });
 
 export default app;

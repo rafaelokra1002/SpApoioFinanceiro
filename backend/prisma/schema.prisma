@@ -24,6 +24,12 @@ model Lead {
   nomeEmpresa     String?
   bairroTrabalho  String?
   indicacao       String?
+  endereco        String?
+  cep             String?
+  enderecoTrabalho String?
+  observacao      String?
+  evitarGolpes    Boolean    @default(false)
+  analiseCliente  Boolean    @default(false)
   status          String     @default("PENDENTE")
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt

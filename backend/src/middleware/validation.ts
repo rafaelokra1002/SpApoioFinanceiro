@@ -31,6 +31,10 @@ export const leadSchema = z.object({
   perfil: z.string().min(2, 'Perfil é obrigatório'),
   nomeEmpresa: z.string().optional().or(z.literal('')),
   bairroTrabalho: z.string().optional().or(z.literal('')),
+  endereco: z.string().optional().or(z.literal('')),
+  cep: z.string().optional().or(z.literal('')),
+  enderecoTrabalho: z.string().optional().or(z.literal('')),
+  observacao: z.string().optional().or(z.literal('')),
 });
 
 export const statusSchema = z.object({

@@ -64,6 +64,21 @@ export async function handleUpdateStatus(
   }
 }
 
+export async function handleUpdateGroups(
+  req: Request,
+  res: Response<ApiResponse>,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { id } = req.params;
+    const { evitarGolpes, analiseCliente } = req.body ?? {};
+    const lead = await leadService.updateLeadGroups(id as string, { evitarGolpes, analiseCliente });
+    res.json({ success: true, data: lead, message: 'Grupos atualizados' });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function handleDeleteLead(
   req: Request,
   res: Response<ApiResponse>,
