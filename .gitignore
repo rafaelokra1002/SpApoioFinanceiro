@@ -15,3 +15,6 @@ Thumbs.db
 .expo/
 backend/whatsapp-session/
 whatsapp-vps-service/whatsapp-session/
+
+# Arquivos temporarios/backup
+*.bak
