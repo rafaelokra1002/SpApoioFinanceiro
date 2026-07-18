@@ -76,6 +76,9 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
     ? `${lead.endereco}${lead.cep ? ` — CEP: ${lead.cep}` : ''}`
     : '—';
 
+  const hasLocation = typeof lead.latitude === 'number' && typeof lead.longitude === 'number';
+  const mapsUrl = `https://www.google.com/maps?q=${lead.latitude},${lead.longitude}`;
+
   // Foto de perfil: usamos a selfie enviada pelo cliente. O nome real vem no
   // filename ("Selfie (rosto).jpg"), não no tipo — então olhamos os dois.
   const photoDoc = lead.documentos?.find((d) => {
@@ -139,17 +142,36 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
             <InfoRow icon={<Home size={15} />} label="Endereço">{endereco}</InfoRow>
           </div>
 
-          {/* Localização — recurso a implementar no app do cliente */}
+          {/* Localização compartilhada pelo cliente */}
           <div>
             <p className="mb-2 flex items-center gap-1.5 text-[12px] font-semibold text-ink-2">
               <MapPin size={14} className="text-info" /> Localização da solicitação
             </p>
-            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-line bg-canvas/60 py-6 text-center">
-              <MapPin size={22} className="text-subtle" />
-              <p className="mt-1.5 px-4 text-[11.5px] text-subtle">
-                Em breve: o cliente compartilha a localização ao acessar o link.
-              </p>
-            </div>
+            {hasLocation ? (
+              <div className="overflow-hidden rounded-xl border border-line">
+                <iframe
+                  title="Localização da solicitação"
+                  className="h-40 w-full border-0"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  src={`https://maps.google.com/maps?q=${lead.latitude},${lead.longitude}&z=15&output=embed`}
+                />
+                <a
+                  href={`https://www.google.com/maps?q=${lead.latitude},${lead.longitude}`}
+                  target="_blank" rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-1.5 bg-canvas py-2 text-[12px] font-semibold text-brand-deep transition-colors hover:bg-line"
+                >
+                  <MapPin size={13} /> Ver no mapa
+                </a>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-line bg-canvas/60 py-6 text-center">
+                <MapPin size={22} className="text-subtle" />
+                <p className="mt-1.5 px-4 text-[11.5px] text-subtle">
+                  O cliente não compartilhou a localização.
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -247,8 +269,10 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
                 disabled className="bg-canvas text-subtle" />
               <ActionBtn icon={<Download size={15} />} label="Baixar backup"
                 className="bg-canvas text-ink-2 hover:bg-line" onClick={handleDownload} />
-              <ActionBtn icon={<MapPin size={15} />} label="Ver localização (em breve)"
-                disabled className="bg-canvas text-subtle" />
+              <ActionBtn icon={<MapPin size={15} />} label="Ver localização"
+                disabled={!hasLocation}
+                className={hasLocation ? 'bg-canvas text-ink-2 hover:bg-line' : 'bg-canvas text-subtle'}
+                onClick={hasLocation ? () => window.open(mapsUrl, '_blank', 'noopener') : undefined} />
               <ActionBtn icon={<Trash2 size={15} />} label="Excluir solicitação"
                 className="bg-danger/10 text-danger hover:bg-danger/20"
                 onClick={() => onDelete(lead.id)} />

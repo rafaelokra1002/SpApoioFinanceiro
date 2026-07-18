@@ -19,6 +19,8 @@ export interface Lead {
   cep: string | null;
   enderecoTrabalho: string | null;
   observacao: string | null;
+  latitude: number | null;
+  longitude: number | null;
   evitarGolpes: boolean;
   analiseCliente: boolean;
   status: string;
