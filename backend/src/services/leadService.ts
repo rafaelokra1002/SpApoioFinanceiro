@@ -23,6 +23,8 @@ export async function createLead(data: LeadInput) {
       cep: data.cep || null,
       enderecoTrabalho: data.enderecoTrabalho || null,
       observacao: data.observacao || null,
+      latitude: typeof data.latitude === 'number' ? data.latitude : null,
+      longitude: typeof data.longitude === 'number' ? data.longitude : null,
     },
   });
 

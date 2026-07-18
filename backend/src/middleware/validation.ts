@@ -35,6 +35,8 @@ export const leadSchema = z.object({
   cep: z.string().optional().or(z.literal('')),
   enderecoTrabalho: z.string().optional().or(z.literal('')),
   observacao: z.string().optional().or(z.literal('')),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
 });
 
 export const statusSchema = z.object({

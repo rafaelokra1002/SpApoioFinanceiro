@@ -29,6 +29,8 @@ export interface LeadInput {
   cep?: string;
   enderecoTrabalho?: string;
   observacao?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface DocumentInput {

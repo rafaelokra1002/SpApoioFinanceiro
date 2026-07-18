@@ -28,6 +28,8 @@ model Lead {
   cep             String?
   enderecoTrabalho String?
   observacao      String?
+  latitude        Float?
+  longitude       Float?
   evitarGolpes    Boolean    @default(false)
   analiseCliente  Boolean    @default(false)
   status          String     @default("PENDENTE")
