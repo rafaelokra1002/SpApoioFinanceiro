@@ -42,6 +42,14 @@ function formatDate(dateStr: string): string {
 
 const IMAGE_EXT = /\.(jpe?g|png|webp|gif|bmp|heic)$/i;
 
+/** Rótulo do documento: o app manda o nome real no filename e um tipo genérico. */
+function docLabel(doc: { tipo: string; filename: string }): string {
+  const tipo = doc.tipo?.trim() || '';
+  if (tipo && !/^documentos?$/i.test(tipo)) return tipo;
+  const name = doc.filename?.replace(/\.[^.]+$/, '').trim();
+  return name || tipo || 'Documento';
+}
+
 export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, onWhatsApp, onUpdateGroups }: LeadDetailProps) {
   const [logs, setLogs] = useState<MessageLog[]>([]);
   const [downloading, setDownloading] = useState(false);
@@ -68,10 +76,12 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
     ? `${lead.endereco}${lead.cep ? ` — CEP: ${lead.cep}` : ''}`
     : '—';
 
-  // Foto de perfil: usamos a selfie enviada pelo cliente, se houver.
-  const photoDoc = lead.documentos?.find(
-    (d) => /selfie|rosto|foto|perfil/i.test(d.tipo) && (IMAGE_EXT.test(d.filename) || IMAGE_EXT.test(d.url)),
-  );
+  // Foto de perfil: usamos a selfie enviada pelo cliente. O nome real vem no
+  // filename ("Selfie (rosto).jpg"), não no tipo — então olhamos os dois.
+  const photoDoc = lead.documentos?.find((d) => {
+    const hay = `${d.tipo} ${d.filename}`.toLowerCase();
+    return /selfie|rosto|foto|perfil/.test(hay) && (IMAGE_EXT.test(d.filename) || IMAGE_EXT.test(d.url));
+  });
 
   return (
     <div className="flex max-h-[90vh] w-[min(940px,95vw)] flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-xl">
@@ -160,12 +170,12 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
                       <a href={doc.url} target="_blank" rel="noopener noreferrer"
                         className="flex h-24 items-center justify-center bg-canvas">
                         {isImage
-                          ? <img src={doc.url} alt={doc.tipo} loading="lazy" className="h-full w-full object-cover"
+                          ? <img src={doc.url} alt={docLabel(doc)} loading="lazy" className="h-full w-full object-cover"
                               onError={(e) => { (e.target as HTMLImageElement).style.opacity = '0'; }} />
                           : <FileText size={30} className="text-subtle" strokeWidth={1.5} />}
                       </a>
                       <div className="px-2 py-1.5">
-                        <p className="truncate text-[11.5px] font-semibold text-ink" title={doc.tipo}>{doc.tipo}</p>
+                        <p className="truncate text-[11.5px] font-semibold text-ink" title={docLabel(doc)}>{docLabel(doc)}</p>
                         <p className="text-[10px] text-subtle">Enviado em {formatDate(doc.createdAt)}</p>
                         <a href={doc.url} target="_blank" rel="noopener noreferrer"
                           className="mt-1 flex items-center justify-center gap-1 rounded-lg bg-brand/10 py-1 text-[11px] font-semibold text-brand-deep transition-colors hover:bg-brand/20">
