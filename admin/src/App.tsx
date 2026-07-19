@@ -164,31 +164,43 @@ export default function App() {
   };
 
   const handleStatusChange = async (id: string, status: string) => {
-    const res = await updateLeadStatus(id, status);
-    if (!res.success) {
-      notify(res.error || 'Não foi possível atualizar o status.', 'error');
-      return;
-    }
-
+    const lead = leads.find((l) => l.id === id);
+    // Atualização otimista: reflete na tela na hora (e funciona no preview sem backend).
     setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, status } : l)));
     setSelectedLead((prev) => (prev?.id === id ? { ...prev, status } : prev));
 
-    const lead = leads.find((l) => l.id === id);
-    if (lead && !isInternalStatus(status)) {
-      await sendWhatsApp({ ...lead, status });
+    try {
+      const res = await updateLeadStatus(id, status);
+      if (!res.success) {
+        notify(res.error || 'Não foi possível atualizar o status.', 'error');
+        loadData();
+        return;
+      }
+      if (lead && !isInternalStatus(status)) await sendWhatsApp({ ...lead, status });
+      loadData();
+    } catch {
+      if (import.meta.env.DEV) return; // preview offline: mantém a mudança local
+      notify('Não foi possível conectar ao servidor.', 'error');
+      loadData();
     }
-
-    loadData();
   };
 
   const handleUpdateGroups = async (id: string, data: { evitarGolpes?: boolean; analiseCliente?: boolean }) => {
-    const res = await updateLeadGroups(id, data);
-    if (!res.success) {
-      notify(res.error || 'Não foi possível atualizar os grupos.', 'error');
-      return;
-    }
+    // Otimista, igual ao status.
     setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, ...data } : l)));
     setSelectedLead((prev) => (prev?.id === id ? { ...prev, ...data } : prev));
+
+    try {
+      const res = await updateLeadGroups(id, data);
+      if (!res.success) {
+        notify(res.error || 'Não foi possível atualizar os grupos.', 'error');
+        loadData();
+      }
+    } catch {
+      if (import.meta.env.DEV) return;
+      notify('Não foi possível conectar ao servidor.', 'error');
+      loadData();
+    }
   };
 
   const handleDelete = async (id: string) => {
