@@ -1,4 +1,7 @@
-import { AtSign, Banknote, Briefcase, CreditCard, Eye, MapPin, MessageCircle, UserRound } from 'lucide-react';
+import {
+  AtSign, Banknote, Briefcase, CreditCard, Eye, MapPin, MessageCircle,
+  UserRound, UserRoundCheck, UserX,
+} from 'lucide-react';
 import { Lead } from '../../types';
 import { formatCurrency } from '../../utils/analytics';
 import { avatarColor, initials } from '../../utils/avatar';
@@ -8,6 +11,7 @@ interface LeadCardProps {
   lead: Lead;
   onView: (lead: Lead) => void;
   onWhatsApp: (lead: Lead) => void;
+  onStatusChange?: (id: string, status: string) => void;
 }
 
 /** Não temos campo de modalidade: derivamos do prazo (até 30 dias = à vista). */
@@ -43,7 +47,7 @@ function MetaRow({ icon: Icon, label, children }: {
   );
 }
 
-export default function LeadCard({ lead, onView, onWhatsApp }: LeadCardProps) {
+export default function LeadCard({ lead, onView, onWhatsApp, onStatusChange }: LeadCardProps) {
   const internal = isInternalStatus(lead.status);
 
   return (
@@ -109,12 +113,33 @@ export default function LeadCard({ lead, onView, onWhatsApp }: LeadCardProps) {
         <MetaRow icon={UserRound} label="Indicado por">{lead.indicacao || '—'}</MetaRow>
       </div>
 
+      {/* Mover aprovado para "Não contratou" / "Passei para colaborador" */}
+      {lead.status === 'APROVADO' && onStatusChange && (
+        <div className="mt-4 flex gap-2">
+          <button
+            onClick={() => onStatusChange(lead.id, 'NAO_CONTRATOU')}
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-orange/30 py-2
+              text-[12px] font-semibold text-orange transition-colors hover:bg-orange/10 cursor-pointer"
+          >
+            <UserX size={14} /> Não contratou
+          </button>
+          <button
+            onClick={() => onStatusChange(lead.id, 'PASSEI_COLABORADOR')}
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-info/30 py-2
+              text-[12px] font-semibold text-info transition-colors hover:bg-info/10 cursor-pointer"
+          >
+            <UserRoundCheck size={14} /> Colaborador
+          </button>
+        </div>
+      )}
+
       {/* Ação */}
       <button
         onClick={() => onView(lead)}
-        className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-canvas py-2.5
+        className={`flex items-center justify-center gap-2 rounded-xl bg-canvas py-2.5
           text-[13px] font-semibold text-ink-2 transition-colors
-          group-hover:bg-brand group-hover:text-white cursor-pointer"
+          group-hover:bg-brand group-hover:text-white cursor-pointer
+          ${lead.status === 'APROVADO' && onStatusChange ? 'mt-2' : 'mt-4'}`}
       >
         <Eye size={15} strokeWidth={2} />
         Visualizar

@@ -268,6 +268,7 @@ export default function App() {
             valueCaption={cardLabels.valueCaption}
             onView={setSelectedLead}
             onWhatsApp={sendWhatsApp}
+            onStatusChange={handleStatusChange}
           />
         )}
 

@@ -20,6 +20,7 @@ interface LeadListingProps {
   valueCaption: string;
   onView: (lead: Lead) => void;
   onWhatsApp: (lead: Lead) => void;
+  onStatusChange?: (id: string, status: string) => void;
 }
 
 const PER_PAGE = 8;
@@ -29,7 +30,7 @@ function initialView(): ViewMode {
 }
 
 export default function LeadListing({
-  leads, loading, countLabel, countCaption, valueLabel, valueCaption, onView, onWhatsApp,
+  leads, loading, countLabel, countCaption, valueLabel, valueCaption, onView, onWhatsApp, onStatusChange,
 }: LeadListingProps) {
   const [query, setQuery] = useState('');
   const [pageNum, setPageNum] = useState(1);
@@ -120,7 +121,7 @@ export default function LeadListing({
           {view === 'cards' ? (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
               {shown.map((lead) => (
-                <LeadCard key={lead.id} lead={lead} onView={onView} onWhatsApp={onWhatsApp} />
+                <LeadCard key={lead.id} lead={lead} onView={onView} onWhatsApp={onWhatsApp} onStatusChange={onStatusChange} />
               ))}
             </div>
           ) : (
