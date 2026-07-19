@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Category, Lead } from './types';
 import {
   deleteLead, fetchCategories, fetchLeads, getWhatsAppStatus,
-  sendWhatsAppByLead, updateLeadGroups, updateLeadStatus,
+  sendWhatsAppByLead, sendWhatsAppMessage, updateLeadGroups, updateLeadStatus,
 } from './services/api';
 import Sidebar, { PageKey } from './components/Sidebar';
 import Topbar from './components/Topbar';
@@ -10,6 +10,8 @@ import Dashboard from './components/dashboard/Dashboard';
 import RankingCard from './components/dashboard/RankingCard';
 import LeadListing from './components/leads/LeadListing';
 import PendentesView from './components/leads/PendentesView';
+import RecusadosView from './components/leads/RecusadosView';
+import AprovadosView from './components/leads/AprovadosView';
 import LeadDetail from './components/LeadDetail';
 import CategoryManager from './components/CategoryManager';
 import MessageTemplates from './components/MessageTemplates';
@@ -203,6 +205,81 @@ export default function App() {
     }
   };
 
+  /**
+   * Recusa com motivo + grupo e envia a mensagem personalizada ao cliente
+   * (fluxo do modal de recusa). Diferente de handleStatusChange, que dispararia
+   * o template padrão do servidor — aqui a mensagem é a escrita no modal.
+   */
+  const handleRecusar = async (lead: Lead, data: { grupo: number; motivoRecusa: string; mensagem: string }) => {
+    // Otimista: reflete na hora e fecha o detalhe.
+    setLeads((prev) => prev.map((l) => (
+      l.id === lead.id ? { ...l, status: 'RECUSADO', grupo: data.grupo, motivoRecusa: data.motivoRecusa } : l
+    )));
+    setSelectedLead(null);
+
+    try {
+      const [statusRes] = await Promise.all([
+        updateLeadStatus(lead.id, 'RECUSADO'),
+        updateLeadGroups(lead.id, { grupo: data.grupo, motivoRecusa: data.motivoRecusa }),
+      ]);
+      if (!statusRes.success) {
+        notify(statusRes.error || 'Não foi possível recusar a solicitação.', 'error');
+        loadData();
+        return;
+      }
+
+      const wa = await getWhatsAppStatus().catch(() => null);
+      if (!wa?.success || !wa.data?.connected) {
+        notify('Solicitação recusada. WhatsApp desconectado — a mensagem não foi enviada.', 'error');
+      } else {
+        const msg = await sendWhatsAppMessage(lead.telefone, data.mensagem);
+        if (msg.success) notify(`${lead.nome} recusado e mensagem enviada.`, 'success');
+        else notify(`Recusado, mas falha ao enviar a mensagem: ${msg.error || 'erro'}`, 'error');
+      }
+      loadData();
+    } catch {
+      if (import.meta.env.DEV) { notify(`${lead.nome} recusado (preview, sem envio).`, 'success'); return; }
+      notify('Não foi possível conectar ao servidor.', 'error');
+      loadData();
+    }
+  };
+
+  /**
+   * Aprova com valor e modalidade definidos no modal, recalcula o total e
+   * dispara o template de aprovação ao cliente (via sendWhatsApp).
+   */
+  const handleAprovar = async (lead: Lead, data: { valorAprovado: number; valorTotal: number; modalidadeAprovada: 'PARCELADO' | 'AVISTA' }) => {
+    // Otimista.
+    setLeads((prev) => prev.map((l) => (
+      l.id === lead.id
+        ? { ...l, status: 'APROVADO', valorAprovado: data.valorAprovado, valorTotal: data.valorTotal, modalidadeAprovada: data.modalidadeAprovada }
+        : l
+    )));
+    setSelectedLead(null);
+
+    try {
+      const [statusRes] = await Promise.all([
+        updateLeadStatus(lead.id, 'APROVADO'),
+        updateLeadGroups(lead.id, {
+          valorAprovado: data.valorAprovado,
+          valorTotal: data.valorTotal,
+          modalidadeAprovada: data.modalidadeAprovada,
+        }),
+      ]);
+      if (!statusRes.success) {
+        notify(statusRes.error || 'Não foi possível aprovar a solicitação.', 'error');
+        loadData();
+        return;
+      }
+      await sendWhatsApp({ ...lead, status: 'APROVADO' });
+      loadData();
+    } catch {
+      if (import.meta.env.DEV) { notify(`${lead.nome} aprovado (preview, sem envio).`, 'success'); return; }
+      notify('Não foi possível conectar ao servidor.', 'error');
+      loadData();
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (!window.confirm('Tem certeza que deseja excluir esta solicitação?')) return;
     const res = await deleteLead(id);
@@ -229,8 +306,11 @@ export default function App() {
   // Pendentes tem visão própria (cards detalhados + solicitações anteriores);
   // as demais listagens usam o grid padrão.
   const isPendentes = page === 'pendentes';
+  // Recusados e Aprovados têm visões próprias (modelos dedicados).
+  const isRecusados = page === 'recusados';
+  const isAprovados = page === 'aprovados';
   const cardLabels = CARD_LABELS[page];
-  const isCardPage = Boolean(cardLabels) && !isPendentes;
+  const isCardPage = Boolean(cardLabels) && !isPendentes && !isRecusados && !isAprovados;
 
   if (!authed) return <Login onSuccess={signIn} />;
 
@@ -270,6 +350,26 @@ export default function App() {
           />
         )}
 
+        {isAprovados && (
+          <AprovadosView
+            leads={tableLeads}
+            loading={loading}
+            onView={setSelectedLead}
+            onWhatsApp={sendWhatsApp}
+          />
+        )}
+
+        {isRecusados && (
+          <RecusadosView
+            leads={tableLeads}
+            loading={loading}
+            onView={setSelectedLead}
+            onWhatsApp={sendWhatsApp}
+            onStatusChange={handleStatusChange}
+            onDelete={handleDelete}
+          />
+        )}
+
         {isCardPage && cardLabels && (
           <LeadListing
             leads={tableLeads}
@@ -296,6 +396,8 @@ export default function App() {
                 onDelete={handleDelete}
                 onWhatsApp={sendWhatsApp}
                 onUpdateGroups={handleUpdateGroups}
+                onRecusar={handleRecusar}
+                onAprovar={handleAprovar}
               />
             </div>
           </div>

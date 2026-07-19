@@ -23,6 +23,16 @@ export interface Lead {
   longitude: number | null;
   evitarGolpes: boolean;
   analiseCliente: boolean;
+  /** Grupo em que o lead caiu na recusa: 1, 2 ou 3 (null se não definido). */
+  grupo: number | null;
+  /** Motivo da recusa, preenchido pelo painel. */
+  motivoRecusa: string | null;
+  /** Valor efetivamente aprovado (pode diferir do solicitado). */
+  valorAprovado: number | null;
+  /** Modalidade aprovada pelo painel: 'AVISTA' | 'PARCELADO'. */
+  modalidadeAprovada: string | null;
+  /** "Deve alguém": anotação de análise enviada ao grupo. */
+  deveAlguem: string | null;
   status: string;
   createdAt: string;
   updatedAt: string;

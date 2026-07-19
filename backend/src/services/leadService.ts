@@ -73,13 +73,29 @@ export async function updateLeadStatus(id: string, status: LeadStatus) {
 
 export async function updateLeadGroups(
   id: string,
-  data: { evitarGolpes?: boolean; analiseCliente?: boolean }
+  data: {
+    evitarGolpes?: boolean;
+    analiseCliente?: boolean;
+    grupo?: number | null;
+    motivoRecusa?: string | null;
+    valorAprovado?: number | null;
+    valorTotal?: number;
+    modalidadeAprovada?: string | null;
+    deveAlguem?: string | null;
+  }
 ) {
   return prisma.lead.update({
     where: { id },
     data: {
       ...(typeof data.evitarGolpes === 'boolean' ? { evitarGolpes: data.evitarGolpes } : {}),
       ...(typeof data.analiseCliente === 'boolean' ? { analiseCliente: data.analiseCliente } : {}),
+      // grupo aceita 1/2/3 ou null (limpar). Qualquer outro valor é ignorado.
+      ...(data.grupo === null || [1, 2, 3].includes(Number(data.grupo)) ? { grupo: data.grupo === null ? null : Number(data.grupo) } : {}),
+      ...(data.motivoRecusa !== undefined ? { motivoRecusa: data.motivoRecusa || null } : {}),
+      ...(data.valorAprovado !== undefined && data.valorAprovado !== null && Number.isFinite(data.valorAprovado) ? { valorAprovado: Number(data.valorAprovado) } : {}),
+      ...(typeof data.valorTotal === 'number' && Number.isFinite(data.valorTotal) ? { valorTotal: data.valorTotal } : {}),
+      ...(data.modalidadeAprovada !== undefined ? { modalidadeAprovada: data.modalidadeAprovada || null } : {}),
+      ...(data.deveAlguem !== undefined ? { deveAlguem: data.deveAlguem || null } : {}),
     },
   });
 }

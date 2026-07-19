@@ -44,6 +44,11 @@ function mk(
     longitude: null,
     evitarGolpes: false,
     analiseCliente: false,
+    grupo: null,
+    motivoRecusa: null,
+    valorAprovado: null,
+    modalidadeAprovada: null,
+    deveAlguem: null,
     status,
     createdAt: ago(daysAgo),
     updatedAt: ago(Math.max(0, daysAgo - 2)),
@@ -101,10 +106,14 @@ export const DEV_SAMPLE_LEADS: Lead[] = [
       analiseCliente: true }),
 
   // Recusados (5) — presentes em vários meses
-  mk('Tatiane Sousa', 'Dias d\'Ávila', 1100, 'RECUSADO', 'panfleto', 30, 6),
-  mk('Everton Dias', 'Catu', 950, 'RECUSADO', null, 30, 29),
-  mk('Rita Fontes', 'Camaçari', 1600, 'RECUSADO', 'Instagram', 60, 58),
-  mk('Marcos Aurélio', 'Feira de Santana', 700, 'RECUSADO', 'Vizinho', 30, 88),
+  mk('Tatiane Sousa', 'Dias d\'Ávila', 1100, 'RECUSADO', 'panfleto', 30, 6, null,
+    { grupo: 1, motivoRecusa: 'Dados incompatíveis com sua renda.' }),
+  mk('Everton Dias', 'Catu', 950, 'RECUSADO', null, 30, 29, null,
+    { grupo: 2, motivoRecusa: 'Documentação incompleta.' }),
+  mk('Rita Fontes', 'Camaçari', 1600, 'RECUSADO', 'Instagram', 60, 58, null,
+    { grupo: 2, motivoRecusa: 'Comprovante de renda inválido.' }),
+  mk('Marcos Aurélio', 'Feira de Santana', 700, 'RECUSADO', 'Vizinho', 30, 88, null,
+    { grupo: 3, motivoRecusa: 'Score de crédito baixo.' }),
   mk('Débora Lima', 'Lauro de Freitas', 1250, 'RECUSADO', 'Prima', 45, 140),
 
   // Não contrataram (3)
@@ -146,6 +155,10 @@ DEV_SAMPLE_LEADS.forEach((lead) => {
     const all = fullDocs(lead, docSeed);
     // RG (frente), CPF, comprovante e a SELFIE (índice 6) — a selfie vira a foto de perfil.
     lead.documentos = [all[0], all[2], all[3], all[6]];
+  } else if (lead.status === 'RECUSADO') {
+    const all = fullDocs(lead, docSeed);
+    // RG (frente), comprovante de renda e a SELFIE — para a foto de perfil aparecer.
+    lead.documentos = [all[0], all[4], all[6]];
   }
   docSeed += 10;
 });

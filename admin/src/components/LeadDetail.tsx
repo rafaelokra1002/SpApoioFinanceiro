@@ -11,6 +11,10 @@ import { METRICS, STATUS_ORDER, isInternalStatus, statusLabel } from '../constan
 import { modalidade } from '../utils/analytics';
 import { avatarColor, clientPhotoUrl, initials } from '../utils/avatar';
 import { notify } from './Notice';
+import RecusarModal from './leads/RecusarModal';
+import AprovarModal from './leads/AprovarModal';
+import EnviarGrupoModal from './leads/EnviarGrupoModal';
+import CobrancaFacilModal from './leads/CobrancaFacilModal';
 
 interface MessageLog {
   id: string;
@@ -25,7 +29,9 @@ interface LeadDetailProps {
   onStatusChange: (id: string, status: string) => void;
   onDelete: (id: string) => void;
   onWhatsApp: (lead: Lead) => void;
-  onUpdateGroups: (id: string, data: { evitarGolpes?: boolean; analiseCliente?: boolean }) => void;
+  onUpdateGroups: (id: string, data: { evitarGolpes?: boolean; analiseCliente?: boolean; grupo?: number | null; motivoRecusa?: string | null; deveAlguem?: string | null }) => void;
+  onRecusar: (lead: Lead, data: { grupo: number; motivoRecusa: string; mensagem: string }) => void;
+  onAprovar: (lead: Lead, data: { valorAprovado: number; valorTotal: number; modalidadeAprovada: 'PARCELADO' | 'AVISTA' }) => void;
 }
 
 function formatCurrency(value: number) {
@@ -51,9 +57,13 @@ function docLabel(doc: { tipo: string; filename: string }): string {
   return name || tipo || 'Documento';
 }
 
-export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, onWhatsApp, onUpdateGroups }: LeadDetailProps) {
+export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, onWhatsApp, onUpdateGroups, onRecusar, onAprovar }: LeadDetailProps) {
   const [logs, setLogs] = useState<MessageLog[]>([]);
   const [downloading, setDownloading] = useState(false);
+  const [recusando, setRecusando] = useState(false);
+  const [aprovando, setAprovando] = useState(false);
+  const [enviandoGrupo, setEnviandoGrupo] = useState(false);
+  const [cobrancaFacil, setCobrancaFacil] = useState(false);
 
   useEffect(() => {
     fetchMessageLogs(lead.id).then(res => {
@@ -232,10 +242,10 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
                 <>
                   <ActionBtn icon={<CheckCircle size={15} />} label="Aprovar"
                     className="bg-success text-white hover:brightness-110"
-                    onClick={() => onStatusChange(lead.id, 'APROVADO')} />
+                    onClick={() => setAprovando(true)} />
                   <ActionBtn icon={<XCircle size={15} />} label="Recusar"
                     className="bg-danger text-white hover:brightness-110"
-                    onClick={() => onStatusChange(lead.id, 'RECUSADO')} />
+                    onClick={() => setRecusando(true)} />
                 </>
               )}
               <ActionBtn icon={<MessageCircle size={15} />} label="Enviar status ao cliente"
@@ -248,8 +258,12 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
               <ActionBtn icon={<Users size={15} />} label="Análise de clientes"
                 className={lead.analiseCliente ? 'bg-orange/15 text-orange ring-1 ring-orange' : 'bg-canvas text-ink-2 hover:bg-line'}
                 onClick={() => onUpdateGroups(lead.id, { analiseCliente: !lead.analiseCliente })} />
-              <ActionBtn icon={<Send size={15} />} label="Sistema Cobrança Fácil (em breve)"
-                disabled className="bg-canvas text-subtle" />
+              <ActionBtn icon={<Send size={15} />} label="Enviar para o grupo"
+                className="bg-info/10 text-info hover:bg-info/20"
+                onClick={() => setEnviandoGrupo(true)} />
+              <ActionBtn icon={<Send size={15} />} label="Sistema Cobrança Fácil"
+                className="bg-success/10 text-success hover:bg-success/20"
+                onClick={() => setCobrancaFacil(true)} />
               <ActionBtn
                 icon={downloading ? <Loader2 size={15} className="animate-spin" /> : <Download size={15} />}
                 label={downloading ? 'Gerando...' : 'Baixar backup'}
@@ -264,6 +278,11 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
                 onClick={() => onDelete(lead.id)} />
             </div>
           </div>
+
+          {/* Dados da recusa: grupo em que caiu + motivo (aparece só em recusados). */}
+          {lead.status === 'RECUSADO' && (
+            <RecusaEditor lead={lead} onUpdateGroups={onUpdateGroups} />
+          )}
 
           {/* Observação */}
           {lead.observacao && (
@@ -297,6 +316,99 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
           )}
         </div>
       </div>
+
+      {/* Modal de recusa: motivo + mensagem ao cliente (aberto pelo botão Recusar). */}
+      {recusando && (
+        <RecusarModal
+          lead={lead}
+          onClose={() => setRecusando(false)}
+          onConfirm={(data) => { setRecusando(false); onRecusar(lead, data); }}
+        />
+      )}
+
+      {/* Modal de aprovação: valor + modalidade (aberto pelo botão Aprovar). */}
+      {aprovando && (
+        <AprovarModal
+          lead={lead}
+          onClose={() => setAprovando(false)}
+          onConfirm={(data) => { setAprovando(false); onAprovar(lead, data); }}
+        />
+      )}
+
+      {/* Modal de envio ao grupo de análise (WhatsApp / copiar). */}
+      {enviandoGrupo && (
+        <EnviarGrupoModal
+          lead={lead}
+          onClose={() => setEnviandoGrupo(false)}
+          onPersist={(deveAlguem) => onUpdateGroups(lead.id, { deveAlguem })}
+        />
+      )}
+
+      {/* Revisão + envio dos dados ao sistema Cobrança Fácil. */}
+      {cobrancaFacil && (
+        <CobrancaFacilModal lead={lead} onClose={() => setCobrancaFacil(false)} />
+      )}
+    </div>
+  );
+}
+
+/** Editor dos dados da recusa: grupo em que caiu (1/2/3) + motivo. */
+function RecusaEditor({ lead, onUpdateGroups }: {
+  lead: Lead;
+  onUpdateGroups: (id: string, data: { grupo?: number | null; motivoRecusa?: string | null }) => void;
+}) {
+  const [motivo, setMotivo] = useState(lead.motivoRecusa ?? '');
+
+  // Sincroniza quando trocar de lead (o modal é reaproveitado entre clientes).
+  useEffect(() => { setMotivo(lead.motivoRecusa ?? ''); }, [lead.id, lead.motivoRecusa]);
+
+  const grupoDirty = (lead.grupo ?? null);
+  const motivoDirty = motivo.trim() !== (lead.motivoRecusa ?? '').trim();
+
+  const setGrupo = (g: number) => {
+    onUpdateGroups(lead.id, { grupo: grupoDirty === g ? null : g });
+  };
+
+  const salvarMotivo = () => {
+    onUpdateGroups(lead.id, { motivoRecusa: motivo.trim() || null });
+    notify('Motivo da recusa salvo.', 'success');
+  };
+
+  return (
+    <div className="rounded-xl border border-danger/20 bg-danger/5 p-3">
+      <p className="mb-2 text-[11px] font-semibold text-danger">Dados da recusa</p>
+
+      <p className="mb-1.5 text-[11.5px] text-muted">Grupo em que caiu</p>
+      <div className="mb-3 flex gap-2">
+        {[1, 2, 3].map((g) => (
+          <button
+            key={g}
+            onClick={() => setGrupo(g)}
+            className={`flex-1 rounded-lg border py-1.5 text-[12.5px] font-semibold transition-colors cursor-pointer
+              ${grupoDirty === g ? 'border-danger bg-danger text-white' : 'border-line bg-surface text-ink-2 hover:bg-canvas'}`}
+          >
+            Grupo {g}
+          </button>
+        ))}
+      </div>
+
+      <p className="mb-1.5 text-[11.5px] text-muted">Motivo da recusa</p>
+      <textarea
+        value={motivo}
+        onChange={(e) => setMotivo(e.target.value)}
+        rows={2}
+        placeholder="Ex.: Score de crédito baixo, documentação incompleta..."
+        className="w-full resize-none rounded-lg border border-line bg-surface px-3 py-2 text-[12.5px] text-ink
+          placeholder:text-subtle focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15"
+      />
+      <button
+        onClick={salvarMotivo}
+        disabled={!motivoDirty}
+        className="mt-2 w-full rounded-lg bg-danger py-2 text-[12.5px] font-semibold text-white transition-colors
+          hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+      >
+        Salvar motivo
+      </button>
     </div>
   );
 }

@@ -32,6 +32,11 @@ model Lead {
   longitude       Float?
   evitarGolpes    Boolean    @default(false)
   analiseCliente  Boolean    @default(false)
+  grupo           Int?
+  motivoRecusa    String?
+  valorAprovado   Float?
+  modalidadeAprovada String?
+  deveAlguem      String?
   status          String     @default("PENDENTE")
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt

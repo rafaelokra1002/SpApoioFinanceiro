@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import * as leadService from '../services/leadService';
+import * as cobrancaFacilService from '../services/cobrancaFacilService';
 import { AppError } from '../middleware/errorHandler';
 import { ApiResponse, LeadStatus } from '../types';
 
@@ -71,9 +72,33 @@ export async function handleUpdateGroups(
 ): Promise<void> {
   try {
     const { id } = req.params;
-    const { evitarGolpes, analiseCliente } = req.body ?? {};
-    const lead = await leadService.updateLeadGroups(id as string, { evitarGolpes, analiseCliente });
+    const { evitarGolpes, analiseCliente, grupo, motivoRecusa, valorAprovado, valorTotal, modalidadeAprovada, deveAlguem } = req.body ?? {};
+    const lead = await leadService.updateLeadGroups(id as string, { evitarGolpes, analiseCliente, grupo, motivoRecusa, valorAprovado, valorTotal, modalidadeAprovada, deveAlguem });
     res.json({ success: true, data: lead, message: 'Grupos atualizados' });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function handleCobrancaFacil(
+  req: Request,
+  res: Response<ApiResponse>,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { id } = req.params;
+    const lead = await leadService.getLeadById(id as string);
+    if (!lead) {
+      throw new AppError('Solicitação não encontrada', 404);
+    }
+
+    const result = await cobrancaFacilService.enviarCadastro(lead);
+    if (!result.success) {
+      res.status(502).json({ success: false, error: result.error });
+      return;
+    }
+
+    res.json({ success: true, message: 'Cadastro enviado para o Cobrança Fácil' });
   } catch (error) {
     next(error);
   }

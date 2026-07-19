@@ -4,6 +4,7 @@ import {
   handleGetLeadById,
   handleUpdateStatus,
   handleUpdateGroups,
+  handleCobrancaFacil,
   handleDeleteLead,
   handleGetStats,
 } from '../controllers/adminController';
@@ -46,6 +47,7 @@ router.get('/leads', handleGetLeads);
 router.get('/leads/:id', handleGetLeadById);
 router.patch('/leads/:id/status', validate(statusSchema), handleUpdateStatus);
 router.patch('/leads/:id/grupos', handleUpdateGroups);
+router.post('/leads/:id/cobranca-facil', handleCobrancaFacil);
 router.delete('/leads/:id', handleDeleteLead);
 
 // Category management

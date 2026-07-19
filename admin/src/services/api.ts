@@ -84,12 +84,17 @@ export async function updateLeadStatus(id: string, status: string) {
   return req(`/admin/leads/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) });
 }
 
-export async function updateLeadGroups(id: string, data: { evitarGolpes?: boolean; analiseCliente?: boolean }) {
+export async function updateLeadGroups(id: string, data: { evitarGolpes?: boolean; analiseCliente?: boolean; grupo?: number | null; motivoRecusa?: string | null; valorAprovado?: number | null; valorTotal?: number; modalidadeAprovada?: string | null; deveAlguem?: string | null }) {
   return req(`/admin/leads/${id}/grupos`, { method: 'PATCH', body: JSON.stringify(data) });
 }
 
 export async function deleteLead(id: string) {
   return req(`/admin/leads/${id}`, { method: 'DELETE' });
+}
+
+/** Envia os dados + documentos do cliente para o sistema Cobrança Fácil. */
+export async function enviarCobrancaFacil(id: string) {
+  return req(`/admin/leads/${id}/cobranca-facil`, { method: 'POST' });
 }
 
 export async function fetchStats() {
