@@ -5,112 +5,144 @@ export function Home() {
 
   return (
     <div style={{
-      minHeight: '100vh',
-      position: 'relative',
-      overflow: 'hidden',
-      background: 'linear-gradient(135deg, #2546f0 0%, #4169E1 40%, #2546f0 100%)',
+      minHeight: '100vh', position: 'relative', overflow: 'hidden',
+      background: 'linear-gradient(160deg, #ffffff 0%, #f4f7ff 55%, #eaf0ff 100%)',
+      display: 'flex', flexDirection: 'column',
     }}>
-      {/* Background image - full screen */}
-      <img
-        src="/personagem.png"
-        alt=""
-        style={{
-          position: 'absolute', top: 0, left: 0,
-          width: '100%', height: '60%',
-          objectFit: 'cover',
-          objectPosition: 'top center',
-        }}
-      />
-      {/* Dark overlay gradient - only fades bottom of image */}
+      {/* Painel diagonal com o personagem */}
       <div style={{
-        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-        background: 'linear-gradient(180deg, transparent 0%, transparent 30%, #1a3260 58%)',
-        pointerEvents: 'none',
+        position: 'absolute', top: 0, right: 0, bottom: 0, width: '68%',
+        clipPath: 'polygon(38% 0, 100% 0, 100% 100%, 0 100%)',
+        background: 'linear-gradient(200deg, #1a2b52 0%, #16264a 60%, #101c38 100%)',
+      }}>
+        <img src="/personagem.png" alt="" style={{
+          width: '100%', height: '100%', objectFit: 'cover', objectPosition: '58% 20%',
+        }} />
+        {/* Suaviza a emenda do painel com o fundo claro */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(100deg, rgba(244,247,255,0.92) 0%, rgba(244,247,255,0.25) 22%, transparent 45%)',
+        }} />
+      </div>
+
+      {/* Detalhe geométrico do canto inferior esquerdo */}
+      <div style={{
+        position: 'absolute', left: -40, bottom: -40, width: 180, height: 180,
+        border: '1.5px solid rgba(37,70,240,0.14)', borderRadius: 28,
+        transform: 'rotate(18deg)', pointerEvents: 'none',
       }} />
 
-      {/* Content on top */}
       <div style={{
-        position: 'relative', zIndex: 1,
-        minHeight: '100vh',
-        display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center',
-        padding: '0 20px 20px',
-        paddingTop: '30vh',
+        position: 'relative', zIndex: 1, flex: 1,
+        display: 'flex', flexDirection: 'column', padding: '22px 20px 26px',
       }}>
-        {/* Title */}
-        <h1 style={{
-          color: '#fff', fontSize: 28, fontWeight: 900,
-          textAlign: 'center', marginBottom: 16,
-          textShadow: '0 2px 12px rgba(0,0,0,0.5)',
-          letterSpacing: 0.5,
-        }}>
-          SP Apoio Financeiro
-        </h1>
+        {/* Topo: marca + atendimento */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 'auto' }}>
+          <img src="/sp-logo.svg" alt="SP Apoio Financeiro" style={{ height: 40, width: 'auto' }} />
+          <div style={{ lineHeight: 1.15 }}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: '#0d1836' }}>SP Apoio</div>
+            <div style={{ fontSize: 17, fontWeight: 800, color: '#2546f0' }}>Financeiro</div>
+          </div>
+          <div style={{
+            marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8,
+            padding: '9px 14px', borderRadius: 14,
+            background: 'rgba(255,255,255,0.9)', border: '1.5px solid #d5e0fb',
+            backdropFilter: 'blur(6px)',
+          }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2546f0" strokeWidth="1.9" style={{ flexShrink: 0 }}>
+              <path d="M12 21c4-4.5 6-7.7 6-10.5a6 6 0 10-12 0C6 13.3 8 16.5 12 21z"/>
+              <circle cx="12" cy="10.5" r="2.2"/>
+            </svg>
+            <span style={{ fontSize: 12, fontWeight: 600, color: '#0d1836', lineHeight: 1.3 }}>
+              Atendimento<br/><span style={{ color: '#2546f0' }}>na sua cidade</span>
+            </span>
+          </div>
+        </div>
 
-        {/* Menu Buttons */}
-        <div style={{
-          display: 'flex', flexDirection: 'column', gap: 8,
-          width: '100%', marginBottom: 10,
-        }}>
-        <MenuButton
-          icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h5"/><circle cx="15" cy="16" r="3"/><path d="M15 14v4M13 16h4"/></svg>}
-          label="Simulação de Empréstimo"
-          onClick={() => dispatch({ type: 'SET_STEP', step: 1 })}
-          highlight
-        />
-        <MenuButton
-          icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>}
-          label="Como Funciona"
-          onClick={() => dispatch({ type: 'SHOW_MODAL', modal: 'comoFunciona', show: true })}
-        />
+        {/* Chamada principal */}
+        <div style={{ marginTop: 40 }}>
+          <h1 style={{
+            fontSize: 'clamp(44px, 15vw, 62px)', fontWeight: 900, lineHeight: 0.95,
+            letterSpacing: '-0.04em', color: '#0d1836',
+            textShadow: '0 2px 18px rgba(244,247,255,0.9)',
+          }}>
+            Dinheiro<br/><span style={{ color: '#2546f0' }}>rápido.</span>
+          </h1>
 
-        <MenuButton
-          icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>}
-          label="Dúvidas Frequentes"
-          onClick={() => dispatch({ type: 'SHOW_MODAL', modal: 'duvidas', show: true })}
-        />
-      </div>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginTop: 22 }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#2546f0" style={{ flexShrink: 0, marginTop: 2 }}>
+              <path d="M13.5 2L4 14h6l-.5 8L19 10h-6z"/>
+            </svg>
+            <p style={{
+              fontSize: 17, fontWeight: 700, color: '#0d1836', lineHeight: 1.35,
+              textShadow: '0 2px 14px rgba(244,247,255,0.9)',
+            }}>
+              Receba sua análise<br/>em <span style={{ color: '#2546f0' }}>minutos.</span>
+            </p>
+          </div>
 
-        {/* Bottom text */}
-        <p style={{
-          color: 'rgba(255,255,255,0.6)', fontSize: 13, textAlign: 'center',
-          lineHeight: 1.5, paddingBottom: 8, paddingTop: 8,
-          fontStyle: 'italic',
-        }}>
-          Simule & descubra as melhores<br/>condições para você!
-        </p>
+          {/* Régua decorativa */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 24 }}>
+            <span style={{ width: 34, height: 3, borderRadius: 2, background: '#2546f0' }} />
+            <span style={{ width: 14, height: 3, borderRadius: 2, background: '#b9c6ee' }} />
+            <span style={{ flex: 1, maxWidth: 90, height: 1, background: '#d9e1f7' }} />
+          </div>
+        </div>
+
+        {/* Ações */}
+        <div style={{ marginTop: 'auto', paddingTop: 40, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <button onClick={() => dispatch({ type: 'SET_STEP', step: 1 })} style={{
+            display: 'flex', alignItems: 'center', gap: 14, width: '100%',
+            padding: '14px 18px', borderRadius: 16, border: 'none', cursor: 'pointer',
+            background: 'linear-gradient(135deg, #2546f0, #1a32c4)',
+            boxShadow: '0 10px 26px rgba(37,70,240,0.35)',
+          }}>
+            <span style={{
+              width: 42, height: 42, borderRadius: '50%', background: 'rgba(255,255,255,0.18)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            }}>
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9.5 3h5l-1.2 3h-2.6z"/>
+                <path d="M12 6c4 0 7 4.2 7 8.2 0 3.6-3 5.8-7 5.8s-7-2.2-7-5.8C5 10.2 8 6 12 6z"/>
+                <path d="M13.6 11.6c-.4-.5-1-.8-1.7-.8-.9 0-1.6.5-1.6 1.2 0 1.7 3.4.9 3.4 2.6 0 .8-.7 1.3-1.7 1.3-.7 0-1.4-.3-1.8-.9M12 9.8v7"/>
+              </svg>
+            </span>
+            <span style={{ flex: 1, textAlign: 'left', fontSize: 18, fontWeight: 800, color: '#fff' }}>
+              Solicitar Agora
+            </span>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14M13 6l6 6-6 6"/>
+            </svg>
+          </button>
+
+          <button onClick={() => dispatch({ type: 'SHOW_MODAL', modal: 'comoFunciona', show: true })} style={{
+            display: 'flex', alignItems: 'center', gap: 14, width: '100%',
+            padding: '13px 18px', borderRadius: 16, cursor: 'pointer',
+            background: 'rgba(255,255,255,0.94)', border: '1.5px solid #dde4f5',
+            backdropFilter: 'blur(6px)',
+          }}>
+            <span style={{
+              width: 38, height: 38, borderRadius: '50%', border: '1.5px solid #d5e0fb',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              fontSize: 17, fontWeight: 800, color: '#0d1836',
+            }}>?</span>
+            <span style={{ flex: 1, textAlign: 'left', fontSize: 16, fontWeight: 600, color: '#0d1836' }}>
+              Como funciona
+            </span>
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#2546f0" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14M13 6l6 6-6 6"/>
+            </svg>
+          </button>
+
+          <button onClick={() => dispatch({ type: 'SHOW_MODAL', modal: 'duvidas', show: true })} style={{
+            background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0',
+            fontSize: 13.5, fontWeight: 600, color: '#59637a',
+            textDecoration: 'underline', textUnderlineOffset: 3, alignSelf: 'center',
+          }}>
+            Dúvidas frequentes
+          </button>
+        </div>
       </div>
     </div>
-  );
-}
-
-function MenuButton({ icon, label, onClick, highlight }: { icon: React.ReactNode; label: string; onClick: () => void; highlight?: boolean }) {
-  return (
-    <button onClick={onClick} style={{
-      display: 'flex', alignItems: 'center', gap: 14, width: '100%',
-      padding: '11px 16px', borderRadius: 14,
-      background: highlight
-        ? 'linear-gradient(135deg, #1a4fc9 0%, #2563eb 50%, #3b82f6 100%)'
-        : 'rgba(255,255,255,0.10)',
-      border: highlight ? '1.5px solid rgba(100,160,255,0.4)' : '1.5px solid rgba(255,255,255,0.18)',
-      color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer',
-      backdropFilter: 'blur(4px)',
-      transition: 'background 0.15s, transform 0.1s',
-      boxShadow: highlight ? '0 4px 15px rgba(37,99,235,0.3)' : 'none',
-    }}
-    onMouseEnter={e => { e.currentTarget.style.background = highlight ? 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)' : 'rgba(255,255,255,0.18)'; }}
-    onMouseLeave={e => { e.currentTarget.style.background = highlight ? 'linear-gradient(135deg, #1a4fc9 0%, #2563eb 50%, #3b82f6 100%)' : 'rgba(255,255,255,0.10)'; }}
-    >
-      <div style={{
-        width: 40, height: 40, borderRadius: 12,
-        background: 'rgba(255,255,255,0.15)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        flexShrink: 0,
-      }}>{icon}</div>
-      <span style={{ flex: 1, textAlign: 'left' }}>{label}</span>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="9 18 15 12 9 6"/>
-      </svg>
-    </button>
   );
 }

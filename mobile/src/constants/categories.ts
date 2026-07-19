@@ -1,27 +1,29 @@
 import { CategoryOption, DocumentType, ParcelaOption, RendaOption } from '../types';
 
 export const CATEGORIES: CategoryOption[] = [
-  { value: 'CARTEIRA_ASSINADA', label: 'CLT Registrado', icon: '👔' },
-  { value: 'CLT_SEM_REGISTRO', label: 'CLT Informal', icon: '📝' },
-  { value: 'AUTONOMO', label: 'Autônomo', icon: '🔧' },
-  { value: 'BENEFICIARIO', label: 'Beneficiário', icon: '📋' },
-  { value: 'ESTAGIARIO', label: 'Estagiário', icon: '🎓' },
-  { value: 'SEM_COMPROVACAO', label: 'Sem Comprovante de Renda', icon: '❌' },
-  // { value: 'COM_GARANTIA', label: 'Solicite com Garantia', icon: '🔒' },
+  { value: 'CARTEIRA_ASSINADA', label: 'CLT Registrado', icon: '👔',
+    description: 'Para quem possui carteira assinada.' },
+  { value: 'CLT_SEM_REGISTRO', label: 'CLT Informal', icon: '📝',
+    description: 'Para quem trabalha com carteira assinada sem registro.' },
+  { value: 'AUTONOMO', label: 'Autônomo', icon: '🔧',
+    description: 'Para quem trabalha por conta própria.' },
+  { value: 'BENEFICIARIO', label: 'Beneficiário', icon: '📋',
+    description: 'Para quem recebe benefício do INSS.' },
+  { value: 'ESTAGIARIO', label: 'Estagiário', icon: '🎓',
+    description: 'Para quem é estudante e estagia.' },
+  { value: 'COM_GARANTIA', label: 'Tenho um bem como garantia', icon: '🔒',
+    description: 'Você oferece um bem como garantia para o empréstimo.',
+    badge: 'Novo', highlight: 'verde' },
+  { value: 'SEM_COMPROVACAO', label: 'Recebo, mas não preciso comprovar', icon: '❌',
+    description: 'Para quem recebe renda, mas não tem ou não quer apresentar comprovante.',
+    badge: 'Simples', highlight: 'azul' },
 ];
 
 export const PARCELAS: ParcelaOption[] = [
-  { value: 1,  label: '1x',  coeficiente: 1.30 },
-  { value: 2,  label: '2x',  coeficiente: 1.35 },
-  { value: 3,  label: '3x',  coeficiente: 1.40 },
-  { value: 4,  label: '4x',  coeficiente: 1.45 },
-  { value: 5,  label: '5x',  coeficiente: 1.50 },
-  { value: 6,  label: '6x',  coeficiente: 1.55 },
-  { value: 8,  label: '8x',  coeficiente: 1.65 },
-  { value: 10, label: '10x', coeficiente: 1.75 },
-  { value: 12, label: '12x', coeficiente: 1.80 },
-  { value: 18, label: '18x', coeficiente: 2.10 },
-  { value: 24, label: '24x', coeficiente: 2.40 },
+  { value: 1, label: '1x', coeficiente: 1.30 },
+  { value: 2, label: '2x', coeficiente: 1.35 },
+  { value: 3, label: '3x', coeficiente: 1.40 },
+  { value: 4, label: '4x', coeficiente: 1.45 },
 ];
 
 export const RENDAS: RendaOption[] = [

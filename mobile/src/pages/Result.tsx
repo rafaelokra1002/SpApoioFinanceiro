@@ -11,7 +11,7 @@ export function Result() {
   }
 
   return (
-    <div style={{ padding: '120px 20px 24px', minHeight: 'calc(100vh - 56px)', background: 'linear-gradient(135deg, #0b1a6e 0%, #2546f0 40%, #0b1a6e 100%)' }}>
+    <div style={{ padding: '120px 20px 24px', minHeight: '100vh', background: 'linear-gradient(135deg, #0b1a6e 0%, #2546f0 40%, #0b1a6e 100%)' }}>
       <div style={{
         background: 'rgba(255,255,255,0.95)', borderRadius: 20, padding: '28px 20px 24px',
         boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
@@ -76,11 +76,38 @@ export function Result() {
             <span style={{ fontSize: 18, fontWeight: 800, color: '#0d2b5e' }}>{formatCurrency(sim.valorTotal)}</span>
           </div>
 
+          {/* Valor da parcela (só faz sentido no parcelado) */}
+          {sim.parcelas > 1 && (
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '16px 20px', borderBottom: '1px solid #e5e7eb',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: '#eef2f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: 16 }}>🧾</span>
+                </div>
+                <span style={{ fontSize: 15, fontWeight: 600, color: '#374151' }}>Valor da parcela:</span>
+              </div>
+              <span style={{ fontSize: 18, fontWeight: 800, color: '#0d2b5e' }}>
+                {sim.parcelas}x de {formatCurrency(sim.valorParcela)}
+              </span>
+            </div>
+          )}
+
           {/* Prazo */}
           <div style={{ padding: '16px 20px', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
             <span style={{ fontSize: 16 }}>📅</span>
-            <span style={{ fontSize: 15, color: '#374151' }}>Pagamento em até </span>
-            <span style={{ fontSize: 17, fontWeight: 800, color: '#0d2b5e' }}>30 dias</span>
+            {sim.parcelas > 1 ? (
+              <>
+                <span style={{ fontSize: 15, color: '#374151' }}>1ª parcela em </span>
+                <span style={{ fontSize: 17, fontWeight: 800, color: '#0d2b5e' }}>{sim.primeiraParcela}</span>
+              </>
+            ) : (
+              <>
+                <span style={{ fontSize: 15, color: '#374151' }}>Pagamento em até </span>
+                <span style={{ fontSize: 17, fontWeight: 800, color: '#0d2b5e' }}>30 dias</span>
+              </>
+            )}
           </div>
         </div>
 

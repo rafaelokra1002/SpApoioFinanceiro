@@ -43,6 +43,9 @@ export interface CategoryOption {
   value: CategoryType;
   label: string;
   icon: string;
+  description?: string;
+  badge?: string;
+  highlight?: 'verde' | 'azul';
 }
 
 export interface DocumentType {

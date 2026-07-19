@@ -39,45 +39,58 @@ const categoryIcons: Record<string, React.ReactNode> = {
   ),
   SEM_COMPROVACAO: (
     <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-      <circle cx="18" cy="18" r="12" stroke="#0d2b5e" strokeWidth="1.8" fill="#e8effc"/>
-      <text x="11" y="23" fontSize="14" fontWeight="bold" fill="#0d2b5e">R$</text>
-      <line x1="8" y1="8" x2="28" y2="28" stroke="#c0392b" strokeWidth="2" strokeLinecap="round"/>
+      <path d="M13 30V17l6-9a3 3 0 014 3l-1.5 5H29a2.5 2.5 0 012.4 3.2l-2.6 9A3 3 0 0126 30z"
+        stroke="#2546f0" strokeWidth="1.8" fill="#e8effc" strokeLinejoin="round"/>
+      <rect x="5" y="17" width="7" height="13" rx="2" stroke="#2546f0" strokeWidth="1.8" fill="#e8effc"/>
     </svg>
   ),
   COM_GARANTIA: (
     <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-      <rect x="10" y="14" width="16" height="14" rx="3" stroke="#0d2b5e" strokeWidth="1.8" fill="#e8effc"/>
-      <path d="M14 14V11a4 4 0 018 0v3" stroke="#0d2b5e" strokeWidth="1.8"/>
-      <circle cx="18" cy="21" r="2" fill="#0d2b5e"/>
+      <path d="M18 5l11 4v9c0 7-5 11.5-11 13-6-1.5-11-6-11-13V9z" stroke="#128a4d" strokeWidth="1.8" fill="#dcf3e6"/>
+      <path d="M13 18l3.5 3.5L23 15" stroke="#128a4d" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   ),
 };
+
+const highlightStyles = {
+  verde: { card: '#f2fbf5', border: '#cdeada', icon: '#dcf3e6', badgeBg: '#dcf3e6', badgeFg: '#0f6b3d' },
+  azul:  { card: '#f4f7ff', border: '#d5e0fb', icon: '#e8effc', badgeBg: '#e2eaff', badgeFg: '#2546f0' },
+} as const;
 
 export function Category() {
   const { state, dispatch } = useLoan();
 
   return (
-    <div style={{ padding: '100px 20px 24px', minHeight: 'calc(100vh - 56px)', background: 'linear-gradient(135deg, #0b1a6e 0%, #2546f0 40%, #0b1a6e 100%)' }}>
+    <div style={{ padding: '20px 20px 24px', minHeight: '100vh', background: 'linear-gradient(135deg, #0b1a6e 0%, #2546f0 40%, #0b1a6e 100%)' }}>
       <div style={{
         background: 'rgba(255,255,255,0.95)', borderRadius: 20, padding: '28px 20px 24px',
         boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
       }}>
         {/* Header with back */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 20 }}>
           <button onClick={() => dispatch({ type: 'SET_STEP', step: 0 })} style={{
-            background: 'none', border: 'none', cursor: 'pointer', padding: 4,
+            background: 'none', border: 'none', cursor: 'pointer', padding: 4, marginTop: 2,
           }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0d2b5e" strokeWidth="2.5" strokeLinecap="round">
               <path d="M19 12H5M12 19l-7-7 7-7"/>
             </svg>
           </button>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: '#0d2b5e' }}>Escolha a Categoria</h1>
+          <div>
+            <h1 style={{ fontSize: 24, fontWeight: 800, color: '#0d2b5e', letterSpacing: '-0.02em' }}>
+              Escolha a categoria
+            </h1>
+            <p style={{ marginTop: 6, fontSize: 14, lineHeight: 1.45, color: '#6b7280' }}>
+              Selecione a categoria que melhor se encaixa no seu perfil.
+            </p>
+          </div>
         </div>
 
         {/* Category List */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {CATEGORIES.map(cat => {
             const selected = state.categoria === cat.value;
+            const hl = cat.highlight ? highlightStyles[cat.highlight] : null;
+            const baseBorder = selected ? '#c0392b' : (hl ? hl.border : '#eef0f4');
             return (
               <button key={cat.value}
                 onClick={() => {
@@ -85,24 +98,46 @@ export function Category() {
                   dispatch({ type: 'SET_STEP', step: 2 });
                 }}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 12,
-                  padding: '12px 14px', borderRadius: 14, cursor: 'pointer',
-                  background: '#fff',
-                  border: selected ? '2.5px solid #c0392b' : '1.5px solid #e5e7eb',
+                  display: 'flex', alignItems: 'center', gap: 14,
+                  padding: '14px 16px', borderRadius: 16, cursor: 'pointer',
+                  background: hl ? hl.card : '#fff',
+                  border: `${selected ? '2.5px' : '1.5px'} solid ${baseBorder}`,
+                  boxShadow: '0 1px 3px rgba(13,43,94,0.06)',
                   transition: 'all 0.15s',
                 }}
                 onMouseEnter={e => { if (!selected) e.currentTarget.style.borderColor = '#0d2b5e'; }}
-                onMouseLeave={e => { if (!selected) e.currentTarget.style.borderColor = '#e5e7eb'; }}
+                onMouseLeave={e => { if (!selected) e.currentTarget.style.borderColor = baseBorder; }}
               >
                 <div style={{
-                  minWidth: 46, height: 46, display: 'flex',
-                  alignItems: 'center', justifyContent: 'center',
+                  minWidth: 46, width: 46, height: 46, borderRadius: '50%',
+                  background: hl ? hl.icon : '#eef3fd',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
                   {categoryIcons[cat.value]}
                 </div>
-                <span style={{ flex: 1, textAlign: 'left', fontWeight: 600, fontSize: 16, color: '#1f2937' }}>
-                  {cat.label}
-                </span>
+
+                <div style={{ flex: 1, textAlign: 'left', minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                    <span style={{ fontWeight: 700, fontSize: 15.5, color: '#0d2b5e' }}>{cat.label}</span>
+                    {cat.badge && hl && (
+                      <span style={{
+                        fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999,
+                        background: hl.badgeBg, color: hl.badgeFg,
+                      }}>{cat.badge}</span>
+                    )}
+                  </div>
+                  {cat.description && (
+                    <p style={{ marginTop: 3, fontSize: 12.5, lineHeight: 1.4, color: '#6b7280' }}>
+                      {cat.description}
+                    </p>
+                  )}
+                </div>
+
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                  stroke="#9aa3b2" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                  style={{ flexShrink: 0 }}>
+                  <path d="M9 6l6 6-6 6"/>
+                </svg>
               </button>
             );
           })}

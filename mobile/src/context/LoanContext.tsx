@@ -42,7 +42,7 @@ type Action =
   | { type: 'RESET' };
 
 const initial: LoanState = {
-  step: 0, categoria: '', valor: 0, parcelas: 12, cidade: '',
+  step: 0, categoria: '', valor: 0, parcelas: 2, cidade: '',
   renda: '', instagram: '', indicacao: '', simulation: null,
   nome: '', telefone: '', cpf: '', email: '',
   nomeEmpresa: '', bairroTrabalho: '',
