@@ -16,6 +16,7 @@ import MessageTemplates from './components/MessageTemplates';
 import PhotosGallery from './components/PhotosGallery';
 import BackupPanel from './components/BackupPanel';
 import Placeholder from './components/Placeholder';
+import { notify, NoticeHost } from './components/Notice';
 import { ClipboardList } from 'lucide-react';
 import { MetricKey, StatusKey, isInternalStatus, statusLabel } from './constants/status';
 import { countMetrics, origemOf, rank } from './utils/analytics';
@@ -147,26 +148,25 @@ export default function App() {
   const sendWhatsApp = async (lead: Lead) => {
     // Status internos não têm mensagem para o cliente — o backend recusa o envio.
     if (isInternalStatus(lead.status)) {
-      alert(`"${statusLabel(lead.status)}" é um status interno e não envia mensagem ao cliente.`);
+      notify(`"${statusLabel(lead.status)}" é um status interno e não envia mensagem ao cliente.`);
       return;
     }
 
     const statusRes = await getWhatsAppStatus().catch(() => null);
     if (!statusRes?.success || !statusRes.data?.connected) {
-      alert('WhatsApp não está conectado no painel. Conecte o WhatsApp antes de enviar mensagens.');
+      notify('WhatsApp não está conectado no painel. Conecte o WhatsApp antes de enviar mensagens.');
       return;
     }
 
     const res = await sendWhatsAppByLead(lead.id);
-    alert(res.success
-      ? `✅ Mensagem enviada para ${lead.nome}`
-      : `❌ Erro ao enviar mensagem para ${lead.nome}: ${res.error || 'Falha ao enviar'}`);
+    if (res.success) notify(`Mensagem enviada para ${lead.nome}`, 'success');
+    else notify(`Erro ao enviar mensagem para ${lead.nome}: ${res.error || 'Falha ao enviar'}`, 'error');
   };
 
   const handleStatusChange = async (id: string, status: string) => {
     const res = await updateLeadStatus(id, status);
     if (!res.success) {
-      alert(res.error || 'Não foi possível atualizar o status.');
+      notify(res.error || 'Não foi possível atualizar o status.', 'error');
       return;
     }
 
@@ -184,7 +184,7 @@ export default function App() {
   const handleUpdateGroups = async (id: string, data: { evitarGolpes?: boolean; analiseCliente?: boolean }) => {
     const res = await updateLeadGroups(id, data);
     if (!res.success) {
-      alert(res.error || 'Não foi possível atualizar os grupos.');
+      notify(res.error || 'Não foi possível atualizar os grupos.', 'error');
       return;
     }
     setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, ...data } : l)));
@@ -224,6 +224,7 @@ export default function App() {
 
   return (
     <div className="flex min-h-screen bg-canvas">
+      <NoticeHost />
       <Sidebar page={page} counts={counts} onNavigate={handleNavigate} />
 
       <main className="flex min-w-0 flex-1 flex-col">

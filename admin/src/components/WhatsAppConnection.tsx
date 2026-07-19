@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Wifi, WifiOff, QrCode, Loader2, LogOut, RefreshCw } from 'lucide-react';
 import { getWhatsAppStatus, getWhatsAppQRCode, disconnectWhatsApp } from '../services/api';
+import { notify } from './Notice';
 
 /** Painel de conexão do WhatsApp (status, conectar via QR, desconectar). */
 export default function WhatsAppConnection() {
@@ -50,10 +51,10 @@ export default function WhatsAppConnection() {
         } else if (res.data.qrcode) {
           setQrcode(res.data.qrcode);
         } else {
-          alert('QR Code não disponível no momento. Tente novamente em alguns segundos.');
+          notify('QR Code não disponível no momento. Tente novamente em alguns segundos.');
         }
       } else {
-        alert(res.error || 'Erro ao gerar QR Code');
+        notify(res.error || 'Erro ao gerar QR Code', 'error');
       }
     } finally {
       setQrLoading(false);

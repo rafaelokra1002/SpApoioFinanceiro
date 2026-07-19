@@ -10,6 +10,7 @@ import { downloadLeadDossier } from '../utils/leadDossier';
 import { METRICS, STATUS_ORDER, isInternalStatus, statusLabel } from '../constants/status';
 import { modalidade } from '../utils/analytics';
 import { avatarColor, clientPhotoUrl, initials } from '../utils/avatar';
+import { notify } from './Notice';
 
 interface MessageLog {
   id: string;
@@ -66,7 +67,7 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
       await downloadLeadDossier(lead, logs);
     } catch (error) {
       console.error('Erro ao gerar dossiê:', error);
-      alert('Não foi possível gerar o backup deste cliente.');
+      notify('Não foi possível gerar o backup deste cliente.', 'error');
     } finally {
       setDownloading(false);
     }
