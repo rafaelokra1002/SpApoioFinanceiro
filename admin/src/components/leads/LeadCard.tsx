@@ -4,8 +4,8 @@ import {
 } from 'lucide-react';
 import { Lead } from '../../types';
 import { formatCurrency } from '../../utils/analytics';
-import { avatarColor, initials } from '../../utils/avatar';
 import { isInternalStatus, statusBadge, statusLabel } from '../../constants/status';
+import Avatar from '../Avatar';
 
 interface LeadCardProps {
   lead: Lead;
@@ -55,9 +55,7 @@ export default function LeadCard({ lead, onView, onWhatsApp, onStatusChange }: L
       transition-all hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-md">
       {/* Identidade + status */}
       <div className="flex items-start gap-3">
-        <span className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-[20px] font-bold text-white ${avatarColor(lead.nome)}`}>
-          {initials(lead.nome)}
-        </span>
+        <Avatar name={lead.nome} documentos={lead.documentos} className="h-16 w-16 text-[20px]" />
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
             <p className="min-w-0 truncate text-[15px] font-bold text-ink" title={lead.nome}>{lead.nome}</p>

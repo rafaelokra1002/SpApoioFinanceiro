@@ -5,8 +5,8 @@ import {
 import { Lead } from '../../types';
 import { formatCurrency } from '../../utils/analytics';
 import { isInternalStatus, statusBadge, statusLabel } from '../../constants/status';
-import { avatarColor, initials } from '../../utils/avatar';
 import LeadCard from './LeadCard';
+import Avatar from '../Avatar';
 
 type ViewMode = 'cards' | 'lista';
 const VIEW_KEY = 'sp-admin-leads-view';
@@ -218,9 +218,7 @@ function LeadTable({ leads, onView, onWhatsApp }: {
                 >
                   <td className="px-4 py-3.5">
                     <div className="flex items-center gap-2.5">
-                      <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white ${avatarColor(lead.nome)}`}>
-                        {initials(lead.nome)}
-                      </span>
+                      <Avatar name={lead.nome} documentos={lead.documentos} className="h-8 w-8 text-[11px]" />
                       <span className="font-semibold text-ink">{lead.nome}</span>
                     </div>
                   </td>

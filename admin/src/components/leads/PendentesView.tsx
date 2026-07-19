@@ -7,8 +7,8 @@ import {
 import { Lead } from '../../types';
 import { priorRequestsOf, formatCurrency } from '../../utils/analytics';
 import { statusBadge, statusLabel, isInternalStatus } from '../../constants/status';
-import { avatarColor, initials } from '../../utils/avatar';
 import LeadCardDetailed from './LeadCardDetailed';
+import Avatar from '../Avatar';
 
 type ViewMode = 'grade' | 'lista';
 const VIEW_KEY = 'sp-admin-pendentes-view';
@@ -245,9 +245,7 @@ function PersonRow({ lead, onView, children }: {
 }) {
   return (
     <div className="flex items-center gap-3 rounded-xl border border-line p-2.5">
-      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[12px] font-bold text-white ${avatarColor(lead.nome)}`}>
-        {initials(lead.nome)}
-      </span>
+      <Avatar name={lead.nome} documentos={lead.documentos} className="h-9 w-9 text-[12px]" />
       <div className="min-w-0 flex-1">
         <p className="truncate text-[13px] font-semibold text-ink">{lead.nome}</p>
         {children}
@@ -314,7 +312,7 @@ function PendentesTable({ leads, onView, onWhatsApp }: {
                 <tr key={lead.id} onClick={() => onView(lead)} className="cursor-pointer border-b border-line transition-colors last:border-0 hover:bg-canvas/80">
                   <td className="px-4 py-3.5">
                     <div className="flex items-center gap-2.5">
-                      <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white ${avatarColor(lead.nome)}`}>{initials(lead.nome)}</span>
+                      <Avatar name={lead.nome} documentos={lead.documentos} className="h-8 w-8 text-[11px]" />
                       <span className="font-semibold text-ink">{lead.nome}</span>
                     </div>
                   </td>
