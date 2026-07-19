@@ -143,7 +143,9 @@ DEV_SAMPLE_LEADS.forEach((lead) => {
   if (lead.status === 'PENDENTE') {
     lead.documentos = fullDocs(lead, docSeed);
   } else if (lead.status === 'APROVADO') {
-    lead.documentos = fullDocs(lead, docSeed).slice(0, 3);
+    const all = fullDocs(lead, docSeed);
+    // RG (frente), CPF, comprovante e a SELFIE (índice 6) — a selfie vira a foto de perfil.
+    lead.documentos = [all[0], all[2], all[3], all[6]];
   }
   docSeed += 10;
 });
