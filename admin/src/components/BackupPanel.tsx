@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Download, FolderArchive, Lightbulb, Loader2 } from 'lucide-react';
+import { FolderArchive, Lightbulb, Loader2 } from 'lucide-react';
 import { Lead } from '../types';
 import { CARD_ORDER, METRICS, MetricKey } from '../constants/status';
 import { downloadAllLeadsBackup } from '../utils/leadDossier';
@@ -56,17 +56,11 @@ export default function BackupPanel({ leads, loading }: BackupPanelProps) {
   };
 
   return (
-    <div className="max-w-5xl space-y-5">
-      <div>
-        <h2 className="flex items-center gap-2.5 text-[22px] font-bold text-ink">
-          <Download size={22} className="text-success" strokeWidth={2.5} />
-          Backup de Dados
-        </h2>
-        <p className="mt-1 text-[13px] text-muted">
-          Exporte seus dados em ZIP para manter um backup seguro. Cada arquivo traz uma pasta por
-          cliente com o resumo do cadastro (.txt e .pdf) e os documentos enviados.
-        </p>
-      </div>
+    <div className="mx-auto max-w-5xl space-y-5">
+      <p className="text-center text-[13px] text-muted">
+        Exporte seus dados em ZIP para manter um backup seguro. Cada arquivo traz uma pasta por
+        cliente com o resumo do cadastro (.txt e .pdf) e os documentos enviados.
+      </p>
 
       {error && (
         <p className="rounded-xl border border-danger/30 bg-danger/5 px-4 py-3 text-[13px] text-danger">
