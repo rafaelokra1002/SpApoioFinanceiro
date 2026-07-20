@@ -54,10 +54,10 @@ interface NavItem {
 const NAV: NavItem[] = [
   { key: 'dashboard', label: 'Dashboard', icon: LayoutGrid },
   { key: 'pendentes', label: 'Pendentes', icon: Clock, badge: 'PENDENTE' },
-  { key: 'aprovados', label: 'Aprovados', icon: CheckCircle2, badge: 'APROVADO' },
-  { key: 'recusados', label: 'Recusados', icon: XCircle, badge: 'RECUSADO' },
-  { key: 'nao-contrataram', label: 'Não Contratou', icon: UserX, badge: 'NAO_CONTRATOU' },
-  { key: 'colaborador', label: 'Passei para Colaborador', icon: UserRoundCheck, badge: 'PASSEI_COLABORADOR' },
+  { key: 'aprovados', label: 'Aprovados', icon: CheckCircle2 },
+  { key: 'recusados', label: 'Recusados', icon: XCircle },
+  { key: 'nao-contrataram', label: 'Não Contratou', icon: UserX },
+  { key: 'colaborador', label: 'Passei para Colaborador', icon: UserRoundCheck },
   { key: 'backup', label: 'Backup', icon: HardDrive },
   { key: 'fotos', label: 'Fotos', icon: ImageIcon },
   { key: 'categorias', label: 'Categorias', icon: FolderOpen },
@@ -86,8 +86,9 @@ export default function Sidebar({ page, counts, onNavigate }: SidebarProps) {
       <button
         onClick={() => setMobileOpen((v) => !v)}
         aria-label="Abrir menu"
+        style={{ backgroundColor: 'var(--sidebar-to)' }}
         className="fixed left-4 top-4 z-50 flex h-10 w-10 items-center justify-center rounded-xl
-          bg-brand-deep text-white shadow-lg lg:hidden cursor-pointer"
+          text-white shadow-lg lg:hidden cursor-pointer"
       >
         {mobileOpen ? <X size={20} /> : <Menu size={20} />}
       </button>
@@ -97,8 +98,8 @@ export default function Sidebar({ page, counts, onNavigate }: SidebarProps) {
       )}
 
       <aside
+        style={{ backgroundImage: 'linear-gradient(to bottom, var(--sidebar-from), var(--sidebar-to))' }}
         className={`fixed bottom-0 left-0 top-0 z-40 flex flex-col
-          bg-gradient-to-b from-[#17a453] to-[#0d8043]
           transition-[width,transform] duration-300 ease-in-out lg:translate-x-0
           ${collapsed ? 'w-[84px]' : 'w-[280px]'}
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}
@@ -162,11 +163,14 @@ export default function Sidebar({ page, counts, onNavigate }: SidebarProps) {
                   key={key}
                   onClick={() => go(key)}
                   title={collapsed ? label : undefined}
+                  style={active
+                    ? { backgroundImage: 'linear-gradient(to right, var(--sidebar-active-from), var(--sidebar-active-to))' }
+                    : undefined}
                   className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-[14.5px]
                     transition-colors duration-200 cursor-pointer
                     ${collapsed ? 'justify-center' : ''}
                     ${active
-                      ? 'bg-gradient-to-r from-[#0b3d29] to-[#12563a] font-bold text-white shadow-lg shadow-black/20 ring-1 ring-white/15'
+                      ? 'font-bold text-white shadow-lg shadow-black/20 ring-1 ring-white/15'
                       : 'font-medium text-white/85 hover:bg-white/10 hover:text-white'}`}
                 >
                   <Icon size={19} strokeWidth={active ? 2.4 : 1.9} className="shrink-0" />

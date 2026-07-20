@@ -42,6 +42,14 @@
   --color-subtle: #6f7987;
 }
 
+/* Cor do menu lateral — sobrescrita em tempo de execução por useSidebarColor. */
+:root {
+  --sidebar-from: #17a453;
+  --sidebar-to: #0d8043;
+  --sidebar-active-from: #0b3d29;
+  --sidebar-active-to: #12563a;
+}
+
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: var(--color-canvas);

@@ -5,6 +5,7 @@ import {
 import { Lead } from '../../types';
 import { formatCurrency } from '../../utils/analytics';
 import { isInternalStatus, statusBadge, statusLabel } from '../../constants/status';
+import { LimparFiltros } from './Filters';
 import LeadCard from './LeadCard';
 import Avatar from '../Avatar';
 
@@ -99,6 +100,8 @@ export default function LeadListing({
               placeholder:text-subtle focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15"
           />
         </div>
+
+        <LimparFiltros show={query !== ''} onClick={() => setSearch('')} />
 
         <div className="flex shrink-0 rounded-xl border border-line bg-surface p-1">
           <ViewTab active={view === 'cards'} onClick={() => setView('cards')} icon={LayoutGrid} label="Cards" />

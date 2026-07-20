@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import { Lead } from '../../types';
 import { formatCurrency, modalidade } from '../../utils/analytics';
+import { getAprovacaoTemplate, renderAprovacaoTemplate } from '../../utils/localTemplates';
 import Avatar from '../Avatar';
 import { notify } from '../Notice';
 
@@ -39,11 +40,10 @@ function reaisText(valor: number): string {
   return valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-function primeiroNome(nome: string): string {
-  return nome.trim().split(/\s+/)[0] || nome;
-}
-
-/** Mensagem pronta para o cliente (WhatsApp), montada a partir do resumo da aprovação. */
+/**
+ * Mensagem pronta para o cliente (WhatsApp), a partir do template editável
+ * em Edição de Mensagens e dos valores escolhidos aqui no modal.
+ */
 function montarMensagem(
   nome: string,
   valorAprovado: number,
@@ -51,15 +51,13 @@ function montarMensagem(
   parcelado: boolean,
   parcela: number,
 ): string {
-  const condicao = parcelado
-    ? `Pagamento: em até ${PARCELAS}x de ${formatCurrency(parcela)}`
-    : 'Pagamento: à vista';
-  return `Olá, ${primeiroNome(nome)}! Temos uma ótima notícia: seu crédito foi *APROVADO*!\n\n`
-    + `Valor aprovado: ${formatCurrency(valorAprovado)}\n`
-    + `Total a pagar: ${formatCurrency(valorTotal)}\n`
-    + `${condicao}\n\n`
-    + `Nossa equipe entrará em contato para finalizar o processo.\n\n`
-    + `*Equipe SP Apoio Financeiro*`;
+  return renderAprovacaoTemplate(getAprovacaoTemplate(), {
+    nome,
+    valor: formatCurrency(valorAprovado),
+    total: formatCurrency(valorTotal),
+    modalidade: parcelado ? 'Parcelado' : 'À vista',
+    parcelas: parcelado ? `em até ${PARCELAS}x de ${formatCurrency(parcela)}` : 'à vista',
+  });
 }
 
 export default function AprovarModal({ lead, onClose, onConfirm }: AprovarModalProps) {

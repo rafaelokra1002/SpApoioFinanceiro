@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { CalendarDays, Info, Loader2 } from 'lucide-react';
+import { CalendarDays, Info, Loader2, X } from 'lucide-react';
 import { Lead } from '../../types';
 import { CARD_ORDER, CHART_SERIES, METRICS, MetricKey, STATUS_ORDER } from '../../constants/status';
 import {
@@ -78,7 +78,17 @@ export default function Dashboard({ leads, loading, onDrillDown }: DashboardProp
   return (
     <div className="space-y-4">
       {/* Filtro por mês */}
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-end gap-2">
+        {month && (
+          <button
+            onClick={() => setMonth('')}
+            className="flex items-center gap-1.5 rounded-xl border border-line bg-surface px-3 py-2 text-[12.5px]
+              font-semibold text-ink-2 shadow-sm transition-colors hover:bg-canvas cursor-pointer"
+          >
+            <X size={14} strokeWidth={2.2} />
+            Limpar filtros
+          </button>
+        )}
         <label className="flex items-center gap-2 rounded-xl border border-line bg-surface px-3 py-2 shadow-sm">
           <CalendarDays size={16} className="text-muted" />
           <span className="text-[12.5px] font-medium text-muted">Mês:</span>

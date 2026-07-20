@@ -23,6 +23,8 @@ import { ClipboardList } from 'lucide-react';
 import { MetricKey, StatusKey, isInternalStatus, statusLabel } from './constants/status';
 import { countMetrics, origemOf, rank } from './utils/analytics';
 import { useTheme } from './hooks/useTheme';
+import { useSidebarColor } from './hooks/useSidebarColor';
+import Settings from './components/Settings';
 import { useAuth } from './hooks/useAuth';
 import Login from './components/Login';
 import Profile from './components/Profile';
@@ -102,6 +104,7 @@ const METRIC_TO_PAGE: Record<MetricKey, PageKey> = {
 
 export default function App() {
   const { theme, toggleTheme } = useTheme();
+  const { colorId, setColorId } = useSidebarColor();
   const { authed, signIn, signOut } = useAuth();
 
   const [page, setPage] = useState<PageKey>('dashboard');
@@ -450,10 +453,7 @@ export default function App() {
         {page === 'fotos' && <PhotosGallery leads={leads} loading={loading} />}
 
         {page === 'configuracoes' && (
-          <Placeholder
-            title="Configurações"
-            description="Ajustes gerais do painel. Em construção — me diga o que deve ficar aqui."
-          />
+          <Settings colorId={colorId} onColorChange={setColorId} />
         )}
         </div>
       </main>

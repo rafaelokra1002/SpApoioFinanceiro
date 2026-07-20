@@ -14,6 +14,7 @@ import { notify } from './Notice';
 import RecusarModal from './leads/RecusarModal';
 import AprovarModal from './leads/AprovarModal';
 import EnviarGrupoModal from './leads/EnviarGrupoModal';
+import { MOTIVOS_RECUSA } from './leads/RecusarModal';
 import CobrancaFacilModal from './leads/CobrancaFacilModal';
 
 interface MessageLog {
@@ -378,16 +379,16 @@ function RecusaEditor({ lead, onUpdateGroups }: {
     <div className="rounded-xl border border-danger/20 bg-danger/5 p-3">
       <p className="mb-2 text-[11px] font-semibold text-danger">Dados da recusa</p>
 
-      <p className="mb-1.5 text-[11.5px] text-muted">Grupo em que caiu</p>
-      <div className="mb-3 flex gap-2">
-        {[1, 2, 3].map((g) => (
+      <p className="mb-1.5 text-[11.5px] text-muted">Motivo do grupo</p>
+      <div className="mb-3 space-y-1.5">
+        {MOTIVOS_RECUSA.map((m) => (
           <button
-            key={g}
-            onClick={() => setGrupo(g)}
-            className={`flex-1 rounded-lg border py-1.5 text-[12.5px] font-semibold transition-colors cursor-pointer
-              ${grupoDirty === g ? 'border-danger bg-danger text-white' : 'border-line bg-surface text-ink-2 hover:bg-canvas'}`}
+            key={m.grupo}
+            onClick={() => setGrupo(m.grupo)}
+            className={`w-full rounded-lg border px-2.5 py-1.5 text-left text-[12.5px] font-semibold transition-colors cursor-pointer
+              ${grupoDirty === m.grupo ? 'border-danger bg-danger text-white' : 'border-line bg-surface text-ink-2 hover:bg-canvas'}`}
           >
-            Grupo {g}
+            {m.titulo}
           </button>
         ))}
       </div>

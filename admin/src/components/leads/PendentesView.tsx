@@ -2,11 +2,12 @@ import { useMemo, useState } from 'react';
 import { ReactNode } from 'react';
 import {
   ChevronDown, ChevronLeft, ChevronRight, Clock, Eye, LayoutGrid, List, Loader2,
-  MessageCircle, Search, Shield, Users, X,
+  MessageCircle, Search, Shield, Users,
 } from 'lucide-react';
 import { Lead } from '../../types';
 import { priorRequestsOf, formatCurrency } from '../../utils/analytics';
 import { statusBadge, statusLabel, isInternalStatus } from '../../constants/status';
+import { LimparFiltros } from './Filters';
 import LeadCardDetailed from './LeadCardDetailed';
 import Avatar from '../Avatar';
 
@@ -149,14 +150,7 @@ export default function PendentesView({ leads, loading, onView, onWhatsApp }: Pe
             className="w-full rounded-xl border border-line bg-surface py-3 pl-11 pr-4 text-[14px] text-ink placeholder:text-subtle focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15"
           />
         </div>
-        {query && (
-          <button
-            onClick={() => setQuery('')}
-            className="flex items-center justify-center gap-1.5 rounded-xl border border-line px-4 py-2.5 text-[13px] font-semibold text-ink-2 transition-colors hover:bg-canvas cursor-pointer"
-          >
-            <X size={15} /> Limpar filtro
-          </button>
-        )}
+        <LimparFiltros show={query !== ''} onClick={() => { setQuery(''); setPageNum(1); }} />
         <div className="flex shrink-0 rounded-xl border border-line bg-surface p-1">
           <ViewTab active={view === 'grade'} onClick={() => setView('grade')} icon={LayoutGrid} label="Grade" />
           <ViewTab active={view === 'lista'} onClick={() => setView('lista')} icon={List} label="Lista" />

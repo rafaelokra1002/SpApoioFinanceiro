@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import { Lead } from '../../types';
 import { formatCurrency, modalidade } from '../../utils/analytics';
+import { getRecusaTemplates, renderRecusaTemplate } from '../../utils/localTemplates';
 import Avatar from '../Avatar';
 import { notify } from '../Notice';
 
@@ -31,12 +32,9 @@ export const MOTIVOS_RECUSA = [
 
 const MAX_MSG = 250;
 
-function primeiroNome(nome: string): string {
-  return nome.trim().split(/\s+/)[0] || nome;
-}
-
-function montarMensagem(nome: string, motivoCurto: string): string {
-  return `Olá, ${primeiroNome(nome)}! Após análise da sua solicitação, infelizmente não foi possível aprovar seu crédito no momento.\nMotivo: ${motivoCurto}\nAgradecemos o interesse e ficamos à disposição.`;
+/** Texto do grupo escolhido, com as variáveis já substituídas. */
+function montarMensagem(nome: string, grupo: number, motivoCurto: string): string {
+  return renderRecusaTemplate(getRecusaTemplates()[grupo], nome, motivoCurto);
 }
 
 interface RecusarModalProps {
@@ -47,7 +45,9 @@ interface RecusarModalProps {
 
 export default function RecusarModal({ lead, onClose, onConfirm }: RecusarModalProps) {
   const [motivoIdx, setMotivoIdx] = useState(0);
-  const [mensagem, setMensagem] = useState(() => montarMensagem(lead.nome, MOTIVOS_RECUSA[0].motivoCurto));
+  const [mensagem, setMensagem] = useState(
+    () => montarMensagem(lead.nome, MOTIVOS_RECUSA[0].grupo, MOTIVOS_RECUSA[0].motivoCurto),
+  );
   const [copiado, setCopiado] = useState(false);
 
   useEffect(() => {
@@ -58,7 +58,7 @@ export default function RecusarModal({ lead, onClose, onConfirm }: RecusarModalP
 
   const escolherMotivo = (idx: number) => {
     setMotivoIdx(idx);
-    setMensagem(montarMensagem(lead.nome, MOTIVOS_RECUSA[idx].motivoCurto));
+    setMensagem(montarMensagem(lead.nome, MOTIVOS_RECUSA[idx].grupo, MOTIVOS_RECUSA[idx].motivoCurto));
   };
 
   const copiar = async () => {

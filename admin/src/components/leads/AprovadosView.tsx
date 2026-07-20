@@ -2,11 +2,12 @@ import { ReactNode, useMemo, useState } from 'react';
 import {
   Banknote, Briefcase, Building2, CalendarClock, CalendarCheck2, CheckCircle2, ClipboardCheck,
   ChevronLeft, ChevronRight, CircleDollarSign, CreditCard, Eye, Home, LayoutGrid, List, Loader2,
-  MapPin, MessageCircle, MessageSquareText, Search, Share2, UserRound, Wallet, X,
+  MapPin, MessageCircle, MessageSquareText, Search, Share2, UserRound,
 } from 'lucide-react';
 import { Lead } from '../../types';
 import { formatCurrency, modalidade, origemOf } from '../../utils/analytics';
 import { statusBadge, statusLabel } from '../../constants/status';
+import { LimparFiltros, SelectButton } from './Filters';
 import Avatar from '../Avatar';
 import OrigemIcon from '../dashboard/OrigemIcon';
 
@@ -127,7 +128,7 @@ export default function AprovadosView({ leads, loading, onView, onWhatsApp }: Ap
   return (
     <div className="space-y-5">
       {/* Resumo */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="flex items-center gap-4 rounded-2xl border border-line bg-surface p-5 shadow-sm">
           <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-success/10">
             <ClipboardCheck size={24} className="text-success" strokeWidth={2} />
@@ -152,29 +153,10 @@ export default function AprovadosView({ leads, loading, onView, onWhatsApp }: Ap
           </div>
         </div>
 
-        <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
-          <p className="mb-2 text-[13px] font-medium text-muted">Por período</p>
-          <div className="relative">
-            <CalendarCheck2 size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-subtle" />
-            <select
-              value={periodo}
-              onChange={(e) => { setPeriodo(e.target.value as Periodo); setPageNum(1); }}
-              className="w-full cursor-pointer appearance-none rounded-xl border border-line bg-canvas py-3 pl-10 pr-9
-                text-[13px] font-semibold text-ink-2 transition-colors hover:bg-surface focus:border-brand focus:outline-none"
-            >
-              {PERIODOS.map((p) => (
-                <option key={p} value={p}>{periodoLabel(p)}</option>
-              ))}
-            </select>
-            <svg className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-subtle" width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <path d="M2.5 4.5L6 8l3.5-3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
-        </div>
       </div>
 
-      {/* Busca + alternância */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      {/* Busca + filtros + alternância */}
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
         <div className="relative flex-1">
           <Search size={17} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-subtle" />
           <input
@@ -184,14 +166,19 @@ export default function AprovadosView({ leads, loading, onView, onWhatsApp }: Ap
             className="w-full rounded-xl border border-line bg-surface py-3 pl-11 pr-4 text-[14px] text-ink placeholder:text-subtle focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15"
           />
         </div>
-        {query && (
-          <button
-            onClick={() => setQuery('')}
-            className="flex items-center justify-center gap-1.5 rounded-xl border border-line px-4 py-2.5 text-[13px] font-semibold text-ink-2 transition-colors hover:bg-canvas cursor-pointer"
-          >
-            <X size={15} /> Limpar pesquisa
-          </button>
-        )}
+
+        <SelectButton
+          icon={CalendarCheck2}
+          value={periodo}
+          onChange={(v) => { setPeriodo(v as Periodo); setPageNum(1); }}
+          options={PERIODOS.map((p) => ({ value: p, label: periodoLabel(p) }))}
+        />
+
+        <LimparFiltros
+          show={query !== '' || periodo !== 'todo'}
+          onClick={() => { setQuery(''); setPeriodo('todo'); setPageNum(1); }}
+        />
+
         <div className="flex shrink-0 rounded-xl border border-line bg-surface p-1">
           <ViewTab active={view === 'grade'} onClick={() => setView('grade')} icon={LayoutGrid} label="Grade" />
           <ViewTab active={view === 'lista'} onClick={() => setView('lista')} icon={List} label="Lista" />

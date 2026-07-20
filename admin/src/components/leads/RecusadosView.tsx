@@ -5,6 +5,8 @@ import {
 } from 'lucide-react';
 import { Lead } from '../../types';
 import { formatCurrency, modalidade } from '../../utils/analytics';
+import { LimparFiltros, SelectButton } from './Filters';
+import { MOTIVOS_RECUSA } from './RecusarModal';
 import Avatar from '../Avatar';
 
 interface RecusadosViewProps {
@@ -40,6 +42,11 @@ const GRUPO_ICON: Record<number, string> = {
 
 const PERIODO_DIAS: Record<Periodo, number | null> = { sempre: null, '7': 7, '30': 30, '90': 90 };
 
+/** Nome do motivo de cada grupo — a mesma lista usada no modal de recusa. */
+function motivoTitulo(grupo: number): string {
+  return MOTIVOS_RECUSA.find((m) => m.grupo === grupo)?.titulo ?? `Grupo ${grupo}`;
+}
+
 export default function RecusadosView({ leads, loading, onView, onWhatsApp, onStatusChange, onDelete }: RecusadosViewProps) {
   const [query, setQuery] = useState('');
   const [grupoFiltro, setGrupoFiltro] = useState<GrupoFiltro>('todos');
@@ -68,10 +75,10 @@ export default function RecusadosView({ leads, loading, onView, onWhatsApp, onSt
   }, [leads, query, grupoFiltro, periodo]);
 
   const exportCsv = () => {
-    const headers = ['Nome', 'Telefone', 'Cidade', 'Valor solicitado', 'Modalidade', 'Grupo', 'Motivo da recusa', 'Data da recusa'];
+    const headers = ['Nome', 'Telefone', 'Cidade', 'Valor solicitado', 'Modalidade', 'Motivo do grupo', 'Motivo da recusa', 'Data da recusa'];
     const linhas = filtered.map((l) => [
       l.nome, l.telefone, l.cidade, formatCurrency(l.valorSolicitado), modalidade(l.prazo),
-      l.grupo ? `Grupo ${l.grupo}` : '', l.motivoRecusa ?? '', formatDateTime(l.updatedAt),
+      l.grupo ? motivoTitulo(l.grupo) : '', l.motivoRecusa ?? '', formatDateTime(l.updatedAt),
     ]);
     const escape = (v: string) => `"${String(v).replace(/"/g, '""')}"`;
     const csv = [headers, ...linhas].map((r) => r.map(escape).join(';')).join('\r\n');
@@ -94,9 +101,9 @@ export default function RecusadosView({ leads, loading, onView, onWhatsApp, onSt
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard icon={UserX} iconClass="bg-danger/10 text-danger" label="Total de recusados"
           value={leads.length} caption="clientes recusados" highlight />
-        <StatCard icon={Users} iconClass={GRUPO_ICON[1]} label="Grupo 1" value={grupoCount[1]} caption="clientes caíram" valueClass="text-danger" />
-        <StatCard icon={Users} iconClass={GRUPO_ICON[2]} label="Grupo 2" value={grupoCount[2]} caption="clientes caíram" valueClass="text-purple-600" />
-        <StatCard icon={Users} iconClass={GRUPO_ICON[3]} label="Grupo 3" value={grupoCount[3]} caption="clientes caíram" valueClass="text-orange" />
+        <StatCard icon={Users} iconClass={GRUPO_ICON[1]} label={motivoTitulo(1)} value={grupoCount[1]} caption="clientes caíram" valueClass="text-danger" />
+        <StatCard icon={Users} iconClass={GRUPO_ICON[2]} label={motivoTitulo(2)} value={grupoCount[2]} caption="clientes caíram" valueClass="text-purple-600" />
+        <StatCard icon={Users} iconClass={GRUPO_ICON[3]} label={motivoTitulo(3)} value={grupoCount[3]} caption="clientes caíram" valueClass="text-orange" />
       </div>
 
       {/* Busca + filtros */}
@@ -122,12 +129,17 @@ export default function RecusadosView({ leads, loading, onView, onWhatsApp, onSt
 
         <SelectButton icon={Users} value={grupoFiltro} onChange={(v) => setGrupoFiltro(v as GrupoFiltro)}
           options={[
-            { value: 'todos', label: 'Todos os grupos' },
-            { value: '1', label: 'Grupo 1' },
-            { value: '2', label: 'Grupo 2' },
-            { value: '3', label: 'Grupo 3' },
-            { value: 'sem', label: 'Sem grupo' },
+            { value: 'todos', label: 'Todos os motivos' },
+            { value: '1', label: motivoTitulo(1) },
+            { value: '2', label: motivoTitulo(2) },
+            { value: '3', label: motivoTitulo(3) },
+            { value: 'sem', label: 'Sem motivo definido' },
           ]} />
+
+        <LimparFiltros
+          show={query !== '' || grupoFiltro !== 'todos' || periodo !== 'sempre'}
+          onClick={() => { setQuery(''); setGrupoFiltro('todos'); setPeriodo('sempre'); }}
+        />
 
         <button
           onClick={exportCsv}
@@ -180,29 +192,6 @@ function StatCard({ icon: Icon, iconClass, label, value, caption, valueClass = '
         <p className={`text-[26px] font-bold leading-tight ${valueClass}`}>{value}</p>
         <p className="text-[11.5px] text-subtle">{caption}</p>
       </div>
-    </div>
-  );
-}
-
-function SelectButton<T extends string>({ icon: Icon, value, onChange, options }: {
-  icon: typeof Users; value: T; onChange: (v: string) => void; options: { value: string; label: string }[];
-}) {
-  return (
-    <div className="relative shrink-0">
-      <Icon size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-subtle" />
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="cursor-pointer appearance-none rounded-xl border border-line bg-surface py-3 pl-10 pr-9
-          text-[13px] font-semibold text-ink-2 transition-colors hover:bg-canvas focus:border-brand focus:outline-none"
-      >
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>{o.label}</option>
-        ))}
-      </select>
-      <svg className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-subtle" width="12" height="12" viewBox="0 0 12 12" fill="none">
-        <path d="M2.5 4.5L6 8l3.5-3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
     </div>
   );
 }
@@ -285,9 +274,11 @@ function RecusadoCard({ lead, onView, onWhatsApp, onStatusChange, onDelete }: {
 
       {/* Meta */}
       <div className="mt-4 space-y-2">
-        <MetaRow icon={Users} label="Grupo em que caiu">
+        <MetaRow icon={Users} label="Motivo do grupo">
           {lead.grupo ? (
-            <span className={`rounded-md px-2 py-0.5 text-[12px] ${GRUPO_BADGE[lead.grupo]}`}>Grupo {lead.grupo}</span>
+            <span className={`rounded-md px-2 py-0.5 text-[12px] ${GRUPO_BADGE[lead.grupo]}`} title={motivoTitulo(lead.grupo)}>
+              {motivoTitulo(lead.grupo)}
+            </span>
           ) : (
             <span className="text-subtle">—</span>
           )}

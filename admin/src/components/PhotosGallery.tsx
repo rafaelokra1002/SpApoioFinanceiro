@@ -4,6 +4,7 @@ import { Lead } from '../types';
 import { METRICS, STATUS_ORDER, StatusKey, statusLabel } from '../constants/status';
 import { formatCurrency } from '../utils/analytics';
 import { clientPhotoUrl } from '../utils/avatar';
+import { LimparFiltros } from './leads/Filters';
 import Avatar from './Avatar';
 
 interface PhotosGalleryProps {
@@ -86,14 +87,20 @@ export default function PhotosGallery({ leads, loading }: PhotosGalleryProps) {
         })}
       </div>
 
-      <div className="relative">
-        <Search size={17} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-subtle" />
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Buscar por cliente..."
-          className="w-full rounded-xl border border-line bg-surface py-3 pl-11 pr-4 text-[14px] text-ink
-            placeholder:text-subtle focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15"
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="relative flex-1">
+          <Search size={17} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-subtle" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Buscar por cliente..."
+            className="w-full rounded-xl border border-line bg-surface py-3 pl-11 pr-4 text-[14px] text-ink
+              placeholder:text-subtle focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15"
+          />
+        </div>
+        <LimparFiltros
+          show={query !== '' || aba !== 'todos'}
+          onClick={() => { setQuery(''); setAba('todos'); }}
         />
       </div>
 
