@@ -167,16 +167,16 @@ export default function AprovadosView({ leads, loading, onView, onWhatsApp }: Ap
           />
         </div>
 
+        <LimparFiltros
+          show={query !== '' || periodo !== 'todo'}
+          onClick={() => { setQuery(''); setPeriodo('todo'); setPageNum(1); }}
+        />
+
         <SelectButton
           icon={CalendarCheck2}
           value={periodo}
           onChange={(v) => { setPeriodo(v as Periodo); setPageNum(1); }}
           options={PERIODOS.map((p) => ({ value: p, label: periodoLabel(p) }))}
-        />
-
-        <LimparFiltros
-          show={query !== '' || periodo !== 'todo'}
-          onClick={() => { setQuery(''); setPeriodo('todo'); setPageNum(1); }}
         />
 
         <div className="flex shrink-0 rounded-xl border border-line bg-surface p-1">

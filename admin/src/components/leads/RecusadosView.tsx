@@ -119,6 +119,11 @@ export default function RecusadosView({ leads, loading, onView, onWhatsApp, onSt
           />
         </div>
 
+        <LimparFiltros
+          show={query !== '' || grupoFiltro !== 'todos' || periodo !== 'sempre'}
+          onClick={() => { setQuery(''); setGrupoFiltro('todos'); setPeriodo('sempre'); }}
+        />
+
         <SelectButton icon={Calendar} value={periodo} onChange={(v) => setPeriodo(v as Periodo)}
           options={[
             { value: 'sempre', label: 'Todo o período' },
@@ -135,11 +140,6 @@ export default function RecusadosView({ leads, loading, onView, onWhatsApp, onSt
             { value: '3', label: motivoTitulo(3) },
             { value: 'sem', label: 'Sem motivo definido' },
           ]} />
-
-        <LimparFiltros
-          show={query !== '' || grupoFiltro !== 'todos' || periodo !== 'sempre'}
-          onClick={() => { setQuery(''); setGrupoFiltro('todos'); setPeriodo('sempre'); }}
-        />
 
         <button
           onClick={exportCsv}
