@@ -13,6 +13,12 @@ interface LeadCardDetailedProps {
   lead: Lead;
   onView: (lead: Lead) => void;
   onWhatsApp: (lead: Lead) => void;
+  /** Canto superior direito — ex.: menu de ações da tela de recusados. */
+  headerAction?: ReactNode;
+  /** Bloco extra antes do rodapé — ex.: motivo da recusa. */
+  extra?: ReactNode;
+  /** Botões acima do "Ver detalhes" — ex.: mover aprovado de status. */
+  actions?: ReactNode;
 }
 
 function formatMoney(value: string | null): string {
@@ -34,7 +40,9 @@ function Field({ icon, label, children }: { icon: ReactNode; label: string; chil
   );
 }
 
-export default function LeadCardDetailed({ lead, onView, onWhatsApp }: LeadCardDetailedProps) {
+export default function LeadCardDetailed({
+  lead, onView, onWhatsApp, headerAction, extra, actions,
+}: LeadCardDetailedProps) {
   const internal = isInternalStatus(lead.status);
   const origem = origemOf(lead);
 
@@ -58,9 +66,12 @@ export default function LeadCardDetailed({ lead, onView, onWhatsApp }: LeadCardD
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-2">
               <p className="min-w-0 truncate text-[15px] font-bold text-ink" title={lead.nome}>{lead.nome}</p>
-              <span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10.5px] font-semibold ${statusBadge(lead.status)}`}>
-                <span className="h-1.5 w-1.5 rounded-full bg-current" />
-                {statusLabel(lead.status)}
+              <span className="flex shrink-0 items-center gap-1">
+                <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10.5px] font-semibold ${statusBadge(lead.status)}`}>
+                  <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                  {statusLabel(lead.status)}
+                </span>
+                {headerAction}
               </span>
             </div>
             <p className="mt-0.5 flex items-center gap-1.5 text-[12.5px] text-muted">
@@ -127,6 +138,10 @@ export default function LeadCardDetailed({ lead, onView, onWhatsApp }: LeadCardD
             </div>
           </div>
         )}
+
+        {extra}
+
+        {actions && <div className="mt-4">{actions}</div>}
       </div>
 
       <button

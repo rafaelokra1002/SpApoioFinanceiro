@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Banknote, CreditCard, Calendar, Download, Eye, MapPin, MessageCircle,
-  MoreVertical, RotateCcw, Search, Trash2, UserX, Users,
+  Calendar, MapPin, MessageSquareText, MoreVertical, RotateCcw, Search,
+  Trash2, UserX, Users,
 } from 'lucide-react';
 import { Lead } from '../../types';
-import { formatCurrency, modalidade } from '../../utils/analytics';
 import { LimparFiltros, SelectButton } from './Filters';
 import { MOTIVOS_RECUSA } from './RecusarModal';
-import Avatar from '../Avatar';
+import LeadCardDetailed from './LeadCardDetailed';
 
 interface RecusadosViewProps {
   leads: Lead[];
@@ -74,23 +73,6 @@ export default function RecusadosView({ leads, loading, onView, onWhatsApp, onSt
     });
   }, [leads, query, grupoFiltro, periodo]);
 
-  const exportCsv = () => {
-    const headers = ['Nome', 'Telefone', 'Cidade', 'Valor solicitado', 'Modalidade', 'Motivo do grupo', 'Motivo da recusa', 'Data da recusa'];
-    const linhas = filtered.map((l) => [
-      l.nome, l.telefone, l.cidade, formatCurrency(l.valorSolicitado), modalidade(l.prazo),
-      l.grupo ? motivoTitulo(l.grupo) : '', l.motivoRecusa ?? '', formatDateTime(l.updatedAt),
-    ]);
-    const escape = (v: string) => `"${String(v).replace(/"/g, '""')}"`;
-    const csv = [headers, ...linhas].map((r) => r.map(escape).join(';')).join('\r\n');
-    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `recusados-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   if (loading) {
     return <p className="py-24 text-center text-sm text-subtle">Carregando...</p>;
   }
@@ -140,15 +122,6 @@ export default function RecusadosView({ leads, loading, onView, onWhatsApp, onSt
             { value: '3', label: motivoTitulo(3) },
             { value: 'sem', label: 'Sem motivo definido' },
           ]} />
-
-        <button
-          onClick={exportCsv}
-          className="flex shrink-0 items-center justify-center gap-2 rounded-xl border border-line bg-surface px-4 py-3
-            text-[13px] font-semibold text-ink-2 transition-colors hover:bg-canvas cursor-pointer"
-        >
-          <Download size={16} strokeWidth={2} />
-          Exportar lista
-        </button>
       </div>
 
       {/* Cards */}
@@ -208,6 +181,10 @@ function MetaRow({ icon: Icon, label, children }: { icon: typeof MapPin; label: 
   );
 }
 
+/**
+ * Mesmo card das outras listagens (LeadCardDetailed), com os extras da recusa:
+ * menu de ações no topo e o bloco de motivo/grupo antes do rodapé.
+ */
 function RecusadoCard({ lead, onView, onWhatsApp, onStatusChange, onDelete }: {
   lead: Lead;
   onView: (l: Lead) => void;
@@ -227,88 +204,59 @@ function RecusadoCard({ lead, onView, onWhatsApp, onStatusChange, onDelete }: {
     return () => document.removeEventListener('mousedown', onClick);
   }, [menuOpen]);
 
-  return (
-    <div className="group flex flex-col rounded-2xl border border-line bg-surface p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
-      {/* Badge Recusado + menu */}
-      <div className="mb-3 flex items-center justify-between">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-danger/10 px-2.5 py-1 text-[11px] font-semibold text-danger">
-          <span className="h-1.5 w-1.5 rounded-full bg-current" />
-          Recusado
-        </span>
-        <div className="relative" ref={menuRef}>
-          <button
-            onClick={() => setMenuOpen((o) => !o)}
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-subtle transition-colors hover:bg-canvas cursor-pointer"
-            title="Mais ações"
-          >
-            <MoreVertical size={16} />
-          </button>
-          {menuOpen && (
-            <div className="absolute right-0 top-8 z-10 w-52 overflow-hidden rounded-xl border border-line bg-surface py-1 shadow-lg">
-              <MenuItem icon={RotateCcw} label="Reavaliar (mover p/ Pendente)"
-                onClick={() => { setMenuOpen(false); onStatusChange(lead.id, 'PENDENTE'); }} />
-              <MenuItem icon={Trash2} label="Excluir solicitação" danger
-                onClick={() => { setMenuOpen(false); onDelete(lead.id); }} />
-            </div>
-          )}
+  const menu = (
+    <div className="relative" ref={menuRef}>
+      <button
+        onClick={() => setMenuOpen((o) => !o)}
+        className="flex h-6 w-6 items-center justify-center rounded-lg text-subtle transition-colors hover:bg-canvas cursor-pointer"
+        title="Mais ações"
+      >
+        <MoreVertical size={15} />
+      </button>
+      {menuOpen && (
+        <div className="absolute right-0 top-7 z-10 w-52 overflow-hidden rounded-xl border border-line bg-surface py-1 shadow-lg">
+          <MenuItem icon={RotateCcw} label="Reavaliar (mover p/ Pendente)"
+            onClick={() => { setMenuOpen(false); onStatusChange(lead.id, 'PENDENTE'); }} />
+          <MenuItem icon={Trash2} label="Excluir solicitação" danger
+            onClick={() => { setMenuOpen(false); onDelete(lead.id); }} />
         </div>
-      </div>
+      )}
+    </div>
+  );
 
-      {/* Identidade */}
-      <div className="flex items-start gap-3">
-        <Avatar name={lead.nome} documentos={lead.documentos} className="h-14 w-14 text-[18px]" />
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-[15px] font-bold text-ink" title={lead.nome}>{lead.nome}</p>
-          <p className="mt-0.5 flex items-center gap-1.5 text-[12.5px] text-muted">
-            {lead.telefone}
-            <button
-              onClick={() => onWhatsApp(lead)}
-              title="Enviar mensagem via WhatsApp"
-              className="text-[#25D366] transition-transform hover:scale-110 cursor-pointer"
-            >
-              <MessageCircle size={14} fill="currentColor" />
-            </button>
+  const dadosRecusa = (
+    <div className="mt-4 space-y-2">
+      {/* Mesmo formato do bloco "Observação do cliente", em vermelho. */}
+      <div className="flex gap-2.5 rounded-xl border-l-4 border-danger bg-danger/5 p-3">
+        <MessageSquareText size={16} className="mt-0.5 shrink-0 text-danger" />
+        <div>
+          <p className="text-[11px] font-semibold text-danger">Motivo da recusa</p>
+          <p className="mt-0.5 text-[12.5px] text-ink-2">
+            {lead.motivoRecusa || <span className="text-subtle">Nenhum motivo registrado</span>}
           </p>
         </div>
       </div>
-
-      {/* Meta */}
-      <div className="mt-4 space-y-2">
-        <MetaRow icon={Users} label="Motivo do grupo">
-          {lead.grupo ? (
-            <span className={`rounded-md px-2 py-0.5 text-[12px] ${GRUPO_BADGE[lead.grupo]}`} title={motivoTitulo(lead.grupo)}>
-              {motivoTitulo(lead.grupo)}
-            </span>
-          ) : (
-            <span className="text-subtle">—</span>
-          )}
-        </MetaRow>
-        <MetaRow icon={MapPin} label="Cidade">{lead.cidade}</MetaRow>
-        <MetaRow icon={Banknote} label="Valor solicitado">{formatCurrency(lead.valorSolicitado)}</MetaRow>
-        <MetaRow icon={CreditCard} label="Modalidade solicitada">
-          <span className="rounded-md bg-brand/10 px-2 py-0.5 text-[12px] text-brand-deep">{modalidade(lead.prazo)}</span>
-        </MetaRow>
-        <MetaRow icon={Calendar} label="Data da recusa">{formatDateTime(lead.updatedAt)}</MetaRow>
-      </div>
-
-      {/* Motivo da recusa */}
-      <div className="mt-3 rounded-xl border border-danger/20 bg-danger/5 px-3 py-2">
-        <p className="text-[11px] font-semibold text-danger">Motivo da recusa</p>
-        <p className="mt-0.5 text-[12.5px] text-ink-2">
-          {lead.motivoRecusa || <span className="text-subtle">Nenhum motivo registrado</span>}
-        </p>
-      </div>
-
-      {/* Ação */}
-      <button
-        onClick={() => onView(lead)}
-        className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-danger/10 py-2.5
-          text-[13px] font-semibold text-danger transition-colors hover:bg-danger hover:text-white cursor-pointer"
-      >
-        <Eye size={15} strokeWidth={2} />
-        Visualizar
-      </button>
+      <MetaRow icon={Users} label="Motivo do grupo">
+        {lead.grupo ? (
+          <span className={`rounded-md px-2 py-0.5 text-[12px] ${GRUPO_BADGE[lead.grupo]}`} title={motivoTitulo(lead.grupo)}>
+            {motivoTitulo(lead.grupo)}
+          </span>
+        ) : (
+          <span className="text-subtle">—</span>
+        )}
+      </MetaRow>
+      <MetaRow icon={Calendar} label="Data da recusa">{formatDateTime(lead.updatedAt)}</MetaRow>
     </div>
+  );
+
+  return (
+    <LeadCardDetailed
+      lead={lead}
+      onView={onView}
+      onWhatsApp={onWhatsApp}
+      headerAction={menu}
+      extra={dadosRecusa}
+    />
   );
 }
 

@@ -5,6 +5,7 @@ import {
 import { Lead } from '../../types';
 import { formatCurrency, modalidade } from '../../utils/analytics';
 import { getRecusaTemplates, renderRecusaTemplate } from '../../utils/localTemplates';
+import { abrirWhatsApp } from '../../utils/whatsapp';
 import Avatar from '../Avatar';
 import { notify } from '../Notice';
 
@@ -159,14 +160,25 @@ export default function RecusarModal({ lead, onClose, onConfirm }: RecusarModalP
                   className="w-full resize-none rounded-xl border border-line bg-surface px-4 py-3 pb-10 text-[13px] leading-relaxed text-ink
                     focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15"
                 />
-                <button
-                  onClick={copiar}
-                  className="absolute bottom-2.5 right-2.5 flex items-center gap-1.5 rounded-lg border border-line bg-surface px-2.5 py-1.5
-                    text-[12px] font-semibold text-ink-2 transition-colors hover:bg-canvas cursor-pointer"
-                >
-                  {copiado ? <Check size={13} className="text-success" /> : <Copy size={13} />}
-                  {copiado ? 'Copiado' : 'Copiar'}
-                </button>
+                <div className="absolute bottom-2.5 right-2.5 flex items-center gap-2">
+                  <button
+                    onClick={copiar}
+                    className="flex items-center gap-1.5 rounded-lg border border-line bg-surface px-2.5 py-1.5
+                      text-[12px] font-semibold text-ink-2 transition-colors hover:bg-canvas cursor-pointer"
+                  >
+                    {copiado ? <Check size={13} className="text-success" /> : <Copy size={13} />}
+                    {copiado ? 'Copiado' : 'Copiar'}
+                  </button>
+                  <button
+                    onClick={() => abrirWhatsApp(lead.telefone, mensagem)}
+                    title="Abre a conversa no WhatsApp com a mensagem pronta"
+                    className="flex items-center gap-1.5 rounded-lg bg-purple-600 px-2.5 py-1.5
+                      text-[12px] font-bold text-white transition-all hover:brightness-110 cursor-pointer"
+                  >
+                    <MessageCircle size={13} fill="currentColor" />
+                    Enviar para cliente
+                  </button>
+                </div>
               </div>
               <p className="mt-1 text-right text-[11.5px] text-subtle">{mensagem.length}/{MAX_MSG}</p>
             </div>

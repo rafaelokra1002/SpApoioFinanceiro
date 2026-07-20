@@ -5,6 +5,7 @@ import {
 import { Lead } from '../../types';
 import { formatCurrency, modalidade } from '../../utils/analytics';
 import { getAprovacaoTemplate, renderAprovacaoTemplate } from '../../utils/localTemplates';
+import { abrirWhatsApp } from '../../utils/whatsapp';
 import Avatar from '../Avatar';
 import { notify } from '../Notice';
 
@@ -83,11 +84,11 @@ export default function AprovarModal({ lead, onClose, onConfirm }: AprovarModalP
     setCentavos(digits ? Number(digits) : 0);
   };
 
+  const mensagemDoCliente = () => montarMensagem(lead.nome, valorAprovado, valorTotal, parcelado, parcela);
+
   const copiarMensagem = async () => {
     try {
-      await navigator.clipboard.writeText(
-        montarMensagem(lead.nome, valorAprovado, valorTotal, parcelado, parcela),
-      );
+      await navigator.clipboard.writeText(mensagemDoCliente());
       setCopiado(true);
       setTimeout(() => setCopiado(false), 1500);
     } catch {
@@ -209,7 +210,7 @@ export default function AprovarModal({ lead, onClose, onConfirm }: AprovarModalP
 
             {/* Resumo */}
             <div className="rounded-xl border border-line bg-canvas p-4">
-              <div className="mb-2 flex items-center justify-between gap-3">
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                 <p className="text-[12.5px] font-bold text-ink">Resumo da aprovação</p>
                 <button
                   onClick={copiarMensagem}
@@ -244,6 +245,15 @@ export default function AprovarModal({ lead, onClose, onConfirm }: AprovarModalP
             className="rounded-xl bg-success px-5 py-2.5 text-[13px] font-bold text-white transition-colors hover:brightness-110 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
           >
             Aprovar cliente
+          </button>
+          <button
+            onClick={() => abrirWhatsApp(lead.telefone, mensagemDoCliente())}
+            disabled={valorAprovado <= 0}
+            title="Abre a conversa no WhatsApp com a mensagem pronta"
+            className="flex items-center gap-1.5 rounded-xl bg-purple-600 px-5 py-2.5 text-[13px] font-bold text-white transition-all hover:brightness-110 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <MessageCircle size={15} fill="currentColor" />
+            Enviar para cliente
           </button>
         </div>
       </div>

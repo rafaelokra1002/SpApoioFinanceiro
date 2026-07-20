@@ -222,6 +222,17 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
             )}
           </div>
 
+          {/* Observação: logo abaixo dos documentos */}
+          {lead.observacao && (
+            <div className="flex gap-2.5 rounded-xl border-l-4 border-info bg-info/5 p-3">
+              <MessageCircle size={16} className="mt-0.5 shrink-0 text-info" />
+              <div>
+                <p className="text-[11px] font-semibold text-info">Observação do cliente</p>
+                <p className="mt-0.5 text-[12.5px] text-ink-2">{lead.observacao}</p>
+              </div>
+            </div>
+          )}
+
           {/* Ações da análise */}
           <div>
             <p className="mb-2 text-[14px] font-bold text-ink">Ações da análise</p>
@@ -283,17 +294,6 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
           {/* Dados da recusa: grupo em que caiu + motivo (aparece só em recusados). */}
           {lead.status === 'RECUSADO' && (
             <RecusaEditor lead={lead} onUpdateGroups={onUpdateGroups} />
-          )}
-
-          {/* Observação */}
-          {lead.observacao && (
-            <div className="flex gap-2.5 rounded-xl border-l-4 border-info bg-info/5 p-3">
-              <MessageCircle size={16} className="mt-0.5 shrink-0 text-info" />
-              <div>
-                <p className="text-[11px] font-semibold text-info">Observação do cliente</p>
-                <p className="mt-0.5 text-[12.5px] text-ink-2">{lead.observacao}</p>
-              </div>
-            </div>
           )}
 
           {/* Histórico de mensagens */}

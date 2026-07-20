@@ -109,7 +109,7 @@ export default function PhotosGallery({ leads, loading }: PhotosGalleryProps) {
           {query ? 'Nenhum cliente encontrado' : 'Nenhum cliente com documentos neste status'}
         </p>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
           {filtered.map((lead) => (
             <ClientCard key={lead.id} lead={lead} onOpen={() => setSelected(lead)} />
           ))}
@@ -133,16 +133,17 @@ function ClientCard({ lead, onOpen }: { lead: Lead; onOpen: () => void }) {
       className="group flex flex-col rounded-2xl border border-line bg-surface p-3 text-left shadow-sm
         transition-all hover:-translate-y-0.5 hover:shadow-md cursor-pointer"
     >
-      <div className="relative overflow-hidden rounded-xl bg-canvas">
+      {/* Ancorada no topo para o rosto nunca ficar cortado ao meio. */}
+      <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-canvas">
         {foto ? (
           <img
             src={foto}
             alt={lead.nome}
             loading="lazy"
-            className="h-44 w-full object-cover transition-transform group-hover:scale-[1.02]"
+            className="h-full w-full object-cover object-top transition-transform group-hover:scale-[1.02]"
           />
         ) : (
-          <Avatar name={lead.nome} rounded="rounded-xl" className="h-44 w-full text-[38px]" />
+          <Avatar name={lead.nome} rounded="rounded-xl" className="h-full w-full text-[38px]" />
         )}
         <span
           className={`absolute right-2 top-2 flex items-center gap-1.5 rounded-full px-2.5 py-1

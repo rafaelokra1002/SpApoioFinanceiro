@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react';
 import {
-  ChevronLeft, ChevronRight, Eye, LayoutGrid, List, Loader2, MessageCircle, Search, Users, Wallet,
+  ChevronLeft, ChevronRight, Eye, LayoutGrid, List, Loader2, MessageCircle, Search,
+  UserRoundCheck, Users, UserX, Wallet,
 } from 'lucide-react';
 import { Lead } from '../../types';
 import { formatCurrency } from '../../utils/analytics';
 import { isInternalStatus, statusBadge, statusLabel } from '../../constants/status';
 import { LimparFiltros } from './Filters';
-import LeadCard from './LeadCard';
+import LeadCardDetailed from './LeadCardDetailed';
 import Avatar from '../Avatar';
 
 type ViewMode = 'cards' | 'lista';
@@ -124,7 +125,15 @@ export default function LeadListing({
           {view === 'cards' ? (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {shown.map((lead) => (
-                <LeadCard key={lead.id} lead={lead} onView={onView} onWhatsApp={onWhatsApp} onStatusChange={onStatusChange} />
+                <LeadCardDetailed
+                  key={lead.id}
+                  lead={lead}
+                  onView={onView}
+                  onWhatsApp={onWhatsApp}
+                  actions={lead.status === 'APROVADO' && onStatusChange
+                    ? <MoverAprovado lead={lead} onStatusChange={onStatusChange} />
+                    : undefined}
+                />
               ))}
             </div>
           ) : (
@@ -172,6 +181,30 @@ export default function LeadListing({
 }
 
 /* --------------------------------------------------------------- subcomponentes */
+
+/** Atalhos para tirar um aprovado da lista, sem abrir o detalhe. */
+function MoverAprovado({ lead, onStatusChange }: {
+  lead: Lead; onStatusChange: (id: string, status: string) => void;
+}) {
+  return (
+    <div className="flex gap-2">
+      <button
+        onClick={() => onStatusChange(lead.id, 'NAO_CONTRATOU')}
+        className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-orange/30 py-2
+          text-[12px] font-semibold text-orange transition-colors hover:bg-orange/10 cursor-pointer"
+      >
+        <UserX size={14} /> Não contratou
+      </button>
+      <button
+        onClick={() => onStatusChange(lead.id, 'PASSEI_COLABORADOR')}
+        className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-info/30 py-2
+          text-[12px] font-semibold text-info transition-colors hover:bg-info/10 cursor-pointer"
+      >
+        <UserRoundCheck size={14} /> Colaborador
+      </button>
+    </div>
+  );
+}
 
 function ViewTab({ active, onClick, icon: Icon, label }: {
   active: boolean; onClick: () => void; icon: typeof List; label: string;

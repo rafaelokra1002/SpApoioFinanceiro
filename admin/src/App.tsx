@@ -331,11 +331,13 @@ export default function App() {
         />
 
         <div className="flex-1 p-5 lg:p-6">
-        {/* O Backup centraliza o conteúdo, então o cabeçalho acompanha. */}
-        <div className={`mb-5 ${page === 'backup' ? 'text-center' : ''}`}>
-          <h1 className="text-[24px] font-bold leading-tight text-ink">{title}</h1>
-          <p className="mt-0.5 text-[13px] text-muted">{subtitle}</p>
-        </div>
+        {/* Mensagens desenha o próprio cabeçalho; o Backup centraliza o conteúdo. */}
+        {page !== 'mensagens' && (
+          <div className={`mb-5 ${page === 'backup' ? 'text-center' : ''}`}>
+            <h1 className="text-[24px] font-bold leading-tight text-ink">{title}</h1>
+            <p className="mt-0.5 text-[13px] text-muted">{subtitle}</p>
+          </div>
+        )}
 
         {page === 'dashboard' && (
           <Dashboard
