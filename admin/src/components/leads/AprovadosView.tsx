@@ -191,7 +191,7 @@ export default function AprovadosView({ leads, loading, onView, onWhatsApp }: Ap
           {query ? 'Nenhum resultado para a busca' : 'Nenhuma solicitação aprovada neste período'}
         </p>
       ) : view === 'grade' ? (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {shown.map((lead) => (
             <AprovadoCard key={lead.id} lead={lead} onView={onView} onWhatsApp={onWhatsApp} />
           ))}
@@ -283,13 +283,11 @@ function AprovadoCard({ lead, onView, onWhatsApp }: {
         </div>
 
         {/* Valores */}
-        <div className="mt-4 grid grid-cols-3 gap-2.5">
+        <div className="mt-4 grid grid-cols-2 gap-2.5">
           <ValueBox icon={<CircleDollarSign size={16} />} iconClass="bg-success/10 text-success"
             label="Valor aprovado" value={formatCurrency(valorAprovadoDe(lead))} valueClass="text-success" />
           <ValueBox icon={<CalendarClock size={16} />} iconClass="bg-info/10 text-info"
             label="A pagar" value={formatCurrency(lead.valorTotal)} />
-          <ValueBox icon={<CheckCircle2 size={16} />} iconClass="bg-success/10 text-success"
-            label="Situação" value={statusLabel(lead.status)} valueClass="text-success" />
         </div>
 
         {/* Campos */}

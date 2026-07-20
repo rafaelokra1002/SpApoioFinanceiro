@@ -122,7 +122,7 @@ export default function LeadListing({
       ) : (
         <>
           {view === 'cards' ? (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {shown.map((lead) => (
                 <LeadCard key={lead.id} lead={lead} onView={onView} onWhatsApp={onWhatsApp} onStatusChange={onStatusChange} />
               ))}

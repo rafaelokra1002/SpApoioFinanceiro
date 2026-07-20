@@ -163,7 +163,7 @@ export default function PendentesView({ leads, loading, onView, onWhatsApp }: Pe
           {query ? 'Nenhum resultado para a busca' : 'Nenhuma solicitação pendente'}
         </p>
       ) : view === 'grade' ? (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {shown.map((lead) => (
             <LeadCardDetailed key={lead.id} lead={lead} onView={onView} onWhatsApp={onWhatsApp} />
           ))}
