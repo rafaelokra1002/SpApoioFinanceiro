@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ChevronRight, FileText, ImageIcon, Search, X } from 'lucide-react';
+import { FileText, MapPin, Phone, Search, UserRound, Wallet, X } from 'lucide-react';
 import { Lead } from '../types';
+import { METRICS, STATUS_ORDER, StatusKey, statusLabel } from '../constants/status';
+import { formatCurrency } from '../utils/analytics';
+import { clientPhotoUrl } from '../utils/avatar';
 import Avatar from './Avatar';
 
 interface PhotosGalleryProps {
@@ -8,41 +11,51 @@ interface PhotosGalleryProps {
   loading: boolean;
 }
 
-interface ClientRow {
-  lead: Lead;
-  total: number;
-  imagens: number;
-}
-
 const IMAGE_EXT = /\.(jpe?g|png|webp|gif|bmp|heic)$/i;
 
 const isImage = (filename: string, url: string) => IMAGE_EXT.test(filename) || IMAGE_EXT.test(url);
 
+/** Badge sólida sobre a foto — as classes de METRICS são translúcidas demais aqui. */
+const BADGE_SOLIDO: Record<StatusKey, string> = {
+  PENDENTE: 'bg-warning',
+  APROVADO: 'bg-success',
+  RECUSADO: 'bg-danger',
+  NAO_CONTRATOU: 'bg-orange',
+  PASSEI_COLABORADOR: 'bg-info',
+};
+
+type Aba = 'todos' | StatusKey;
+
+const ABAS: Aba[] = ['todos', ...STATUS_ORDER];
+
 export default function PhotosGallery({ leads, loading }: PhotosGalleryProps) {
   const [query, setQuery] = useState('');
+  const [aba, setAba] = useState<Aba>('todos');
   const [selected, setSelected] = useState<Lead | null>(null);
 
-  const rows = useMemo<ClientRow[]>(() => {
-    return leads
+  /** Só entram na galeria clientes que enviaram algum documento. */
+  const comDocumentos = useMemo(
+    () => leads
       .filter((lead) => (lead.documentos?.length ?? 0) > 0)
-      .map((lead) => {
-        const docs = lead.documentos ?? [];
-        return {
-          lead,
-          total: docs.length,
-          imagens: docs.filter((d) => isImage(d.filename, d.url)).length,
-        };
-      })
-      .sort((a, b) => a.lead.nome.localeCompare(b.lead.nome, 'pt-BR'));
-  }, [leads]);
+      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')),
+    [leads],
+  );
+
+  const contagem = useMemo(() => {
+    const mapa = new Map<Aba, number>([['todos', comDocumentos.length]]);
+    for (const s of STATUS_ORDER) {
+      mapa.set(s, comDocumentos.filter((l) => l.status === s).length);
+    }
+    return mapa;
+  }, [comDocumentos]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return rows;
-    return rows.filter((r) => r.lead.nome.toLowerCase().includes(q));
-  }, [rows, query]);
-
-  const totalArquivos = useMemo(() => rows.reduce((acc, r) => acc + r.total, 0), [rows]);
+    return comDocumentos.filter((lead) => {
+      if (aba !== 'todos' && lead.status !== aba) return false;
+      return !q || lead.nome.toLowerCase().includes(q);
+    });
+  }, [comDocumentos, aba, query]);
 
   if (loading) {
     return <p className="py-24 text-center text-sm text-subtle">Carregando...</p>;
@@ -50,15 +63,27 @@ export default function PhotosGallery({ leads, loading }: PhotosGalleryProps) {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center gap-4 rounded-2xl border border-line bg-surface p-5 shadow-sm">
-        <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand/10">
-          <ImageIcon size={24} className="text-brand-deep" strokeWidth={2} />
-        </span>
-        <div>
-          <p className="text-[13px] font-medium text-muted">Total de arquivos</p>
-          <p className="text-[30px] font-bold leading-tight text-ink">{totalArquivos}</p>
-          <p className="text-[12px] text-subtle">enviados por {rows.length} clientes</p>
-        </div>
+      {/* Abas por status */}
+      <div className="flex flex-wrap gap-2.5">
+        {ABAS.map((key) => {
+          const ativo = aba === key;
+          return (
+            <button
+              key={key}
+              onClick={() => setAba(key)}
+              className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-[13px] font-semibold
+                transition-colors cursor-pointer
+                ${ativo
+                  ? 'border-success bg-success text-white'
+                  : 'border-line bg-surface text-ink-2 hover:bg-canvas'}`}
+            >
+              {key === 'todos' ? 'Todos' : statusLabel(key)}
+              <span className={`text-[11.5px] font-bold ${ativo ? 'text-white/80' : 'text-subtle'}`}>
+                {contagem.get(key) ?? 0}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       <div className="relative">
@@ -74,33 +99,75 @@ export default function PhotosGallery({ leads, loading }: PhotosGalleryProps) {
 
       {filtered.length === 0 ? (
         <p className="rounded-2xl border border-line bg-surface py-24 text-center text-sm text-subtle">
-          {query ? 'Nenhum cliente encontrado' : 'Nenhum documento enviado pelos clientes ainda'}
+          {query ? 'Nenhum cliente encontrado' : 'Nenhum cliente com documentos neste status'}
         </p>
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
-          {filtered.map((row, i) => (
-            <button
-              key={row.lead.id}
-              onClick={() => setSelected(row.lead)}
-              className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-canvas
-                ${i > 0 ? 'border-t border-line' : ''}`}
-            >
-              <Avatar name={row.lead.nome} documentos={row.lead.documentos} className="h-11 w-11 text-[14px]" />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-[14px] font-semibold text-ink">{row.lead.nome}</p>
-                <p className="text-[12px] text-subtle">
-                  {row.total} {row.total === 1 ? 'arquivo' : 'arquivos'}
-                  {row.imagens > 0 && ` · ${row.imagens} ${row.imagens === 1 ? 'foto' : 'fotos'}`}
-                </p>
-              </div>
-              <ChevronRight size={18} className="shrink-0 text-subtle" />
-            </button>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {filtered.map((lead) => (
+            <ClientCard key={lead.id} lead={lead} onOpen={() => setSelected(lead)} />
           ))}
         </div>
       )}
 
       {selected && <DocumentsModal lead={selected} onClose={() => setSelected(null)} />}
     </div>
+  );
+}
+
+function ClientCard({ lead, onOpen }: { lead: Lead; onOpen: () => void }) {
+  const foto = clientPhotoUrl(lead.documentos);
+  const meta = METRICS[lead.status as StatusKey];
+  const BadgeIcon = meta?.icon ?? UserRound;
+  const docs = lead.documentos?.length ?? 0;
+
+  return (
+    <button
+      onClick={onOpen}
+      className="group flex flex-col rounded-2xl border border-line bg-surface p-3 text-left shadow-sm
+        transition-all hover:-translate-y-0.5 hover:shadow-md cursor-pointer"
+    >
+      <div className="relative overflow-hidden rounded-xl bg-canvas">
+        {foto ? (
+          <img
+            src={foto}
+            alt={lead.nome}
+            loading="lazy"
+            className="h-44 w-full object-cover transition-transform group-hover:scale-[1.02]"
+          />
+        ) : (
+          <Avatar name={lead.nome} rounded="rounded-xl" className="h-44 w-full text-[38px]" />
+        )}
+        <span
+          className={`absolute right-2 top-2 flex items-center gap-1.5 rounded-full px-2.5 py-1
+            text-[11.5px] font-bold text-white shadow-sm
+            ${BADGE_SOLIDO[lead.status as StatusKey] ?? 'bg-subtle'}`}
+        >
+          <BadgeIcon size={13} strokeWidth={2.5} />
+          {statusLabel(lead.status)}
+        </span>
+      </div>
+
+      <p className="mt-3 truncate text-[14.5px] font-bold text-ink">{lead.nome}</p>
+      <div className="mt-2 space-y-1.5">
+        <CardRow icon={Phone}>{lead.telefone}</CardRow>
+        <CardRow icon={MapPin}>{lead.cidade}</CardRow>
+        <CardRow icon={Wallet}>{formatCurrency(lead.valorSolicitado)}</CardRow>
+        <CardRow icon={UserRound}>{lead.indicacao || '—'}</CardRow>
+      </div>
+
+      <p className="mt-2.5 text-[11.5px] text-subtle">
+        {docs} {docs === 1 ? 'arquivo enviado' : 'arquivos enviados'}
+      </p>
+    </button>
+  );
+}
+
+function CardRow({ icon: Icon, children }: { icon: typeof MapPin; children: React.ReactNode }) {
+  return (
+    <p className="flex items-center gap-2 text-[12.5px] text-muted">
+      <Icon size={14} className="shrink-0 text-subtle" strokeWidth={2} />
+      <span className="min-w-0 truncate">{children}</span>
+    </p>
   );
 }
 

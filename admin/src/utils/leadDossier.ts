@@ -219,6 +219,8 @@ export async function downloadLeadDossier(lead: Lead, logs: LeadMessageLog[]) {
 export async function downloadAllLeadsBackup(
   leads: Lead[],
   onProgress?: (done: number, total: number) => void,
+  /** Prefixo do arquivo gerado (ex.: "backup_aprovados"). */
+  fileBaseName = 'backup_clientes',
 ) {
   const zip = new JSZip();
   for (const [i, lead] of leads.entries()) {
@@ -228,5 +230,5 @@ export async function downloadAllLeadsBackup(
 
   const stamp = new Date().toISOString().slice(0, 10);
   const archive = await zip.generateAsync({ type: 'blob' });
-  triggerDownload(archive, `backup_clientes_${stamp}.zip`);
+  triggerDownload(archive, `${sanitizeSegment(fileBaseName) || 'backup'}_${stamp}.zip`);
 }

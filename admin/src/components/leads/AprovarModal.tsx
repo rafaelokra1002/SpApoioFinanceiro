@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  Banknote, CheckCircle2, CreditCard, MapPin, MessageCircle, UserRound, Wallet, X,
+  Banknote, Check, CheckCircle2, Copy, CreditCard, MapPin, MessageCircle, UserRound, Wallet, X,
 } from 'lucide-react';
 import { Lead } from '../../types';
 import { formatCurrency, modalidade } from '../../utils/analytics';
 import Avatar from '../Avatar';
+import { notify } from '../Notice';
 
 /** Nº de parcelas usado só para ilustrar a simulação no painel (não é persistido). */
 const PARCELAS = 12;
@@ -38,9 +39,33 @@ function reaisText(valor: number): string {
   return valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+function primeiroNome(nome: string): string {
+  return nome.trim().split(/\s+/)[0] || nome;
+}
+
+/** Mensagem pronta para o cliente (WhatsApp), montada a partir do resumo da aprovação. */
+function montarMensagem(
+  nome: string,
+  valorAprovado: number,
+  valorTotal: number,
+  parcelado: boolean,
+  parcela: number,
+): string {
+  const condicao = parcelado
+    ? `Pagamento: em até ${PARCELAS}x de ${formatCurrency(parcela)}`
+    : 'Pagamento: à vista';
+  return `Olá, ${primeiroNome(nome)}! Temos uma ótima notícia: seu crédito foi *APROVADO*!\n\n`
+    + `Valor aprovado: ${formatCurrency(valorAprovado)}\n`
+    + `Total a pagar: ${formatCurrency(valorTotal)}\n`
+    + `${condicao}\n\n`
+    + `Nossa equipe entrará em contato para finalizar o processo.\n\n`
+    + `*Equipe SP Apoio Financeiro*`;
+}
+
 export default function AprovarModal({ lead, onClose, onConfirm }: AprovarModalProps) {
   const [centavos, setCentavos] = useState(() => Math.round(lead.valorSolicitado * 100));
   const [opcaoIdx, setOpcaoIdx] = useState(() => (modalidade(lead.prazo) === 'À vista' ? 1 : 0));
+  const [copiado, setCopiado] = useState(false);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -58,6 +83,18 @@ export default function AprovarModal({ lead, onClose, onConfirm }: AprovarModalP
   const onValorChange = (raw: string) => {
     const digits = raw.replace(/\D/g, '');
     setCentavos(digits ? Number(digits) : 0);
+  };
+
+  const copiarMensagem = async () => {
+    try {
+      await navigator.clipboard.writeText(
+        montarMensagem(lead.nome, valorAprovado, valorTotal, parcelado, parcela),
+      );
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 1500);
+    } catch {
+      notify('Não foi possível copiar a mensagem.', 'error');
+    }
   };
 
   const confirmar = () => {
@@ -174,7 +211,17 @@ export default function AprovarModal({ lead, onClose, onConfirm }: AprovarModalP
 
             {/* Resumo */}
             <div className="rounded-xl border border-line bg-canvas p-4">
-              <p className="mb-2 text-[12.5px] font-bold text-ink">Resumo da aprovação</p>
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <p className="text-[12.5px] font-bold text-ink">Resumo da aprovação</p>
+                <button
+                  onClick={copiarMensagem}
+                  disabled={valorAprovado <= 0}
+                  className="flex items-center gap-1.5 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-[12px] font-semibold text-ink-2 transition-colors hover:bg-canvas cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {copiado ? <Check size={14} className="text-success" /> : <Copy size={14} className="text-subtle" />}
+                  {copiado ? 'Copiado!' : 'Copiar mensagem'}
+                </button>
+              </div>
               <div className="grid grid-cols-1 gap-x-6 gap-y-1.5 sm:grid-cols-2">
                 <ResumoRow label="Valor aprovado" value={formatCurrency(valorAprovado)} />
                 <ResumoRow label="Total a pagar" value={formatCurrency(valorTotal)} />
