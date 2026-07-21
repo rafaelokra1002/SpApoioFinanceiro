@@ -11,10 +11,9 @@ export function Result() {
   }
 
   return (
-    <div style={{ padding: '120px 20px 24px', minHeight: '100vh', background: 'linear-gradient(135deg, #0b1a6e 0%, #2546f0 40%, #0b1a6e 100%)' }}>
+    <div style={{ minHeight: '100vh', background: '#fff' }}>
       <div style={{
-        background: 'rgba(255,255,255,0.95)', borderRadius: 20, padding: '28px 20px 24px',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
+        background: '#fff', minHeight: '100vh', padding: '28px 20px 24px',
       }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>

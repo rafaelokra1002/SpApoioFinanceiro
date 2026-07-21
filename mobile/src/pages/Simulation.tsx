@@ -40,17 +40,15 @@ export function Simulation() {
     if (!canCalc || !preview) return;
     dispatch({ type: 'SET_FIELD', field: 'parcelas', value: numParcelas });
     dispatch({ type: 'SET_SIMULATION', payload: preview });
-    // O resumo já aparece nesta tela, então vamos direto para os dados/documentos.
-    dispatch({ type: 'SET_STEP', step: 4 });
+    // Simulação primeiro; agora o cliente escolhe a categoria.
+    dispatch({ type: 'SET_STEP', step: 2 });
   };
 
-  const rendaNum = rendaInput ? parseInt(rendaInput, 10) / 100 : 0;
-  const valorMaiorQueRenda = state.valor > 0 && rendaNum > 0 && state.valor > rendaNum;
-  const canCalc = state.valor > 0 && !!state.cidade && !!state.renda && !valorMaiorQueRenda;
+  const canCalc = state.valor > 0 && !!state.cidade && !!state.renda;
 
   return (
     <div style={{ padding: '18px 16px 24px', minHeight: '100vh', background: '#f4f6fb' }}>
-      <button onClick={() => dispatch({ type: 'SET_STEP', step: 1 })} style={{
+      <button onClick={() => dispatch({ type: 'SET_STEP', step: 0 })} style={{
         display: 'inline-flex', alignItems: 'center', gap: 8,
         padding: '9px 16px', borderRadius: 10, cursor: 'pointer',
         background: '#fff', border: '1.5px solid #2546f0',
@@ -67,7 +65,7 @@ export function Simulation() {
       </h1>
 
       {/* Valor desejado */}
-      <div style={{ ...cardStyle, marginBottom: valorMaiorQueRenda ? 8 : 18 }}>
+      <div style={{ ...cardStyle, marginBottom: 18 }}>
         <label style={{ fontSize: 13, color: '#6b7280', display: 'block', marginBottom: 4 }}>Valor desejado</label>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 20, fontWeight: 800, color: '#2546f0' }}>R$</span>
@@ -93,8 +91,6 @@ export function Simulation() {
         </div>
       </div>
 
-      {valorMaiorQueRenda && <Aviso texto="O valor solicitado deve ser menor que sua renda mensal" />}
-
       {/* Modalidade */}
       <h2 style={{ fontSize: 17, fontWeight: 800, color: '#0d1836', marginBottom: 10 }}>Como deseja pagar?</h2>
       <div style={{ display: 'flex', gap: 12, marginBottom: 14 }}>
@@ -108,18 +104,20 @@ export function Simulation() {
         />
       </div>
 
-      <div style={{
-        display: 'flex', gap: 11, padding: '13px 15px', marginBottom: 18,
-        background: '#f1f5fd', border: '1px solid #dde5f8', borderRadius: 14,
-      }}>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2546f0" strokeWidth="1.9" strokeLinecap="round" style={{ flexShrink: 0, marginTop: 1 }}>
-          <circle cx="12" cy="12" r="9.5"/><path d="M12 11v5.5M12 7.5v.5"/>
-        </svg>
-        <p style={{ fontSize: 13, color: '#41506e', lineHeight: 1.5, margin: 0 }}>
-          Se o parcelado não for aprovado, você ainda pode ser aprovado no{' '}
-          <strong style={{ color: '#2546f0' }}>crédito à vista</strong>, com uma análise mais flexível.
-        </p>
-      </div>
+      {modalidade === 'PARCELADO' && (
+        <div style={{
+          display: 'flex', gap: 11, padding: '13px 15px', marginBottom: 18,
+          background: '#f1f5fd', border: '1px solid #dde5f8', borderRadius: 14,
+        }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2546f0" strokeWidth="1.9" strokeLinecap="round" style={{ flexShrink: 0, marginTop: 1 }}>
+            <circle cx="12" cy="12" r="9.5"/><path d="M12 11v5.5M12 7.5v.5"/>
+          </svg>
+          <p style={{ fontSize: 13, color: '#41506e', lineHeight: 1.5, margin: 0 }}>
+            Se o parcelado não for aprovado, você ainda pode ser aprovado no{' '}
+            <strong style={{ color: '#2546f0' }}>crédito à vista</strong>, com uma análise mais flexível.
+          </p>
+        </div>
+      )}
 
       {/* Cidade + renda */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
@@ -245,18 +243,6 @@ export function Simulation() {
 const cardStyle: React.CSSProperties = {
   background: '#fff', border: '1px solid #e6e9f1', borderRadius: 14, padding: '12px 14px',
 };
-
-function Aviso({ texto }: { texto: string }) {
-  return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18,
-      padding: '10px 14px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 12,
-    }}>
-      <span style={{ fontSize: 16 }}>⚠️</span>
-      <span style={{ fontSize: 13, color: '#92400e', fontWeight: 500 }}>{texto}</span>
-    </div>
-  );
-}
 
 function ModalidadeCard({ ativo, onClick, titulo, selo }: {
   ativo: boolean; onClick: () => void; titulo: string; selo: string;

@@ -352,8 +352,8 @@ function Router() {
   const { state } = useLoan();
   switch (state.step) {
     case 0: return <Home />;
-    case 1: return <Category />;
-    case 2: return <Simulation />;
+    case 1: return <Simulation />;
+    case 2: return <Category />;
     case 3: return <Result />;
     case 4: return <Documents />;
     case 5: return <Confirmation />;

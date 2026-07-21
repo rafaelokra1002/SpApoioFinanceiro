@@ -42,10 +42,10 @@ export const RENDAS: RendaOption[] = [
 
 export const DOCUMENT_TYPES: Record<string, DocumentType[]> = {
   CARTEIRA_ASSINADA: [
-    { key: 'RG ou CNH (frente)', label: 'RG ou CNH (frente)', description: 'Documento de identificação', icon: '🪪' },
-    { key: 'RG ou CNH (verso)', label: 'RG ou CNH (verso)', description: 'Documento de identificação', icon: '🪪' },
-    { key: 'Selfie (rosto)', label: 'Selfie (rosto nítido)', description: 'Sem filtro, rosto bem visível', icon: '📷' },
-    { key: 'Carteira de trabalho digital', label: 'Envie a Carteira de Trabalho em PDF', description: 'Envie em formato PDF', icon: '💼' },
+    { key: 'RG ou CNH (frente)', label: 'RG ou CNH (frente)', description: 'Foto da parte da frente', icon: '🪪' },
+    { key: 'RG ou CNH (verso)', label: 'RG ou CNH (verso)', description: 'Foto da parte de trás', icon: '🪪' },
+    { key: 'Selfie (rosto)', label: 'Selfie', description: 'Rosto nítido, sem filtro', icon: '📷' },
+    { key: 'Extrato bancário (últimos 30 dias) ou comprovante do último pagamento', label: 'Extrato bancário ou último pagamento', description: 'Últimos 30 dias ou comprovante recente', icon: '📄' },
     { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz – últimos 2 meses', icon: '🏠' },
   ],
   CLT_SEM_REGISTRO: [

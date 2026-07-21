@@ -9,19 +9,19 @@ export function Home() {
       background: 'linear-gradient(160deg, #ffffff 0%, #f4f7ff 55%, #eaf0ff 100%)',
       display: 'flex', flexDirection: 'column',
     }}>
-      {/* Painel diagonal com o personagem */}
+      {/* Painel diagonal com o personagem (fundo claro p/ combinar com o recorte) */}
       <div style={{
-        position: 'absolute', top: 0, right: 0, bottom: 0, width: '68%',
-        clipPath: 'polygon(38% 0, 100% 0, 100% 100%, 0 100%)',
-        background: 'linear-gradient(200deg, #1a2b52 0%, #16264a 60%, #101c38 100%)',
+        position: 'absolute', top: 92, right: 0, bottom: 0, width: '66%',
+        clipPath: 'polygon(30% 0, 100% 0, 100% 100%, 0 100%)',
+        background: 'linear-gradient(200deg, #ffffff 0%, #f4f7ff 55%, #eaf0ff 100%)',
       }}>
-        <img src="/personagem.png" alt="" style={{
-          width: '100%', height: '100%', objectFit: 'cover', objectPosition: '58% 20%',
+        <img src="/capa-personagem.jpg" alt="" style={{
+          width: '100%', height: '100%', objectFit: 'cover', objectPosition: '42% 0%',
         }} />
-        {/* Suaviza a emenda do painel com o fundo claro */}
+        {/* Suaviza a emenda do painel com o fundo claro (sem cobrir o rosto) */}
         <div style={{
           position: 'absolute', inset: 0,
-          background: 'linear-gradient(100deg, rgba(244,247,255,0.92) 0%, rgba(244,247,255,0.25) 22%, transparent 45%)',
+          background: 'linear-gradient(100deg, rgba(244,247,255,0.9) 0%, rgba(244,247,255,0.15) 12%, transparent 28%)',
         }} />
       </div>
 
@@ -38,10 +38,14 @@ export function Home() {
       }}>
         {/* Topo: marca + atendimento */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 'auto' }}>
-          <img src="/sp-logo.svg" alt="SP Apoio Financeiro" style={{ height: 40, width: 'auto' }} />
+          {/* Monograma SP em texto, azul-marinho */}
+          <span style={{
+            fontSize: 44, fontWeight: 900, color: '#0d1836',
+            letterSpacing: '-0.06em', lineHeight: 1, flexShrink: 0,
+          }}>SP</span>
           <div style={{ lineHeight: 1.15 }}>
-            <div style={{ fontSize: 17, fontWeight: 800, color: '#0d1836' }}>SP Apoio</div>
-            <div style={{ fontSize: 17, fontWeight: 800, color: '#2546f0' }}>Financeiro</div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#0d1836' }}>SP Apoio</div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#2546f0' }}>Financeiro</div>
           </div>
           <div style={{
             marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8,
@@ -62,7 +66,7 @@ export function Home() {
         {/* Chamada principal */}
         <div style={{ marginTop: 40 }}>
           <h1 style={{
-            fontSize: 'clamp(44px, 15vw, 62px)', fontWeight: 900, lineHeight: 0.95,
+            fontSize: 'clamp(36px, 12vw, 52px)', fontWeight: 900, lineHeight: 0.95,
             letterSpacing: '-0.04em', color: '#0d1836',
             textShadow: '0 2px 18px rgba(244,247,255,0.9)',
           }}>
@@ -74,7 +78,7 @@ export function Home() {
               <path d="M13.5 2L4 14h6l-.5 8L19 10h-6z"/>
             </svg>
             <p style={{
-              fontSize: 17, fontWeight: 700, color: '#0d1836', lineHeight: 1.35,
+              fontSize: 17, fontWeight: 600, color: '#0d1836', lineHeight: 1.35,
               textShadow: '0 2px 14px rgba(244,247,255,0.9)',
             }}>
               Receba sua análise<br/>em <span style={{ color: '#2546f0' }}>minutos.</span>
@@ -107,7 +111,7 @@ export function Home() {
                 <path d="M13.6 11.6c-.4-.5-1-.8-1.7-.8-.9 0-1.6.5-1.6 1.2 0 1.7 3.4.9 3.4 2.6 0 .8-.7 1.3-1.7 1.3-.7 0-1.4-.3-1.8-.9M12 9.8v7"/>
               </svg>
             </span>
-            <span style={{ flex: 1, textAlign: 'left', fontSize: 18, fontWeight: 800, color: '#fff' }}>
+            <span style={{ flex: 1, textAlign: 'left', fontSize: 18, fontWeight: 700, color: '#fff' }}>
               Solicitar Agora
             </span>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">

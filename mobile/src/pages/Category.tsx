@@ -1,5 +1,6 @@
 import { useLoan } from '../context/LoanContext';
 import { CATEGORIES } from '../constants/categories';
+import { simular } from '../hooks/useSimulation';
 
 const categoryIcons: Record<string, React.ReactNode> = {
   CARTEIRA_ASSINADA: (
@@ -61,14 +62,13 @@ export function Category() {
   const { state, dispatch } = useLoan();
 
   return (
-    <div style={{ padding: '20px 20px 24px', minHeight: '100vh', background: 'linear-gradient(135deg, #0b1a6e 0%, #2546f0 40%, #0b1a6e 100%)' }}>
+    <div style={{ minHeight: '100vh', background: '#fff' }}>
       <div style={{
-        background: 'rgba(255,255,255,0.95)', borderRadius: 20, padding: '28px 20px 24px',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
+        background: '#fff', minHeight: '100vh', padding: '28px 20px 24px',
       }}>
         {/* Header with back */}
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 20 }}>
-          <button onClick={() => dispatch({ type: 'SET_STEP', step: 0 })} style={{
+          <button onClick={() => dispatch({ type: 'SET_STEP', step: 1 })} style={{
             background: 'none', border: 'none', cursor: 'pointer', padding: 4, marginTop: 2,
           }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0d2b5e" strokeWidth="2.5" strokeLinecap="round">
@@ -95,7 +95,10 @@ export function Category() {
               <button key={cat.value}
                 onClick={() => {
                   dispatch({ type: 'SET_FIELD', field: 'categoria', value: cat.value });
-                  dispatch({ type: 'SET_STEP', step: 2 });
+                  // Recalcula a simulação com a categoria (a taxa muda p/ SEM_COMPROVACAO).
+                  const sim = simular(state.valor, state.parcelas, cat.value);
+                  if (sim) dispatch({ type: 'SET_SIMULATION', payload: sim });
+                  dispatch({ type: 'SET_STEP', step: 4 });
                 }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 14,

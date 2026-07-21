@@ -4,10 +4,10 @@ export function Confirmation() {
   const { dispatch } = useLoan();
 
   return (
-    <div style={{ padding: '24px 20px 24px', minHeight: '100vh', background: 'linear-gradient(135deg, #0b1a6e 0%, #2546f0 40%, #0b1a6e 100%)' }}>
+    <div style={{ minHeight: '100vh', background: '#fff' }}>
       <div style={{
-        background: 'rgba(255,255,255,0.95)', borderRadius: 20, padding: '40px 24px 36px',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.15)', textAlign: 'center',
+        background: '#fff', minHeight: '100vh', padding: '40px 24px 36px',
+        textAlign: 'center',
       }}>
         {/* Checkmark */}
         <div style={{
