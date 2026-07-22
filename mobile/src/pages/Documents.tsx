@@ -1,11 +1,12 @@
 import React, { useState, useRef } from 'react';
 import {
-  ArrowLeft, Building2, Camera, CircleCheck, CircleHelp, Clock, FileText, House,
-  IdCard, Image as ImageIcon, Info, MapPin, Pencil, Send, Trash2, UserRound,
+  ArrowLeft, Briefcase, Building2, Camera, CircleCheck, CircleHelp, Clock, FileText, House,
+  IdCard, Image as ImageIcon, Info, MapPin, Pencil, Send, UserRound,
 } from 'lucide-react';
 import { useLoan } from '../context/LoanContext';
 import { CATEGORIES, DOCUMENT_TYPES } from '../constants/categories';
 import { submitLeadWithDocuments } from '../services/api';
+import { requestLocation } from '../utils/geo';
 import { UploadedFile } from '../types';
 
 type OrigemKey = 'PANFLETO' | 'INSTAGRAM' | 'INDICACAO';
@@ -166,6 +167,7 @@ export function Documents() {
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const pdfInputRef = useRef<HTMLInputElement>(null);
   const [currentDocKey, setCurrentDocKey] = useState('');
+  const [showTip, setShowTip] = useState<string | null>(null);
   // Tipo esperado do arquivo conforme o botão clicado (foto x PDF).
   const [expectedKind, setExpectedKind] = useState<'image' | 'pdf'>('image');
   const [origem, setOrigem] = useState<OrigemKey | ''>('');
@@ -173,6 +175,15 @@ export function Documents() {
 
   const docs = DOCUMENT_TYPES[state.categoria] || DOCUMENT_TYPES['CARTEIRA_ASSINADA'];
   const categoriaLabel = CATEGORIES.find(c => c.value === state.categoria)?.label || '';
+
+  // Autônomo não tem empresa/fachada: pergunta a atividade e onde ele atende.
+  const autonomo = state.categoria === 'AUTONOMO';
+  const campoTrabalho = autonomo
+    ? { label: 'Profissão ou atividade', placeholder: 'Ex: manicure, motorista, vendedor' }
+    : { label: 'Nome da empresa como aparece na fachada', placeholder: 'Ex: Planeta Calçados' };
+  const campoLocal = autonomo
+    ? { label: 'Onde atende ou trabalha', placeholder: 'Ex: Centro, Camaçari' }
+    : { label: 'Bairro, local de trabalho e cidade', placeholder: 'Ex: Centro, Camaçari' };
 
   const openFilePicker = (docKey: string) => {
     setCurrentDocKey(docKey);
@@ -217,6 +228,12 @@ export function Documents() {
   };
 
   const handleSubmit = async () => {
+    // A localização é obrigatória — se foi negada/revogada, pede de novo e barra o envio.
+    if (state.geo !== 'granted') {
+      setError('Permita o acesso à sua localização para enviar a solicitação.');
+      requestLocation(dispatch);
+      return;
+    }
     if (!state.nome || !state.telefone) {
       setError('Preencha nome e telefone.');
       return;
@@ -528,85 +545,96 @@ export function Documents() {
                 const podePdf = !doc.key.toLowerCase().includes('rg ou cnh') && !isSelfie;
                 const temDica = doc.key === 'Comprovante de residência';
                 return (
-                  <div key={doc.key} style={docCardStyle}>
+                  <div key={doc.key} style={{ ...docCardStyle, position: 'relative' }}>
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
                       <div style={{
-                        minWidth: 52, width: 52, height: 52, borderRadius: 14, background: '#eef0fd',
+                        minWidth: 46, width: 46, height: 46, borderRadius: 14, background: '#eef3fd',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}>{docIcons[doc.icon] || docIcons['📄']}</div>
 
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 600, fontSize: 14.5, color: '#0d1836' }}>
-                          {doc.label}
-                          {temDica && <CircleHelp size={14} color="#9aa3b2" strokeWidth={2} />}
-                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                          <span style={{ fontWeight: 700, fontSize: 16, color: '#0d1836' }}>{doc.label}</span>
+                          {temDica && (
+                            <button onClick={() => setShowTip(showTip === doc.key ? null : doc.key)}
+                              onMouseEnter={() => setShowTip(doc.key)}
+                              onMouseLeave={() => setShowTip(null)}
+                              title="Sobre o comprovante" style={{
+                                width: 19, height: 19, borderRadius: '50%', border: '1.5px solid #2546f0',
+                                background: '#fff', color: '#2546f0', fontSize: 11, fontWeight: 800,
+                                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                padding: 0, flexShrink: 0,
+                              }}>?</button>
+                          )}
+                        </div>
                         {doc.description !== doc.label && (
-                          <p style={{ fontSize: 12.5, color: '#6b7280', marginTop: 3 }}>{doc.description}</p>
+                          <p style={{ fontSize: 13, color: '#6b7280', marginTop: 3 }}>{doc.description}</p>
                         )}
                       </div>
 
                       <span style={{
                         display: 'inline-flex', alignItems: 'center', gap: 5, flexShrink: 0,
-                        fontSize: 12, fontWeight: 600,
+                        padding: '6px 11px', borderRadius: 999, fontSize: 12, fontWeight: 700,
+                        background: uploaded ? '#e6f7ec' : '#fff4e5',
                         color: uploaded ? '#12804a' : '#b45309',
                       }}>
                         {uploaded ? 'Enviado' : 'Pendente'}
                         {uploaded
-                          ? <CircleCheck size={15} strokeWidth={2.4} />
-                          : <Clock size={15} strokeWidth={2.4} />}
+                          ? <CircleCheck size={13} strokeWidth={2.5} />
+                          : <Clock size={13} strokeWidth={2.5} />}
                       </span>
                     </div>
 
-                    {/* Botões: linha própria abaixo do título (cabe no celular) */}
-                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
-                      {!isPdfOnly && (
+                    {/* Balão flutuante: sobrepõe o card, sem empurrar o conteúdo. */}
+                    {temDica && showTip === doc.key && (
+                      <div style={{
+                        position: 'absolute', left: 14, right: 14, top: 64, zIndex: 20,
+                        display: 'flex', gap: 10, padding: '12px 14px',
+                        background: '#eef3fd', border: '1px solid #d5e0fb', borderRadius: 12,
+                        boxShadow: '0 10px 26px rgba(13,43,94,0.18)',
+                      }}>
+                        <Info size={18} color="#2546f0" strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
+                        <p style={{ fontSize: 13, color: '#334063', lineHeight: 1.5, margin: 0 }}>
+                          O comprovante de residência não precisa estar em seu nome, mas você precisa morar na residência que enviar.
+                        </p>
+                      </div>
+                    )}
+
+                    <div style={{ display: 'flex', gap: 10, marginTop: 14, flexWrap: 'wrap' }}>
+                      {uploaded ? (
+                        // Limpa o arquivo: o card volta a "Pendente" com os botões de envio.
+                        <button onClick={() => dispatch({ type: 'SET_DOCUMENT', key: doc.key, file: null })}
+                          style={{ ...docActionStyle, borderColor: '#2546f0', color: '#2546f0' }}>
+                          Enviar novamente
+                        </button>
+                      ) : isPdfOnly ? (
+                        <button onClick={() => openPdfPicker(doc.key)} style={{ ...docActionStyle, borderColor: '#f0c8c2', color: '#c0392b' }}>
+                          <FileText size={15} strokeWidth={1.9} />
+                          PDF
+                        </button>
+                      ) : (
                         <>
-                          <button onClick={() => openFilePicker(doc.key)} style={{ ...docActionStyle, flex: 1, minWidth: 108, justifyContent: 'center', borderColor: '#c9d4f5', color: '#2546f0' }}>
+                          <button onClick={() => openFilePicker(doc.key)} style={{ ...docActionStyle, borderColor: '#c9d4f5', color: '#2546f0' }}>
                             <Camera size={15} strokeWidth={1.9} />
-                            Câmera
+                            Foto
                           </button>
                           {/* Selfie só pela câmera (foto na hora, sem galeria). */}
                           {!isSelfie && (
-                            <button onClick={() => openGallery(doc.key)} style={{ ...docActionStyle, flex: 1, minWidth: 108, justifyContent: 'center', borderColor: '#c9d4f5', color: '#2546f0' }}>
+                            <button onClick={() => openGallery(doc.key)} style={{ ...docActionStyle, borderColor: '#c9d4f5', color: '#2546f0' }}>
                               <ImageIcon size={15} strokeWidth={1.9} />
                               Galeria
                             </button>
                           )}
+                          {podePdf && (
+                            <button onClick={() => openPdfPicker(doc.key)} style={{ ...docActionStyle, borderColor: '#f0c8c2', color: '#c0392b' }}>
+                              <FileText size={15} strokeWidth={1.9} />
+                              PDF
+                            </button>
+                          )}
                         </>
-                      )}
-                      {(podePdf || isPdfOnly) && (
-                        <button onClick={() => openPdfPicker(doc.key)} style={{ ...docActionStyle, flex: 1, minWidth: 108, justifyContent: 'center', borderColor: '#f0c8c2', color: '#c0392b' }}>
-                          <FileText size={15} strokeWidth={1.9} />
-                          PDF
-                        </button>
                       )}
                     </div>
 
-                    {uploaded && (
-                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
-                        <button onClick={() => dispatch({ type: 'SET_DOCUMENT', key: doc.key, file: null })}
-                          style={{ ...docActionStyle, border: 'none', background: 'transparent', color: '#6b7280', padding: '8px 10px' }}>
-                          <Trash2 size={15} strokeWidth={1.9} />
-                          Excluir
-                        </button>
-                        <button onClick={() => (isPdfOnly ? openPdfPicker(doc.key) : isSelfie ? openFilePicker(doc.key) : openGallery(doc.key))}
-                          style={{ ...docActionStyle, borderColor: '#d7ddea', color: '#4b5563' }}>
-                          Enviar novamente
-                        </button>
-                      </div>
-                    )}
-
-                    {temDica && (
-                      <div style={{
-                        display: 'flex', gap: 10, marginTop: 12, padding: '12px 14px',
-                        background: '#eef3fd', border: '1px solid #d5e0fb', borderRadius: 12,
-                      }}>
-                        <Info size={18} color="#2546f0" strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
-                        <p style={{ fontSize: 13, color: '#334063', lineHeight: 1.5, margin: 0 }}>
-                          Não precisa estar no seu nome, mas deve ser do endereço onde você mora e informou na análise.
-                        </p>
-                      </div>
-                    )}
                   </div>
                 );
               })}
@@ -615,17 +643,19 @@ export function Documents() {
             {/* Campos complementares */}
             <div style={{ ...docCardStyle, marginTop: 12, display: 'flex', flexDirection: 'column', gap: 14 }}>
               <ExtraField
-                icon={<Building2 size={20} color="#2546f0" strokeWidth={1.8} />}
-                iconBg="#eef3fd" label="Nome da empresa como aparece na fachada"
-                placeholder="Ex: Planeta Calçados"
+                icon={autonomo
+                  ? <Briefcase size={20} color="#2546f0" strokeWidth={1.8} />
+                  : <Building2 size={20} color="#2546f0" strokeWidth={1.8} />}
+                iconBg="#eef3fd" label={campoTrabalho.label}
+                placeholder={campoTrabalho.placeholder}
                 value={state.nomeEmpresa}
                 onChange={v => dispatch({ type: 'SET_FIELD', field: 'nomeEmpresa', value: v })}
               />
 
               <ExtraField
                 icon={<MapPin size={20} color="#2546f0" strokeWidth={1.8} />}
-                iconBg="#eef3fd" label="Bairro, local de trabalho e cidade"
-                placeholder="Ex: Centro, Camaçari"
+                iconBg="#eef3fd" label={campoLocal.label}
+                placeholder={campoLocal.placeholder}
                 value={state.bairroTrabalho}
                 onChange={v => dispatch({ type: 'SET_FIELD', field: 'bairroTrabalho', value: v })}
               />

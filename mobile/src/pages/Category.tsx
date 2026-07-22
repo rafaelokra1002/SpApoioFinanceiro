@@ -63,27 +63,35 @@ export function Category() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#fff' }}>
+      {/* Faixa azul com o Voltar */}
       <div style={{
-        background: '#fff', minHeight: '100vh', padding: '28px 20px 24px',
+        background: 'linear-gradient(120deg, #123bd6 0%, #1a45e0 45%, #2551f0 100%)',
+        padding: '18px 20px 46px',
       }}>
-        {/* Header with back */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 20 }}>
-          <button onClick={() => dispatch({ type: 'SET_STEP', step: 1 })} style={{
-            background: 'none', border: 'none', cursor: 'pointer', padding: 4, marginTop: 2,
-          }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0d2b5e" strokeWidth="2.5" strokeLinecap="round">
-              <path d="M19 12H5M12 19l-7-7 7-7"/>
-            </svg>
-          </button>
-          <div>
-            <h1 style={{ fontSize: 24, fontWeight: 800, color: '#0d2b5e', letterSpacing: '-0.02em' }}>
-              Escolha a categoria
-            </h1>
-            <p style={{ marginTop: 6, fontSize: 14, lineHeight: 1.45, color: '#6b7280' }}>
-              Selecione a categoria que melhor se encaixa no seu perfil.
-            </p>
-          </div>
-        </div>
+        <button onClick={() => dispatch({ type: 'SET_STEP', step: 1 })} style={{
+          display: 'inline-flex', alignItems: 'center', gap: 8,
+          padding: '9px 16px', borderRadius: 999, cursor: 'pointer',
+          background: 'rgba(255,255,255,0.14)', border: '1.5px solid rgba(255,255,255,0.5)',
+          color: '#fff', fontWeight: 700, fontSize: 14,
+        }}>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          Voltar
+        </button>
+      </div>
+
+      {/* Cartão branco subindo sobre a faixa azul */}
+      <div style={{
+        background: '#fff', borderRadius: '24px 24px 0 0', marginTop: -28,
+        position: 'relative', minHeight: '60vh', padding: '26px 20px 24px',
+      }}>
+        <h1 style={{ fontSize: 24, fontWeight: 800, color: '#0d2b5e', letterSpacing: '-0.02em' }}>
+          Escolha a categoria
+        </h1>
+        <p style={{ marginTop: 6, marginBottom: 20, fontSize: 14, lineHeight: 1.45, color: '#6b7280' }}>
+          Selecione a categoria que melhor se encaixa no seu perfil.
+        </p>
 
         {/* Category List */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>

@@ -25,6 +25,8 @@ export interface LoanState {
   observacao: string;
   latitude: number | null;
   longitude: number | null;
+  /** Permissão de localização — obrigatória para seguir com a solicitação. */
+  geo: 'pending' | 'granted' | 'denied';
   documents: Record<string, UploadedFile | null>;
   loading: boolean;
   // modals
@@ -47,7 +49,7 @@ const initial: LoanState = {
   nome: '', telefone: '', cpf: '', email: '',
   nomeEmpresa: '', bairroTrabalho: '',
   endereco: '', cep: '', enderecoTrabalho: '', observacao: '',
-  latitude: null, longitude: null,
+  latitude: null, longitude: null, geo: 'pending',
   documents: {}, loading: false,
   showComoFunciona: false, showDocumentosInfo: false, showDuvidas: false,
 };

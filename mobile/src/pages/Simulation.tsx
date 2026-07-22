@@ -215,8 +215,10 @@ export function Simulation() {
           </div>
 
           <div style={{ display: 'flex' }}>
-            <Destaque label={preview.parcelas === 1 ? 'Valor a pagar' : 'Valor da parcela'}
-              valor={formatCurrency(preview.valorParcela)} />
+            {/* À vista, parcela e total são o mesmo valor — mostra só o total. */}
+            {preview.parcelas > 1 && (
+              <Destaque label="Valor da parcela" valor={formatCurrency(preview.valorParcela)} />
+            )}
             <Destaque label="Valor total a pagar" valor={formatCurrency(preview.valorTotal)} />
           </div>
         </div>
