@@ -6,7 +6,6 @@ import {
 import { useLoan } from '../context/LoanContext';
 import { CATEGORIES, DOCUMENT_TYPES } from '../constants/categories';
 import { submitLeadWithDocuments } from '../services/api';
-import { requestLocation } from '../utils/geo';
 import { UploadedFile } from '../types';
 
 type OrigemKey = 'PANFLETO' | 'INSTAGRAM' | 'INDICACAO';
@@ -228,12 +227,6 @@ export function Documents() {
   };
 
   const handleSubmit = async () => {
-    // A localização é obrigatória — se foi negada/revogada, pede de novo e barra o envio.
-    if (state.geo !== 'granted') {
-      setError('Permita o acesso à sua localização para enviar a solicitação.');
-      requestLocation(dispatch);
-      return;
-    }
     if (!state.nome || !state.telefone) {
       setError('Preencha nome e telefone.');
       return;

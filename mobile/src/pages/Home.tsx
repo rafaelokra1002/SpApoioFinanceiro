@@ -1,20 +1,7 @@
-import { useState } from 'react';
 import { useLoan } from '../context/LoanContext';
-import { requestLocation } from '../utils/geo';
 
 export function Home() {
-  const { state, dispatch } = useLoan();
-  const [avisoGeo, setAvisoGeo] = useState(false);
-
-  // A localização é obrigatória: sem ela o cliente não inicia a solicitação.
-  const solicitar = () => {
-    if (state.geo !== 'granted') {
-      setAvisoGeo(true);
-      requestLocation(dispatch);
-      return;
-    }
-    dispatch({ type: 'SET_STEP', step: 1 });
-  };
+  const { dispatch } = useLoan();
 
   return (
     <div style={{
@@ -109,23 +96,7 @@ export function Home() {
 
         {/* Ações */}
         <div style={{ marginTop: 'auto', paddingTop: 40, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {avisoGeo && state.geo !== 'granted' && (
-            <div style={{
-              display: 'flex', gap: 10, padding: '13px 15px',
-              background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 14,
-            }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c2410c" strokeWidth="1.9" strokeLinecap="round" style={{ flexShrink: 0, marginTop: 1 }}>
-                <path d="M12 21c4-4.5 6-7.7 6-10.5a6 6 0 10-12 0C6 13.3 8 16.5 12 21z"/><circle cx="12" cy="10.5" r="2.2"/>
-              </svg>
-              <p style={{ fontSize: 13, color: '#7c2d12', lineHeight: 1.5, margin: 0 }}>
-                Para continuar, é preciso <strong>permitir o acesso à sua localização</strong>.
-                Toque em "Solicitar Agora" e aceite quando o navegador perguntar. Se você já
-                recusou antes, habilite a localização nas permissões do site e recarregue a página.
-              </p>
-            </div>
-          )}
-
-          <button onClick={solicitar} style={{
+          <button onClick={() => dispatch({ type: 'SET_STEP', step: 1 })} style={{
             display: 'flex', alignItems: 'center', gap: 14, width: '100%',
             padding: '14px 18px', borderRadius: 16, border: 'none', cursor: 'pointer',
             background: 'linear-gradient(135deg, #2546f0, #1a32c4)',
