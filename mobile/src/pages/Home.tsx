@@ -29,7 +29,7 @@ export function Home() {
         background: 'linear-gradient(200deg, #ffffff 0%, #f4f7ff 55%, #eaf0ff 100%)',
       }}>
         <img src="/capa-personagem.jpg" alt="" style={{
-          width: '100%', height: '100%', objectFit: 'cover', objectPosition: '42% 0%',
+          width: '100%', height: '100%', objectFit: 'cover', objectPosition: '18% 0%',
         }} />
         {/* Suaviza a emenda do painel com o fundo claro (sem cobrir o rosto) */}
         <div style={{
@@ -81,7 +81,8 @@ export function Home() {
           <h1 style={{
             fontSize: 'clamp(36px, 12vw, 52px)', fontWeight: 900, lineHeight: 0.95,
             letterSpacing: '-0.04em', color: '#0d1836',
-            textShadow: '0 2px 18px rgba(244,247,255,0.9)',
+            // Halo claro forte: o texto passa por cima do casaco escuro do personagem.
+            textShadow: '0 0 6px #fff, 0 0 14px rgba(255,255,255,0.95), 0 0 28px rgba(255,255,255,0.85)',
           }}>
             Dinheiro<br/><span style={{ color: '#2546f0' }}>rápido.</span>
           </h1>
@@ -91,8 +92,8 @@ export function Home() {
               <path d="M13.5 2L4 14h6l-.5 8L19 10h-6z"/>
             </svg>
             <p style={{
-              fontSize: 17, fontWeight: 600, color: '#0d1836', lineHeight: 1.35,
-              textShadow: '0 2px 14px rgba(244,247,255,0.9)',
+              fontSize: 15, fontWeight: 600, color: '#0d1836', lineHeight: 1.35,
+              textShadow: '0 0 5px #fff, 0 0 12px rgba(255,255,255,0.95), 0 0 22px rgba(255,255,255,0.9)',
             }}>
               Receba sua análise<br/>em <span style={{ color: '#2546f0' }}>minutos.</span>
             </p>

@@ -126,7 +126,7 @@ function ComoFuncionaModal() {
           display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 12, padding: '12px 14px',
           background: '#f6f8fd', border: '1px solid #e2e8f8', borderRadius: 12,
         }}>
-          <RequisitoItem icon={<><circle cx="12" cy="8" r="3.2"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></>} texto="Ser maior de 18 anos" />
+          <RequisitoItem icon={<><circle cx="12" cy="8" r="3.2"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></>} texto="Ser maior de 15 anos" />
           <RequisitoItem icon={<><path d="M3 11l9-7 9 7"/><path d="M5.5 11.5V20h13v-8.5"/></>} texto="Residir na Bahia" />
           <RequisitoItem icon={<><circle cx="12" cy="12" r="9"/><path d="M8.5 12.2l2.4 2.4 4.6-4.8"/></>} texto="Simples, rápido e seguro" />
         </div>
