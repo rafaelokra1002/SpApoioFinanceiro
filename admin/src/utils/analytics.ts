@@ -99,6 +99,18 @@ export function priorRequestsOf(lead: Lead, all: Lead[]): Lead[] {
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
 }
 
+/**
+ * Busca por nome ou telefone. O trecho de telefone só entra quando a busca tem
+ * dígitos — comparar `telefone.includes('')` casaria com todo mundo.
+ */
+export function matchesSearch(lead: Lead, query: string): boolean {
+  const q = query.trim().toLowerCase();
+  if (!q) return true;
+  if (lead.nome.toLowerCase().includes(q)) return true;
+  const digits = q.replace(/\D/g, '');
+  return digits !== '' && lead.telefone.replace(/\D/g, '').includes(digits);
+}
+
 /** Contagens apenas dos leads criados nos últimos `days` dias. */
 export function countLastDays(leads: Lead[], days: number): Counts {
   const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;

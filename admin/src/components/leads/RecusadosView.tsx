@@ -4,6 +4,7 @@ import {
   Trash2, UserX, Users,
 } from 'lucide-react';
 import { Lead } from '../../types';
+import { matchesSearch } from '../../utils/analytics';
 import { LimparFiltros, SelectButton } from './Filters';
 import { MOTIVOS_RECUSA } from './RecusarModal';
 import LeadCardDetailed from './LeadCardDetailed';
@@ -17,7 +18,6 @@ interface RecusadosViewProps {
   onDelete: (id: string) => void;
 }
 
-type GrupoFiltro = 'todos' | '1' | '2' | '3' | 'sem';
 type Periodo = 'sempre' | '7' | '30' | '90';
 
 function formatDateTime(dateStr: string): string {
@@ -48,7 +48,6 @@ function motivoTitulo(grupo: number): string {
 
 export default function RecusadosView({ leads, loading, onView, onWhatsApp, onStatusChange, onDelete }: RecusadosViewProps) {
   const [query, setQuery] = useState('');
-  const [grupoFiltro, setGrupoFiltro] = useState<GrupoFiltro>('todos');
   const [periodo, setPeriodo] = useState<Periodo>('sempre');
 
   const grupoCount = useMemo(
@@ -61,17 +60,14 @@ export default function RecusadosView({ leads, loading, onView, onWhatsApp, onSt
   );
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
     const dias = PERIODO_DIAS[periodo];
     const limite = dias ? Date.now() - dias * 24 * 60 * 60 * 1000 : null;
     return leads.filter((l) => {
-      if (q && !(l.nome.toLowerCase().includes(q) || l.telefone.replace(/\D/g, '').includes(q.replace(/\D/g, '')))) return false;
-      if (grupoFiltro === 'sem' && l.grupo != null) return false;
-      if (grupoFiltro !== 'todos' && grupoFiltro !== 'sem' && l.grupo !== Number(grupoFiltro)) return false;
+      if (!matchesSearch(l, query)) return false;
       if (limite && new Date(l.updatedAt).getTime() < limite) return false;
       return true;
     });
-  }, [leads, query, grupoFiltro, periodo]);
+  }, [leads, query, periodo]);
 
   if (loading) {
     return <p className="py-24 text-center text-sm text-subtle">Carregando...</p>;
@@ -80,7 +76,7 @@ export default function RecusadosView({ leads, loading, onView, onWhatsApp, onSt
   return (
     <div className="space-y-5">
       {/* Resumo: total + grupos */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard icon={UserX} iconClass="bg-danger/10 text-danger" label="Total de recusados"
           value={leads.length} caption="clientes recusados" highlight />
         <StatCard icon={Users} iconClass={GRUPO_ICON[1]} label={motivoTitulo(1)} value={grupoCount[1]} caption="clientes caíram" valueClass="text-danger" />
@@ -102,8 +98,8 @@ export default function RecusadosView({ leads, loading, onView, onWhatsApp, onSt
         </div>
 
         <LimparFiltros
-          show={query !== '' || grupoFiltro !== 'todos' || periodo !== 'sempre'}
-          onClick={() => { setQuery(''); setGrupoFiltro('todos'); setPeriodo('sempre'); }}
+          show={query !== '' || periodo !== 'sempre'}
+          onClick={() => { setQuery(''); setPeriodo('sempre'); }}
         />
 
         <SelectButton icon={Calendar} value={periodo} onChange={(v) => setPeriodo(v as Periodo)}
@@ -113,21 +109,12 @@ export default function RecusadosView({ leads, loading, onView, onWhatsApp, onSt
             { value: '30', label: 'Últimos 30 dias' },
             { value: '90', label: 'Últimos 90 dias' },
           ]} />
-
-        <SelectButton icon={Users} value={grupoFiltro} onChange={(v) => setGrupoFiltro(v as GrupoFiltro)}
-          options={[
-            { value: 'todos', label: 'Todos os motivos' },
-            { value: '1', label: motivoTitulo(1) },
-            { value: '2', label: motivoTitulo(2) },
-            { value: '3', label: motivoTitulo(3) },
-            { value: 'sem', label: 'Sem motivo definido' },
-          ]} />
       </div>
 
       {/* Cards */}
       {filtered.length === 0 ? (
         <p className="rounded-2xl border border-line bg-surface py-24 text-center text-sm text-subtle">
-          {query || grupoFiltro !== 'todos' || periodo !== 'sempre'
+          {query || periodo !== 'sempre'
             ? 'Nenhum recusado para esse filtro'
             : 'Nenhuma solicitação recusada'}
         </p>
@@ -155,16 +142,17 @@ function StatCard({ icon: Icon, iconClass, label, value, caption, valueClass = '
   icon: typeof Users; iconClass: string; label: string; value: number; caption: string; valueClass?: string; highlight?: boolean;
 }) {
   return (
-    <div className={`flex items-center gap-3 rounded-2xl border bg-surface p-4 shadow-sm
-      ${highlight ? 'border-danger/30' : 'border-line'}`}>
-      <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${iconClass}`}>
-        <Icon size={22} strokeWidth={2} />
-      </span>
-      <div className="min-w-0">
-        <p className="text-[12.5px] font-medium text-muted">{label}</p>
-        <p className={`text-[26px] font-bold leading-tight ${valueClass}`}>{value}</p>
-        <p className="text-[11.5px] text-subtle">{caption}</p>
+    <div className={`rounded-2xl border bg-surface p-5 shadow-sm ${highlight ? 'border-danger/30' : 'border-line'}`}>
+      <div className="flex items-center gap-3">
+        <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${iconClass}`}>
+          <Icon size={20} strokeWidth={2} />
+        </span>
+        <div className="min-w-0">
+          <p className="text-[13px] font-semibold text-ink-2">{label}</p>
+          <p className={`text-[26px] font-bold leading-tight ${valueClass}`}>{value}</p>
+        </div>
       </div>
+      <p className="mt-2 text-[12px] text-subtle">{caption}</p>
     </div>
   );
 }

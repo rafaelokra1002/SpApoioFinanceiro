@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { Lead } from '../types';
 import { fetchMessageLogs } from '../services/api';
-import { downloadLeadDossier } from '../utils/leadDossier';
+import { downloadDocument, downloadLeadDossier } from '../utils/leadDossier';
 import { METRICS, STATUS_ORDER, isInternalStatus, statusLabel } from '../constants/status';
 import { modalidade } from '../utils/analytics';
 import { avatarColor, clientPhotoUrl, initials } from '../utils/avatar';
@@ -61,6 +61,7 @@ function docLabel(doc: { tipo: string; filename: string }): string {
 export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, onWhatsApp, onUpdateGroups, onRecusar, onAprovar }: LeadDetailProps) {
   const [logs, setLogs] = useState<MessageLog[]>([]);
   const [downloading, setDownloading] = useState(false);
+  const [baixandoDoc, setBaixandoDoc] = useState<string | null>(null);
   const [recusando, setRecusando] = useState(false);
   const [aprovando, setAprovando] = useState(false);
   const [enviandoGrupo, setEnviandoGrupo] = useState(false);
@@ -81,6 +82,18 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
       notify('Não foi possível gerar o backup deste cliente.', 'error');
     } finally {
       setDownloading(false);
+    }
+  };
+
+  const baixarDocumento = async (doc: { id: string; tipo: string; filename: string; url: string }) => {
+    try {
+      setBaixandoDoc(doc.id);
+      await downloadDocument(doc.url, `${lead.nome}-${docLabel(doc)}`);
+    } catch (error) {
+      console.error('Erro ao baixar documento:', error);
+      notify('Não foi possível baixar este documento.', 'error');
+    } finally {
+      setBaixandoDoc(null);
     }
   };
 
@@ -206,10 +219,14 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
                       <div className="px-2 py-1.5">
                         <p className="truncate text-[11.5px] font-semibold text-ink" title={docLabel(doc)}>{docLabel(doc)}</p>
                         <p className="text-[10px] text-subtle">Enviado em {formatDate(doc.createdAt)}</p>
-                        <a href={doc.url} target="_blank" rel="noopener noreferrer"
-                          className="mt-1 flex items-center justify-center gap-1 rounded-lg bg-brand/10 py-1 text-[11px] font-semibold text-brand-deep transition-colors hover:bg-brand/20">
-                          <Download size={11} /> Baixar
-                        </a>
+                        <button
+                          onClick={() => baixarDocumento(doc)}
+                          disabled={baixandoDoc === doc.id}
+                          className="mt-1 flex w-full items-center justify-center gap-1 rounded-lg bg-brand/10 py-1 text-[11px] font-semibold text-brand-deep transition-colors hover:bg-brand/20 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60">
+                          {baixandoDoc === doc.id
+                            ? <><Loader2 size={11} className="animate-spin" /> Baixando</>
+                            : <><Download size={11} /> Baixar</>}
+                        </button>
                       </div>
                     </div>
                   );

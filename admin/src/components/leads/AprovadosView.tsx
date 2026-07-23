@@ -1,20 +1,20 @@
 import { ReactNode, useMemo, useState } from 'react';
 import {
   Banknote, Briefcase, Building2, CalendarClock, CalendarCheck2, CheckCircle2, ClipboardCheck,
-  ChevronLeft, ChevronRight, CircleDollarSign, CreditCard, Eye, Home, LayoutGrid, List, Loader2,
+  ChevronRight, CircleDollarSign, CreditCard, Eye, Home, LayoutGrid, List, Loader2,
   MapPin, MessageCircle, MessageSquareText, Search, Share2, UserRound,
 } from 'lucide-react';
 import { Lead } from '../../types';
-import { formatCurrency, modalidade, origemOf } from '../../utils/analytics';
+import { formatCurrency, matchesSearch, modalidade, origemOf } from '../../utils/analytics';
 import { statusBadge, statusLabel } from '../../constants/status';
+import useInfiniteList from '../../hooks/useInfiniteList';
 import { LimparFiltros, SelectButton } from './Filters';
 import Avatar from '../Avatar';
 import OrigemIcon from '../dashboard/OrigemIcon';
 
 type ViewMode = 'grade' | 'lista';
-type Periodo = 'mes' | 'mespassado' | '7' | '30' | 'todo';
+type Periodo = 'todo' | '7' | '30' | '90';
 const VIEW_KEY = 'sp-admin-aprovados-view';
-const PER_PAGE = 6;
 
 interface AprovadosViewProps {
   leads: Lead[];
@@ -54,39 +54,22 @@ function modalidadeAprovadaLabel(lead: Lead): string {
   return modalidade(lead.prazo);
 }
 
-/** Intervalo [início, fim] do período selecionado (fim é "agora" nas opções relativas). */
+/** Intervalo [início, fim] do período selecionado; `null` em "Todo o período". */
 function periodoRange(p: Periodo): { start: number; end: number } | null {
-  const now = new Date();
   if (p === 'todo') return null;
-  if (p === 'mes') {
-    return { start: new Date(now.getFullYear(), now.getMonth(), 1).getTime(), end: now.getTime() };
-  }
-  if (p === 'mespassado') {
-    return {
-      start: new Date(now.getFullYear(), now.getMonth() - 1, 1).getTime(),
-      end: new Date(now.getFullYear(), now.getMonth(), 1).getTime() - 1,
-    };
-  }
-  const dias = Number(p);
-  return { start: now.getTime() - dias * 24 * 60 * 60 * 1000, end: now.getTime() };
+  const now = Date.now();
+  return { start: now - Number(p) * 24 * 60 * 60 * 1000, end: now };
 }
 
 function periodoLabel(p: Periodo): string {
-  const r = periodoRange(p);
-  const fmt = (t: number) => new Date(t).toLocaleDateString('pt-BR');
-  if (p === 'mes') return `Este mês (${fmt(r!.start)} a ${fmt(r!.end)})`;
-  if (p === 'mespassado') return `Mês passado (${fmt(r!.start)} a ${fmt(r!.end)})`;
-  if (p === '7') return 'Últimos 7 dias';
-  if (p === '30') return 'Últimos 30 dias';
-  return 'Todo o período';
+  return p === 'todo' ? 'Todo o período' : `Últimos ${p} dias`;
 }
 
-const PERIODOS: Periodo[] = ['mes', 'mespassado', '7', '30', 'todo'];
+const PERIODOS: Periodo[] = ['todo', '7', '30', '90'];
 
 export default function AprovadosView({ leads, loading, onView, onWhatsApp }: AprovadosViewProps) {
   const [query, setQuery] = useState('');
-  const [periodo, setPeriodo] = useState<Periodo>('mes');
-  const [pageNum, setPageNum] = useState(1);
+  const [periodo, setPeriodo] = useState<Periodo>('todo');
   const [view, setViewState] = useState<ViewMode>(
     () => (localStorage.getItem(VIEW_KEY) === 'lista' ? 'lista' : 'grade'),
   );
@@ -104,18 +87,12 @@ export default function AprovadosView({ leads, loading, onView, onWhatsApp }: Ap
 
   const totalValor = useMemo(() => noPeriodo.reduce((s, l) => s + valorAprovadoDe(l), 0), [noPeriodo]);
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return noPeriodo;
-    return noPeriodo.filter(
-      (l) => l.nome.toLowerCase().includes(q) || l.telefone.replace(/\D/g, '').includes(q.replace(/\D/g, '')),
-    );
-  }, [noPeriodo, query]);
+  const filtered = useMemo(
+    () => (query.trim() ? noPeriodo.filter((l) => matchesSearch(l, query)) : noPeriodo),
+    [noPeriodo, query],
+  );
 
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
-  const current = Math.min(pageNum, pageCount);
-  const start = (current - 1) * PER_PAGE;
-  const shown = filtered.slice(start, start + PER_PAGE);
+  const { shown, hasMore, sentinelRef } = useInfiniteList(filtered);
 
   if (loading) {
     return (
@@ -128,7 +105,7 @@ export default function AprovadosView({ leads, loading, onView, onWhatsApp }: Ap
   return (
     <div className="space-y-5">
       {/* Resumo */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="grid max-w-3xl grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="flex items-center gap-4 rounded-2xl border border-line bg-surface p-5 shadow-sm">
           <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-success/10">
             <ClipboardCheck size={24} className="text-success" strokeWidth={2} />
@@ -161,7 +138,7 @@ export default function AprovadosView({ leads, loading, onView, onWhatsApp }: Ap
           <Search size={17} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-subtle" />
           <input
             value={query}
-            onChange={(e) => { setQuery(e.target.value); setPageNum(1); }}
+            onChange={(e) => setQuery(e.target.value)}
             placeholder="Buscar por nome ou telefone..."
             className="w-full rounded-xl border border-line bg-surface py-3 pl-11 pr-4 text-[14px] text-ink placeholder:text-subtle focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15"
           />
@@ -169,13 +146,13 @@ export default function AprovadosView({ leads, loading, onView, onWhatsApp }: Ap
 
         <LimparFiltros
           show={query !== '' || periodo !== 'todo'}
-          onClick={() => { setQuery(''); setPeriodo('todo'); setPageNum(1); }}
+          onClick={() => { setQuery(''); setPeriodo('todo'); }}
         />
 
         <SelectButton
           icon={CalendarCheck2}
           value={periodo}
-          onChange={(v) => { setPeriodo(v as Periodo); setPageNum(1); }}
+          onChange={(v) => setPeriodo(v as Periodo)}
           options={PERIODOS.map((p) => ({ value: p, label: periodoLabel(p) }))}
         />
 
@@ -200,19 +177,10 @@ export default function AprovadosView({ leads, loading, onView, onWhatsApp }: Ap
         <AprovadosTable leads={shown} onView={onView} onWhatsApp={onWhatsApp} />
       )}
 
-      {/* Paginação */}
-      {filtered.length > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-[13px] text-muted">Mostrando {start + 1} a {start + shown.length} de {filtered.length}</p>
-          {pageCount > 1 && (
-            <div className="flex items-center gap-1">
-              <PageBtn disabled={current === 1} onClick={() => setPageNum(current - 1)}><ChevronLeft size={16} /></PageBtn>
-              {Array.from({ length: pageCount }, (_, i) => i + 1).map((n) => (
-                <PageBtn key={n} active={n === current} onClick={() => setPageNum(n)}>{n}</PageBtn>
-              ))}
-              <PageBtn disabled={current === pageCount} onClick={() => setPageNum(current + 1)}><ChevronRight size={16} /></PageBtn>
-            </div>
-          )}
+      {/* Rolagem infinita: carrega mais ao chegar no fim da lista */}
+      {hasMore && (
+        <div ref={sentinelRef} className="flex items-center justify-center py-6">
+          <Loader2 size={20} className="animate-spin text-brand" />
         </div>
       )}
     </div>
@@ -329,8 +297,8 @@ function AprovadoCard({ lead, onView, onWhatsApp }: {
 
       <button
         onClick={() => onView(lead)}
-        className="mt-auto flex items-center justify-between border-t border-line bg-brand px-5 py-3
-          text-[13px] font-bold text-white transition-colors hover:bg-brand-deep cursor-pointer"
+        className="mt-auto flex items-center justify-between border-t border-line bg-line px-5 py-3
+          text-[13px] font-bold text-ink-2 transition-colors hover:bg-canvas cursor-pointer"
       >
         <span className="flex-1" />
         <span className="flex items-center gap-2"><Eye size={15} /> Ver detalhes</span>
@@ -340,7 +308,7 @@ function AprovadoCard({ lead, onView, onWhatsApp }: {
   );
 }
 
-/* --------------------------------------------------------------- lista + paginação */
+/* --------------------------------------------------------------- lista */
 
 function ViewTab({ active, onClick, icon: Icon, label }: {
   active: boolean; onClick: () => void; icon: typeof List; label: string;
@@ -352,21 +320,6 @@ function ViewTab({ active, onClick, icon: Icon, label }: {
         ${active ? 'bg-brand text-white' : 'text-muted hover:text-ink-2'}`}
     >
       <Icon size={15} strokeWidth={2.2} /> {label}
-    </button>
-  );
-}
-
-function PageBtn({ children, active, disabled, onClick }: {
-  children: ReactNode; active?: boolean; disabled?: boolean; onClick?: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={`flex h-9 min-w-9 items-center justify-center rounded-lg px-2.5 text-[13px] font-semibold transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-40
-        ${active ? 'bg-brand text-white' : 'border border-line bg-surface text-ink-2 hover:bg-canvas'}`}
-    >
-      {children}
     </button>
   );
 }

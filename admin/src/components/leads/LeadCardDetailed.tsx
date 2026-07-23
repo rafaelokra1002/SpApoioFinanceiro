@@ -146,8 +146,8 @@ export default function LeadCardDetailed({
 
       <button
         onClick={() => onView(lead)}
-        className="mt-auto flex items-center justify-center gap-2 border-t border-line bg-brand py-3
-          text-[13px] font-bold text-white transition-colors hover:bg-brand-deep cursor-pointer"
+        className="mt-auto flex items-center justify-center gap-2 border-t border-line bg-line py-3
+          text-[13px] font-bold text-ink-2 transition-colors hover:bg-canvas cursor-pointer"
       >
         <Eye size={15} /> Ver detalhes
       </button>

@@ -63,6 +63,14 @@ export default function Dashboard({ leads, loading, onDrillDown }: DashboardProp
   );
   const summary = useMemo(() => buildSummary(summaryScoped), [summaryScoped]);
 
+  // Taxa de aprovação mês a mês, para o gráfico do tile. Diferente do tile, que
+  // olha só o mês filtrado, a janela aqui é a série até esse mês.
+  const taxaTrend = useMemo(
+    () => monthSeries(leads, summaryMonth || currentMonth(), CHART_MONTHS)
+      .map((p) => (p.counts.total ? (p.counts.APROVADO / p.counts.total) * 100 : 0)),
+    [leads, summaryMonth],
+  );
+
   const periodLabel = month ? fullMonthLabel(month) : 'Todo o período';
   const cardCaption = month ? `em ${periodLabel}` : undefined;
 
@@ -114,6 +122,7 @@ export default function Dashboard({ leads, loading, onDrillDown }: DashboardProp
             value={counts[metric]}
             week={weekCounts[metric]}
             caption={cardCaption}
+            trend={chartSeries.map((p) => p.counts[metric])}
             onClick={() => onDrillDown(metric)}
           />
         ))}
@@ -196,6 +205,7 @@ export default function Dashboard({ leads, loading, onDrillDown }: DashboardProp
           month={summaryMonth}
           monthOptions={monthOptions}
           onMonthChange={setSummaryMonth}
+          taxaTrend={taxaTrend}
         />
       </div>
 

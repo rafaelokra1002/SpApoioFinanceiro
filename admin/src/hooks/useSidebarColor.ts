@@ -18,7 +18,9 @@ export const SIDEBAR_COLORS: SidebarColor[] = [
   { id: 'verde', label: 'Verde', from: '#15803d', to: '#0f5c2c', activeFrom: '#0a3b1e', activeTo: '#11512a' },
   { id: 'verde-escuro', label: 'Verde Escuro', from: '#0f4d2c', to: '#08331d', activeFrom: '#052617', activeTo: '#0b4028' },
   { id: 'roxo-escuro', label: 'Roxo Escuro', from: '#2e1d5e', to: '#1b1038', activeFrom: '#150c2c', activeTo: '#3a2578' },
-  { id: 'preto', label: 'Preto', from: '#1f1f1f', to: '#0a0a0a', activeFrom: '#000000', activeTo: '#2a2a2a' },
+  // Termina exatamente no --color-canvas do tema escuro, para a sidebar não
+  // parecer um bloco de outra cor colado na página.
+  { id: 'preto', label: 'Preto', from: '#202023', to: '#101012', activeFrom: '#0a0a0c', activeTo: '#2c2c30' },
 ];
 
 const STORAGE_KEY = 'sp-admin-sidebar-color';

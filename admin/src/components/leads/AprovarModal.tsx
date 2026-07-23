@@ -209,23 +209,38 @@ export default function AprovarModal({ lead, onClose, onConfirm }: AprovarModalP
             </div>
 
             {/* Resumo */}
-            <div className="rounded-xl border border-line bg-canvas p-4">
-              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <p className="text-[12.5px] font-bold text-ink">Resumo da aprovação</p>
-                <button
-                  onClick={copiarMensagem}
-                  disabled={valorAprovado <= 0}
-                  className="flex items-center gap-1.5 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-[12px] font-semibold text-ink-2 transition-colors hover:bg-canvas cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  {copiado ? <Check size={14} className="text-success" /> : <Copy size={14} className="text-subtle" />}
-                  {copiado ? 'Copiado!' : 'Copiar mensagem'}
-                </button>
-              </div>
+            <div className="rounded-xl border border-line bg-canvas p-4 pb-1">
+              <p className="mb-2 text-[12.5px] font-bold text-ink">Resumo da aprovação</p>
               <div className="grid grid-cols-1 gap-x-6 gap-y-1.5 sm:grid-cols-2">
                 <ResumoRow label="Valor aprovado" value={formatCurrency(valorAprovado)} />
                 <ResumoRow label="Total a pagar" value={formatCurrency(valorTotal)} />
                 <ResumoRow label="Modalidade" value={parcelado ? 'Parcelado' : 'À vista'} />
                 <ResumoRow label="Parcelas" value={parcelado ? `${PARCELAS}x de ${formatCurrency(parcela)}` : 'À vista'} />
+              </div>
+
+              {/* Mesma dupla do modal de recusa, colada no canto inferior direito */}
+              <div className="-mr-1.5 mt-3 flex flex-wrap items-center justify-end gap-2">
+                <button
+                  onClick={copiarMensagem}
+                  disabled={valorAprovado <= 0}
+                  className="flex items-center gap-1.5 rounded-lg border border-line bg-surface px-2.5 py-1.5
+                    text-[12px] font-semibold text-ink-2 transition-colors hover:bg-canvas cursor-pointer
+                    disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {copiado ? <Check size={13} className="text-success" /> : <Copy size={13} />}
+                  {copiado ? 'Copiado' : 'Copiar'}
+                </button>
+                <button
+                  onClick={() => abrirWhatsApp(lead.telefone, mensagemDoCliente())}
+                  disabled={valorAprovado <= 0}
+                  title="Abre a conversa no WhatsApp com a mensagem pronta"
+                  className="flex items-center gap-1.5 rounded-lg bg-purple-600 px-2.5 py-1.5
+                    text-[12px] font-bold text-white transition-all hover:brightness-110 cursor-pointer
+                    disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <MessageCircle size={13} fill="currentColor" />
+                  Enviar para cliente
+                </button>
               </div>
             </div>
           </div>
@@ -245,15 +260,6 @@ export default function AprovarModal({ lead, onClose, onConfirm }: AprovarModalP
             className="rounded-xl bg-success px-5 py-2.5 text-[13px] font-bold text-white transition-colors hover:brightness-110 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
           >
             Aprovar cliente
-          </button>
-          <button
-            onClick={() => abrirWhatsApp(lead.telefone, mensagemDoCliente())}
-            disabled={valorAprovado <= 0}
-            title="Abre a conversa no WhatsApp com a mensagem pronta"
-            className="flex items-center gap-1.5 rounded-xl bg-purple-600 px-5 py-2.5 text-[13px] font-bold text-white transition-all hover:brightness-110 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            <MessageCircle size={15} fill="currentColor" />
-            Enviar para cliente
           </button>
         </div>
       </div>

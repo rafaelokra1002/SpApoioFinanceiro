@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import { MonthPoint } from '../../utils/analytics';
 import { METRICS, MetricKey } from '../../constants/status';
 
@@ -23,6 +24,7 @@ function niceMax(max: number): number {
 
 export default function LineChart({ points, series, mode }: LineChartProps) {
   const percentual = mode === 'percentual';
+  const gradId = useId();
 
   // Em percentual, a série "total" seria sempre 100% — não agrega nada.
   const visible = percentual ? series.filter((s) => s !== 'total') : series;
@@ -44,10 +46,35 @@ export default function LineChart({ points, series, mode }: LineChartProps) {
 
   const ticks = Array.from({ length: 6 }, (_, i) => (yMax / 5) * i);
 
+  const coordsOf = (key: MetricKey) =>
+    points.map((p, i) => [x(i), y(valueOf(p, key))] as const);
+
+  const pathOf = (key: MetricKey) =>
+    coordsOf(key)
+      .map(([px, py], i) => `${i === 0 ? 'M' : 'L'}${px.toFixed(1)},${py.toFixed(1)}`)
+      .join(' ');
+
+  /** Fecha a linha até o eixo X para pintar a área sob a curva. */
+  const areaPath = (line: string) => {
+    if (points.length < 2) return '';
+    const baseY = y(0).toFixed(1);
+    return `${line} L${x(points.length - 1).toFixed(1)},${baseY} L${x(0).toFixed(1)},${baseY} Z`;
+  };
+
   return (
     <div className="overflow-x-auto">
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full min-w-[520px]" role="img"
         aria-label={`Solicitações por mês em ${mode}`}>
+        {/* Um degradê por série: a cor da linha esmaecendo até o eixo. */}
+        <defs>
+          {visible.map((key) => (
+            <linearGradient key={key} id={`${gradId}-${key}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={METRICS[key].hex} stopOpacity={0.28} />
+              <stop offset="100%" stopColor={METRICS[key].hex} stopOpacity={0} />
+            </linearGradient>
+          ))}
+        </defs>
+
         {/* Grade + eixo Y */}
         {ticks.map((t) => (
           <g key={t}>
@@ -74,17 +101,22 @@ export default function LineChart({ points, series, mode }: LineChartProps) {
           </text>
         ))}
 
-        {/* Séries */}
+        {/* Áreas primeiro, para nenhum degradê cobrir a linha ou o rótulo de outra série. */}
+        {visible.map((key) => {
+          const area = areaPath(pathOf(key));
+          return area
+            ? <path key={key} d={area} fill={`url(#${gradId}-${key})`} stroke="none" />
+            : null;
+        })}
+
+        {/* Linhas, pontos e rótulos */}
         {visible.map((key) => {
           const meta = METRICS[key];
-          const coords = points.map((p, i) => [x(i), y(valueOf(p, key))] as const);
-          const path = coords
-            .map(([px, py], i) => `${i === 0 ? 'M' : 'L'}${px.toFixed(1)},${py.toFixed(1)}`)
-            .join(' ');
+          const coords = coordsOf(key);
 
           return (
             <g key={key}>
-              <path d={path} fill="none" stroke={meta.hex} strokeWidth={1.75}
+              <path d={pathOf(key)} fill="none" stroke={meta.hex} strokeWidth={1.75}
                 strokeLinecap="round" strokeLinejoin="round" />
               {coords.map(([px, py], i) => (
                 <g key={points[i].key}>

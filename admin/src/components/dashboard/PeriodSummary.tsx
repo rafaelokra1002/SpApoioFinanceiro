@@ -1,5 +1,6 @@
 import { Award, BadgeCheck, MapPin, X } from 'lucide-react';
 import { Summary, formatPercent, fullMonthLabel } from '../../utils/analytics';
+import Sparkline from '../charts/Sparkline';
 
 interface PeriodSummaryProps {
   summary: Summary;
@@ -7,6 +8,8 @@ interface PeriodSummaryProps {
   month: string;
   monthOptions: string[];
   onMonthChange: (month: string) => void;
+  /** Taxa de aprovação mês a mês; só esse tile tem gráfico. */
+  taxaTrend?: number[];
 }
 
 interface Tile {
@@ -14,10 +17,12 @@ interface Tile {
   value: string;
   caption: string;
   icon: typeof Award;
+  /** Série do gráfico; sem ela o tile mostra apenas o ícone. */
+  trend?: number[];
   big?: boolean;
 }
 
-export default function PeriodSummary({ summary, month, monthOptions, onMonthChange }: PeriodSummaryProps) {
+export default function PeriodSummary({ summary, month, monthOptions, onMonthChange, taxaTrend }: PeriodSummaryProps) {
   const { topCidade, topOrigem } = summary;
 
   const tiles: Tile[] = [
@@ -26,6 +31,7 @@ export default function PeriodSummary({ summary, month, monthOptions, onMonthCha
       value: formatPercent(summary.taxaAprovacao),
       caption: `${summary.aprovados} de ${summary.totalClientes} clientes`,
       icon: BadgeCheck,
+      trend: taxaTrend,
     },
     {
       title: 'Cidade com mais aprovados',
@@ -87,19 +93,31 @@ export default function PeriodSummary({ summary, month, monthOptions, onMonthCha
           return (
             <div
               key={tile.title}
-              className="flex flex-col items-center rounded-xl border border-line bg-canvas/60 px-3 py-4 text-center"
+              className="flex flex-col overflow-hidden rounded-xl border border-line bg-canvas/60 pt-4 text-center"
             >
-              <p className="text-[11.5px] font-medium text-muted">{tile.title}</p>
+              <p className="px-3 text-[11.5px] font-medium text-muted">{tile.title}</p>
               <p
-                className={`mt-1.5 font-bold text-ink ${tile.big ? 'text-[16px] leading-snug' : 'text-[22px]'}`}
+                className={`mt-1.5 px-3 font-bold text-ink ${tile.big ? 'text-[16px] leading-snug' : 'text-[22px]'}`}
                 title={tile.value}
               >
                 {tile.value}
               </p>
-              <p className="mt-1 text-[10.5px] text-subtle">{tile.caption}</p>
-              <span className="mt-2.5 flex h-9 w-9 items-center justify-center rounded-full bg-brand/10">
-                <Icon size={16} className="text-brand-deep" />
-              </span>
+              <p className="mt-1 px-3 text-[10.5px] text-subtle">{tile.caption}</p>
+
+              {tile.trend ? (
+                /* Tendência dos últimos meses, com o ícone como selo sobre o gráfico. */
+                <div className="relative mt-3 text-success">
+                  <Sparkline values={tile.trend} area stretch className="h-14 w-full" />
+                  <span className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center
+                    rounded-xl bg-surface shadow-sm">
+                    <Icon size={15} className="text-success" />
+                  </span>
+                </div>
+              ) : (
+                <span className="mx-auto mb-4 mt-3 flex h-9 w-9 items-center justify-center rounded-full bg-brand/10">
+                  <Icon size={16} className="text-brand-deep" />
+                </span>
+              )}
             </div>
           );
         })}

@@ -168,6 +168,18 @@ function triggerDownload(blob: Blob, fileName: string) {
   URL.revokeObjectURL(blobUrl);
 }
 
+/**
+ * Baixa um documento direto para o disco. Vai pelo blob (e não por um link com
+ * `download`) porque os arquivos ficam em outra origem — com href direto o
+ * navegador ignora o atributo e só abre a imagem numa aba.
+ */
+export async function downloadDocument(url: string, baseName: string) {
+  const blob = await fetchDocumentBlob(url);
+  const nomeArquivo = url.split('/').pop()?.split('?')[0] ?? '';
+  const ext = extensionFromDocumentName(nomeArquivo, blob.type);
+  triggerDownload(blob, `${sanitizeSegment(baseName) || 'documento'}.${ext}`);
+}
+
 function leadFolderName(lead: Lead) {
   return [sanitizeSegment(lead.nome) || 'lead', sanitizeSegment(lead.telefone) || lead.id.slice(0, 8)]
     .filter(Boolean)

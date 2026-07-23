@@ -1,19 +1,19 @@
 import { useMemo, useState } from 'react';
 import { ReactNode } from 'react';
 import {
-  ChevronDown, ChevronLeft, ChevronRight, Clock, Eye, LayoutGrid, List, Loader2,
+  ChevronDown, Clock, Eye, LayoutGrid, List, Loader2,
   MessageCircle, Search, Shield, Users,
 } from 'lucide-react';
 import { Lead } from '../../types';
-import { priorRequestsOf, formatCurrency } from '../../utils/analytics';
+import { priorRequestsOf, formatCurrency, matchesSearch } from '../../utils/analytics';
 import { statusBadge, statusLabel, isInternalStatus } from '../../constants/status';
+import useInfiniteList from '../../hooks/useInfiniteList';
 import { LimparFiltros } from './Filters';
 import LeadCardDetailed from './LeadCardDetailed';
 import Avatar from '../Avatar';
 
 type ViewMode = 'grade' | 'lista';
 const VIEW_KEY = 'sp-admin-pendentes-view';
-const PER_PAGE = 6;
 
 interface PendentesViewProps {
   leads: Lead[];
@@ -28,7 +28,6 @@ function formatDate(dateStr: string): string {
 
 export default function PendentesView({ leads, loading, onView, onWhatsApp }: PendentesViewProps) {
   const [query, setQuery] = useState('');
-  const [pageNum, setPageNum] = useState(1);
   const [view, setViewState] = useState<ViewMode>(
     () => (localStorage.getItem(VIEW_KEY) === 'lista' ? 'lista' : 'grade'),
   );
@@ -47,18 +46,12 @@ export default function PendentesView({ leads, loading, onView, onWhatsApp }: Pe
   const evitarGolpes = useMemo(() => pending.filter((l) => l.evitarGolpes), [pending]);
   const analise = useMemo(() => pending.filter((l) => l.analiseCliente), [pending]);
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return pending;
-    return pending.filter(
-      (l) => l.nome.toLowerCase().includes(q) || l.telefone.replace(/\D/g, '').includes(q.replace(/\D/g, '')),
-    );
-  }, [pending, query]);
+  const filtered = useMemo(
+    () => (query.trim() ? pending.filter((l) => matchesSearch(l, query)) : pending),
+    [pending, query],
+  );
 
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
-  const current = Math.min(pageNum, pageCount);
-  const start = (current - 1) * PER_PAGE;
-  const shown = filtered.slice(start, start + PER_PAGE);
+  const { shown, hasMore, sentinelRef } = useInfiniteList(filtered);
 
   if (loading) {
     return (
@@ -145,12 +138,12 @@ export default function PendentesView({ leads, loading, onView, onWhatsApp }: Pe
           <Search size={17} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-subtle" />
           <input
             value={query}
-            onChange={(e) => { setQuery(e.target.value); setPageNum(1); }}
+            onChange={(e) => setQuery(e.target.value)}
             placeholder="Buscar por nome ou telefone..."
             className="w-full rounded-xl border border-line bg-surface py-3 pl-11 pr-4 text-[14px] text-ink placeholder:text-subtle focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15"
           />
         </div>
-        <LimparFiltros show={query !== ''} onClick={() => { setQuery(''); setPageNum(1); }} />
+        <LimparFiltros show={query !== ''} onClick={() => setQuery('')} />
         <div className="flex shrink-0 rounded-xl border border-line bg-surface p-1">
           <ViewTab active={view === 'grade'} onClick={() => setView('grade')} icon={LayoutGrid} label="Grade" />
           <ViewTab active={view === 'lista'} onClick={() => setView('lista')} icon={List} label="Lista" />
@@ -172,19 +165,10 @@ export default function PendentesView({ leads, loading, onView, onWhatsApp }: Pe
         <PendentesTable leads={shown} onView={onView} onWhatsApp={onWhatsApp} />
       )}
 
-      {/* Paginação */}
-      {filtered.length > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-[13px] text-muted">Mostrando {start + 1} a {start + shown.length} de {filtered.length}</p>
-          {pageCount > 1 && (
-            <div className="flex items-center gap-1">
-              <PageBtn disabled={current === 1} onClick={() => setPageNum(current - 1)}><ChevronLeft size={16} /></PageBtn>
-              {Array.from({ length: pageCount }, (_, i) => i + 1).map((n) => (
-                <PageBtn key={n} active={n === current} onClick={() => setPageNum(n)}>{n}</PageBtn>
-              ))}
-              <PageBtn disabled={current === pageCount} onClick={() => setPageNum(current + 1)}><ChevronRight size={16} /></PageBtn>
-            </div>
-          )}
+      {/* Rolagem infinita: carrega mais ao chegar no fim da lista */}
+      {hasMore && (
+        <div ref={sentinelRef} className="flex items-center justify-center py-6">
+          <Loader2 size={20} className="animate-spin text-brand" />
         </div>
       )}
     </div>
@@ -264,21 +248,6 @@ function ViewTab({ active, onClick, icon: Icon, label }: {
         ${active ? 'bg-brand text-white' : 'text-muted hover:text-ink-2'}`}
     >
       <Icon size={15} strokeWidth={2.2} /> {label}
-    </button>
-  );
-}
-
-function PageBtn({ children, active, disabled, onClick }: {
-  children: React.ReactNode; active?: boolean; disabled?: boolean; onClick?: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={`flex h-9 min-w-9 items-center justify-center rounded-lg px-2.5 text-[13px] font-semibold transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-40
-        ${active ? 'bg-brand text-white' : 'border border-line bg-surface text-ink-2 hover:bg-canvas'}`}
-    >
-      {children}
     </button>
   );
 }

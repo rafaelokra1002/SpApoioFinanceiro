@@ -32,14 +32,16 @@
   --color-subtle: #9ca3af;   /* legendas, eixos */
 }
 
+/* Escala cinza neutra de propósito: a sidebar tem 5 cores possíveis (preto,
+   verdes, roxo) e um fundo azulado brigava com todas menos o roxo. */
 .dark {
-  --color-surface: #141d2c;
-  --color-canvas: #0a0f18;
-  --color-line: #26324a;
-  --color-ink: #e8eaee;
-  --color-ink-2: #c3c9d4;
-  --color-muted: #97a1b0;
-  --color-subtle: #6f7987;
+  --color-surface: #18181a;  /* cartões e barra do topo */
+  --color-canvas: #101012;   /* fundo da página, = base da sidebar preta */
+  --color-line: #292a2c;
+  --color-ink: #eaeaec;
+  --color-ink-2: #c7c8cb;
+  --color-muted: #9b9ca1;
+  --color-subtle: #72747a;
 }
 
 /* Cor do menu lateral — sobrescrita em tempo de execução por useSidebarColor. */
