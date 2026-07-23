@@ -14,7 +14,7 @@ export const CATEGORIES: CategoryOption[] = [
   { value: 'COM_GARANTIA', label: 'Tenho um bem como garantia', icon: '🔒',
     description: 'Você oferece um bem como garantia para o empréstimo.',
     badge: 'Novo', highlight: 'verde' },
-  { value: 'SEM_COMPROVACAO', label: 'Recebo, mas não preciso comprovar', icon: '❌',
+  { value: 'SEM_COMPROVACAO', label: 'Tenho renda, mas não consigo comprovar', icon: '❌',
     description: 'Para quem recebe renda, mas não tem ou não quer apresentar comprovante.',
     badge: 'Simples', highlight: 'azul' },
 ];
@@ -66,7 +66,7 @@ export const DOCUMENT_TYPES: Record<string, DocumentType[]> = {
     { key: 'RG ou CNH (frente)', label: 'RG ou CNH (frente)', description: 'Documento de identificação', icon: '🪪' },
     { key: 'RG ou CNH (verso)', label: 'RG ou CNH (verso)', description: 'Documento de identificação', icon: '🪪' },
     { key: 'Selfie (rosto)', label: 'Selfie (rosto nítido)', description: 'Sem filtro, rosto bem visível', icon: '📷' },
-    { key: 'Extrato bancário', label: 'Extrato bancário (últimos 30 dias)', description: 'Print do app com nome e valor visível', icon: '📄' },
+    { key: 'Extrato do benefício', label: 'Extrato do benefício (último mês)', description: 'Extrato do INSS ou aplicativo Meu INSS com nome e valor do benefício visível', icon: '📄' },
     { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz – últimos 2 meses', icon: '🏠' },
   ],
   ESTAGIARIO: [

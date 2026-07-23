@@ -211,7 +211,11 @@ export function Simulation() {
           <div style={{ display: 'flex', borderBottom: '1px solid #eaedf4', paddingBottom: 12, marginBottom: 12 }}>
             <Resumo label="Valor solicitado" valor={formatCurrency(preview.valorSolicitado)} />
             <Resumo label="Taxa ao mês" valor={`${preview.taxaJuros}%`} divisor />
-            <Resumo label="Prazo" valor={preview.parcelas === 1 ? '30 dias' : `${preview.parcelas} meses`} divisor />
+            <Resumo
+              label={preview.parcelas === 1 ? 'Prazo' : 'Parcelas'}
+              valor={preview.parcelas === 1 ? 'até 30 dias' : `${preview.parcelas} meses`}
+              divisor
+            />
           </div>
 
           <div style={{ display: 'flex' }}>

@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import {
-  ArrowLeft, Briefcase, Building2, Camera, CircleCheck, CircleHelp, Clock, FileText, House,
-  IdCard, Image as ImageIcon, Info, MapPin, Pencil, Send, UserRound,
+  ArrowLeft, BadgeCheck, Building2, Camera, CircleCheck, CircleHelp, Clock, FileText, House,
+  IdCard, Image as ImageIcon, Info, Landmark, MapPin, Pencil, Send, UserRound,
 } from 'lucide-react';
 import { useLoan } from '../context/LoanContext';
 import { CATEGORIES, DOCUMENT_TYPES } from '../constants/categories';
@@ -53,7 +53,7 @@ const ORIGENS: {
     toIndicacao: nome => `Instagram: ${nome}`,
   },
   {
-    key: 'INDICACAO', label: 'Indicação de amigo ou colega',
+    key: 'INDICACAO', label: 'Indicação de amigo',
     description: 'Digite o nome da pessoa que indicou.',
     pedeNome: true, iconBg: '#e6f6ec',
     icon: (
@@ -174,15 +174,7 @@ export function Documents() {
 
   const docs = DOCUMENT_TYPES[state.categoria] || DOCUMENT_TYPES['CARTEIRA_ASSINADA'];
   const categoriaLabel = CATEGORIES.find(c => c.value === state.categoria)?.label || '';
-
-  // Autônomo não tem empresa/fachada: pergunta a atividade e onde ele atende.
-  const autonomo = state.categoria === 'AUTONOMO';
-  const campoTrabalho = autonomo
-    ? { label: 'Profissão ou atividade', placeholder: 'Ex: manicure, motorista, vendedor' }
-    : { label: 'Nome da empresa como aparece na fachada', placeholder: 'Ex: Planeta Calçados' };
-  const campoLocal = autonomo
-    ? { label: 'Onde atende ou trabalha', placeholder: 'Ex: Centro, Camaçari' }
-    : { label: 'Bairro, local de trabalho e cidade', placeholder: 'Ex: Centro, Camaçari' };
+  const beneficiario = state.categoria === 'BENEFICIARIO';
 
   const openFilePicker = (docKey: string) => {
     setCurrentDocKey(docKey);
@@ -535,7 +527,8 @@ export function Documents() {
                 const uploaded = state.documents[doc.key];
                 const isPdfOnly = doc.key.toLowerCase().includes('carteira de trabalho');
                 const isSelfie = doc.key.toLowerCase().includes('selfie');
-                const podePdf = !doc.key.toLowerCase().includes('rg ou cnh') && !isSelfie;
+                // Só a selfie não aceita PDF (precisa ser foto na hora).
+                const podePdf = !isSelfie;
                 const temDica = doc.key === 'Comprovante de residência';
                 return (
                   <div key={doc.key} style={{ ...docCardStyle, position: 'relative' }}>
@@ -635,23 +628,41 @@ export function Documents() {
 
             {/* Campos complementares */}
             <div style={{ ...docCardStyle, marginTop: 12, display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <ExtraField
-                icon={autonomo
-                  ? <Briefcase size={20} color="#2546f0" strokeWidth={1.8} />
-                  : <Building2 size={20} color="#2546f0" strokeWidth={1.8} />}
-                iconBg="#eef3fd" label={campoTrabalho.label}
-                placeholder={campoTrabalho.placeholder}
-                value={state.nomeEmpresa}
-                onChange={v => dispatch({ type: 'SET_FIELD', field: 'nomeEmpresa', value: v })}
-              />
-
-              <ExtraField
-                icon={<MapPin size={20} color="#2546f0" strokeWidth={1.8} />}
-                iconBg="#eef3fd" label={campoLocal.label}
-                placeholder={campoLocal.placeholder}
-                value={state.bairroTrabalho}
-                onChange={v => dispatch({ type: 'SET_FIELD', field: 'bairroTrabalho', value: v })}
-              />
+              {beneficiario ? (
+                <>
+                  <ExtraField
+                    icon={<Landmark size={20} color="#2546f0" strokeWidth={1.8} />}
+                    iconBg="#eef3fd" label="Banco onde recebe o benefício"
+                    placeholder="Ex.: Caixa Econômica, Banco do Brasil, Bradesco"
+                    value={state.nomeEmpresa}
+                    onChange={v => dispatch({ type: 'SET_FIELD', field: 'nomeEmpresa', value: v })}
+                  />
+                  <ExtraField
+                    icon={<BadgeCheck size={20} color="#2546f0" strokeWidth={1.8} />}
+                    iconBg="#eef3fd" label="Tipo de benefício"
+                    placeholder="Ex.: Aposentadoria, Pensão, BPC/LOAS, Auxílio-doença"
+                    value={state.bairroTrabalho}
+                    onChange={v => dispatch({ type: 'SET_FIELD', field: 'bairroTrabalho', value: v })}
+                  />
+                </>
+              ) : (
+                <>
+                  <ExtraField
+                    icon={<Building2 size={20} color="#2546f0" strokeWidth={1.8} />}
+                    iconBg="#eef3fd" label="Nome da empresa como aparece na fachada"
+                    placeholder="Ex: Planeta Calçados"
+                    value={state.nomeEmpresa}
+                    onChange={v => dispatch({ type: 'SET_FIELD', field: 'nomeEmpresa', value: v })}
+                  />
+                  <ExtraField
+                    icon={<MapPin size={20} color="#2546f0" strokeWidth={1.8} />}
+                    iconBg="#eef3fd" label="Bairro, local de trabalho e cidade"
+                    placeholder="Ex: Centro, Camaçari"
+                    value={state.bairroTrabalho}
+                    onChange={v => dispatch({ type: 'SET_FIELD', field: 'bairroTrabalho', value: v })}
+                  />
+                </>
+              )}
 
               <ExtraField
                 icon={<Pencil size={20} color="#2546f0" strokeWidth={1.8} />}
