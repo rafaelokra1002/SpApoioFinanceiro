@@ -42,6 +42,13 @@
   --color-ink-2: #c7c8cb;
   --color-muted: #9b9ca1;
   --color-subtle: #72747a;
+  color-scheme: dark;        /* dropdown do select, scrollbars, etc. em tom escuro */
+}
+
+/* Controles nativos (dropdown do select, scrollbars) no esquema claro por
+   padrão; .dark inverte para escuro logo acima. */
+:root {
+  color-scheme: light;
 }
 
 /* Cor do menu lateral — sobrescrita em tempo de execução por useSidebarColor. */
@@ -57,6 +64,17 @@ body {
   background: var(--color-canvas);
   color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
+}
+
+/* O dropdown nativo do <select> não herda os tokens do tema. Forçamos o
+   esquema escuro no próprio controle e cores legíveis nas opções — sem isso
+   o texto saía apagado (ou claro sobre fundo claro) no modo escuro. */
+.dark select {
+  color-scheme: dark;
+}
+.dark select option {
+  background-color: #18181a;
+  color: #eaeaec;
 }
 
 ::-webkit-scrollbar {

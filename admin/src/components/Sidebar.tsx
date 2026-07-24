@@ -2,13 +2,13 @@ import { useState } from 'react';
 import {
   LayoutGrid, ClipboardList, UserCircle, Clock, CheckCircle2, XCircle, UserX,
   UserRoundCheck, MessageSquare, HardDrive, ImageIcon, FolderOpen, Settings,
-  ChevronRight, ChevronLeft, Headset, Menu, X, type LucideIcon,
+  ShieldCheck, ChevronRight, ChevronLeft, Headset, Menu, X, type LucideIcon,
 } from 'lucide-react';
 import { Counts } from '../utils/analytics';
 import { MetricKey } from '../constants/status';
 
 export type PageKey =
-  | 'dashboard' | 'solicitacoes' | 'pendentes' | 'aprovados' | 'recusados'
+  | 'dashboard' | 'solicitacoes' | 'pendentes' | 'garantias' | 'aprovados' | 'recusados'
   | 'nao-contrataram' | 'colaborador' | 'origem' | 'cidades'
   | 'relatorio' | 'perfil' | 'mensagens' | 'backup' | 'fotos'
   | 'categorias' | 'configuracoes';
@@ -54,15 +54,16 @@ interface NavItem {
 const NAV: NavItem[] = [
   { key: 'dashboard', label: 'Dashboard', icon: LayoutGrid },
   { key: 'pendentes', label: 'Pendentes', icon: Clock, badge: 'PENDENTE' },
+  { key: 'garantias', label: 'Garantias', icon: ShieldCheck },
   { key: 'aprovados', label: 'Aprovados', icon: CheckCircle2 },
   { key: 'recusados', label: 'Recusados', icon: XCircle },
   { key: 'nao-contrataram', label: 'Não Contratou', icon: UserX },
   { key: 'colaborador', label: 'Passei para Colaborador', icon: UserRoundCheck },
-  { key: 'backup', label: 'Backup', icon: HardDrive },
-  { key: 'fotos', label: 'Fotos', icon: ImageIcon },
+  { key: 'mensagens', label: 'Templates', icon: MessageSquare },
   { key: 'categorias', label: 'Categorias', icon: FolderOpen },
+  { key: 'fotos', label: 'Fotos', icon: ImageIcon },
+  { key: 'backup', label: 'Backup', icon: HardDrive },
   { key: 'configuracoes', label: 'Configurações', icon: Settings },
-  { key: 'mensagens', label: 'Edição de Mensagem', icon: MessageSquare },
 ];
 
 interface SidebarProps {

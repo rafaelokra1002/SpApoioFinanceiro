@@ -19,7 +19,7 @@ import PhotosGallery from './components/PhotosGallery';
 import BackupPanel from './components/BackupPanel';
 import Placeholder from './components/Placeholder';
 import { notify, NoticeHost } from './components/Notice';
-import { ClipboardList } from 'lucide-react';
+import { ClipboardList, ShieldCheck } from 'lucide-react';
 import { MetricKey, StatusKey, isInternalStatus, statusLabel } from './constants/status';
 import { countMetrics, origemOf, rank } from './utils/analytics';
 import { useTheme } from './hooks/useTheme';
@@ -42,6 +42,7 @@ const PAGE_TITLES: Record<PageKey, { title: string; subtitle: string }> = {
   dashboard: { title: 'Dashboard', subtitle: 'Acompanhe o desempenho das suas solicitações' },
   solicitacoes: { title: 'Solicitações', subtitle: 'Todas as solicitações recebidas' },
   pendentes: { title: 'Pendentes', subtitle: 'Solicitações aguardando análise' },
+  garantias: { title: 'Garantias', subtitle: 'Garantias dos clientes' },
   aprovados: { title: 'Aprovados', subtitle: 'Solicitações aprovadas' },
   recusados: { title: 'Recusados', subtitle: 'Solicitações recusadas' },
   'nao-contrataram': { title: 'Não contrataram', subtitle: 'Aprovados que não fecharam contrato' },
@@ -50,7 +51,7 @@ const PAGE_TITLES: Record<PageKey, { title: string; subtitle: string }> = {
   cidades: { title: 'Cidades', subtitle: 'Distribuição das solicitações por cidade' },
   relatorio: { title: 'Relatório Diário', subtitle: 'Resumo das solicitações do dia' },
   perfil: { title: 'Meu Perfil', subtitle: 'Seus dados de acesso' },
-  mensagens: { title: 'Edição de Mensagem', subtitle: 'Modelos de mensagem enviados via WhatsApp' },
+  mensagens: { title: 'Templates', subtitle: 'Modelos de mensagem enviados via WhatsApp' },
   backup: { title: 'Backup', subtitle: 'Exportação e cópia de segurança dos dados' },
   fotos: { title: 'Fotos', subtitle: 'Imagens e documentos enviados pelos clientes' },
   categorias: { title: 'Categorias', subtitle: 'Perfis e documentos exigidos' },
@@ -147,6 +148,9 @@ export default function App() {
   const handleNavigate = (next: PageKey) => {
     setPage(next);
     setSelectedLead(null);
+    // Recarrega os dados ao entrar em cada página, para mostrar sempre o estado
+    // mais recente. É uma atualização em segundo plano (não pisca o "Carregando").
+    loadData();
     if (next === 'categorias') loadCategories();
   };
 
@@ -446,6 +450,14 @@ export default function App() {
             icon={ClipboardList}
             title="Relatório Diário"
             description="Aqui vai o resumo diário das solicitações. Em construção — me diga o que o relatório deve mostrar e como é enviado."
+          />
+        )}
+
+        {page === 'garantias' && (
+          <Placeholder
+            icon={ShieldCheck}
+            title="Garantias"
+            description="Seção em construção — me diga o que a página de garantias deve mostrar."
           />
         )}
 
