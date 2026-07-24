@@ -86,7 +86,7 @@ export default function Dashboard({ leads, loading, onDrillDown }: DashboardProp
   return (
     // Em telas largas o filtro sobe para a faixa do título (há espaço vazio à
     // direita da legenda), aproximando os cards do cabeçalho "Dashboard".
-    <div className="space-y-4 lg:-mt-[92px]">
+    <div className="space-y-4 lg:-mt-[56px]">
       {/* Filtro por mês */}
       <div className="flex items-center justify-end gap-2">
         {month && (
