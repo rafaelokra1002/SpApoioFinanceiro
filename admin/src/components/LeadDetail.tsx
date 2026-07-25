@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { Lead } from '../types';
 import { parseGarantia, isBemDoc } from '../utils/garantia';
+import { fixMojibake } from '../utils/text';
 import { fetchMessageLogs } from '../services/api';
 import { downloadDocument, downloadLeadDossier } from '../utils/leadDossier';
 import { METRICS, STATUS_ORDER, isInternalStatus, statusLabel } from '../constants/status';
@@ -53,9 +54,9 @@ const IMAGE_EXT = /\.(jpe?g|png|webp|gif|bmp|heic)$/i;
 
 /** Rótulo do documento: o app manda o nome real no filename e um tipo genérico. */
 function docLabel(doc: { tipo: string; filename: string }): string {
-  const tipo = doc.tipo?.trim() || '';
+  const tipo = fixMojibake(doc.tipo?.trim() || '');
   if (tipo && !/^documentos?$/i.test(tipo)) return tipo;
-  const name = doc.filename?.replace(/\.[^.]+$/, '').trim();
+  const name = fixMojibake(doc.filename?.replace(/\.[^.]+$/, '').trim() || '');
   return name || tipo || 'Documento';
 }
 
