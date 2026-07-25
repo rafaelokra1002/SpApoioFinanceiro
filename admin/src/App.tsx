@@ -18,8 +18,9 @@ import MessageTemplates from './components/MessageTemplates';
 import PhotosGallery from './components/PhotosGallery';
 import BackupPanel from './components/BackupPanel';
 import Placeholder from './components/Placeholder';
+import { isGarantia } from './utils/garantia';
 import { notify, NoticeHost } from './components/Notice';
-import { ClipboardList, ShieldCheck } from 'lucide-react';
+import { ClipboardList } from 'lucide-react';
 import { MetricKey, StatusKey, isInternalStatus, statusLabel } from './constants/status';
 import { countMetrics, origemOf, rank } from './utils/analytics';
 import { useTheme } from './hooks/useTheme';
@@ -90,6 +91,10 @@ const CARD_LABELS: Partial<Record<PageKey, CardLabels>> = {
   colaborador: {
     countLabel: 'Total', countCaption: 'passados para colaborador',
     valueLabel: 'Valor total', valueCaption: 'soma dos valores solicitados',
+  },
+  garantias: {
+    countLabel: 'Total de Garantias', countCaption: 'clientes com bem em garantia',
+    valueLabel: 'Valor total solicitado', valueCaption: 'soma dos valores solicitados',
   },
 };
 
@@ -299,9 +304,10 @@ export default function App() {
   const statusFilter = STATUS_PAGES[page];
 
   const tableLeads = useMemo(() => {
+    if (page === 'garantias') return leads.filter((l) => isGarantia(l.perfil));
     if (!statusFilter) return leads;
     return leads.filter((l) => l.status === statusFilter);
-  }, [leads, statusFilter]);
+  }, [leads, statusFilter, page]);
 
   // Contagens por status: alimentam os badges da sidebar.
   const counts = useMemo(() => countMetrics(leads), [leads]);
@@ -450,14 +456,6 @@ export default function App() {
             icon={ClipboardList}
             title="Relatório Diário"
             description="Aqui vai o resumo diário das solicitações. Em construção — me diga o que o relatório deve mostrar e como é enviado."
-          />
-        )}
-
-        {page === 'garantias' && (
-          <Placeholder
-            icon={ShieldCheck}
-            title="Garantias"
-            description="Seção em construção — me diga o que a página de garantias deve mostrar."
           />
         )}
 

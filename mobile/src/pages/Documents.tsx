@@ -6,6 +6,7 @@ import {
 import { useLoan } from '../context/LoanContext';
 import { CATEGORIES, DOCUMENT_TYPES } from '../constants/categories';
 import { submitLeadWithDocuments } from '../services/api';
+import { compressImage } from '../utils/image';
 import { UploadedFile } from '../types';
 
 type OrigemKey = 'PANFLETO' | 'INSTAGRAM' | 'INDICACAO';
@@ -231,6 +232,12 @@ export function Documents() {
     setError('');
     setSubmitting(true);
 
+    // Quando há bem em garantia, junta os detalhes à observação para o admin.
+    const observacao = [
+      state.observacao, resumoGarantiaImovel(state), resumoGarantiaVeiculo(state),
+      resumoGarantiaEletronico(state), resumoGarantiaOutro(state),
+    ].filter(Boolean).join('\n\n') || undefined;
+
     const leadData = {
       nome: state.nome,
       telefone: state.telefone.replace(/\D/g, ''),
@@ -250,7 +257,7 @@ export function Documents() {
       endereco: state.endereco || undefined,
       cep: state.cep || undefined,
       enderecoTrabalho: state.enderecoTrabalho || undefined,
-      observacao: state.observacao || undefined,
+      observacao,
       latitude: state.latitude ?? undefined,
       longitude: state.longitude ?? undefined,
     };
@@ -716,39 +723,70 @@ export function Documents() {
   );
 }
 
-/** Redimensiona/comprime imagens no navegador antes do upload. PDFs passam direto. */
-async function compressImage(file: File, maxDim = 1600, quality = 0.8): Promise<File> {
-  if (!file.type.startsWith('image/')) return file;
-  try {
-    const dataUrl = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-      const i = new Image();
-      i.onload = () => resolve(i);
-      i.onerror = reject;
-      i.src = dataUrl;
-    });
-    let { width, height } = img;
-    if (width > maxDim || height > maxDim) {
-      const scale = Math.min(maxDim / width, maxDim / height);
-      width = Math.round(width * scale);
-      height = Math.round(height * scale);
-    }
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return file;
-    ctx.drawImage(img, 0, 0, width, height);
-    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality));
-    if (!blob || blob.size >= file.size) return file;
-    const name = file.name.replace(/\.[^.]+$/, '') + '.jpg';
-    return new File([blob], name, { type: 'image/jpeg' });
-  } catch {
-    return file;
-  }
+/** Monta um resumo em texto do imóvel dado em garantia, para anexar à observação. */
+function resumoGarantiaImovel(state: ReturnType<typeof useLoan>['state']): string {
+  if (state.categoria !== 'COM_GARANTIA' || state.bemGarantia !== 'IMOVEL') return '';
+  const g = state.garantiaImovel;
+  const docLabel: Record<string, string> = {
+    ESCRITURA: 'Escritura', CONTRATO: 'Contrato de compra e venda', SEM_DOC: 'Não possui documento',
+  };
+  const linhas = [
+    '— Garantia: Imóvel —',
+    g.tipoImovel && `Tipo: ${g.tipoImovel}`,
+    g.descricao && `Descrição: ${g.descricao}`,
+    g.endereco && `Endereço: ${g.endereco}`,
+    g.valorMercado && `Valor de mercado: R$ ${g.valorMercado}`,
+    g.tipoDocumentacao && `Documentação: ${docLabel[g.tipoDocumentacao] || g.tipoDocumentacao}`,
+  ].filter(Boolean);
+  return linhas.length > 1 ? linhas.join('\n') : '';
+}
+
+/** Monta um resumo em texto do veículo/moto dado em garantia, para anexar à observação. */
+function resumoGarantiaVeiculo(state: ReturnType<typeof useLoan>['state']): string {
+  if (state.categoria !== 'COM_GARANTIA' || state.bemGarantia !== 'VEICULO') return '';
+  const v = state.garantiaVeiculo;
+  const linhas = [
+    `— Garantia: ${v.tipo === 'MOTO' ? 'Moto' : 'Carro'} —`,
+    v.marca && `Marca: ${v.marca}`,
+    v.modelo && `Modelo: ${v.modelo}`,
+    v.quilometragem && `Quilometragem: ${v.quilometragem}`,
+    v.placa && `Placa: ${v.placa}`,
+    v.valorMercado && `Valor de mercado: R$ ${v.valorMercado}`,
+    `Manual: ${v.possuiManual ? 'Sim' : 'Não'}`,
+    `Chave reserva: ${v.possuiChaveReserva ? 'Sim' : 'Não'}`,
+  ].filter(Boolean);
+  return linhas.length > 1 ? linhas.join('\n') : '';
+}
+
+/** Monta um resumo em texto do eletrônico dado em garantia, para anexar à observação. */
+function resumoGarantiaEletronico(state: ReturnType<typeof useLoan>['state']): string {
+  if (state.categoria !== 'COM_GARANTIA' || state.bemGarantia !== 'ELETRONICO') return '';
+  const g = state.garantiaEletronico;
+  const linhas = [
+    '— Garantia: Eletrônico —',
+    g.tipoItem && `Tipo: ${g.tipoItem}`,
+    g.marca && `Marca: ${g.marca}`,
+    g.modelo && `Modelo: ${g.modelo}`,
+    g.estadoConservacao && `Estado: ${g.estadoConservacao}`,
+    g.capacidade && `Capacidade/Especificação: ${g.capacidade}`,
+    g.valorMercado && `Valor de mercado: R$ ${g.valorMercado}`,
+    `Caixa: ${g.temCaixa ? 'Sim' : 'Não'}`,
+    `Nota fiscal: ${g.temNotaFiscal ? 'Sim' : 'Não'}`,
+    `Carregador: ${g.temCarregador ? 'Sim' : 'Não'}`,
+  ].filter(Boolean);
+  return linhas.length > 1 ? linhas.join('\n') : '';
+}
+
+/** Monta um resumo em texto de outro bem de valor dado em garantia, para anexar à observação. */
+function resumoGarantiaOutro(state: ReturnType<typeof useLoan>['state']): string {
+  if (state.categoria !== 'COM_GARANTIA' || state.bemGarantia !== 'OUTRO') return '';
+  const g = state.garantiaOutro;
+  const linhas = [
+    '— Garantia: Outro bem de valor —',
+    g.nome && `Nome: ${g.nome}`,
+    g.descricao && `Descrição: ${g.descricao}`,
+    g.estadoConservacao && `Estado: ${g.estadoConservacao}`,
+    g.valorMercado && `Valor de mercado: R$ ${g.valorMercado}`,
+  ].filter(Boolean);
+  return linhas.length > 1 ? linhas.join('\n') : '';
 }

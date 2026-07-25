@@ -6,6 +6,11 @@ import { Simulation } from './pages/Simulation';
 import { Result } from './pages/Result';
 import { Documents } from './pages/Documents';
 import { Confirmation } from './pages/Confirmation';
+import { Garantia } from './pages/Garantia';
+import { Imovel } from './pages/Imovel';
+import { Veiculo } from './pages/Veiculo';
+import { Eletronico } from './pages/Eletronico';
+import { OutroBem } from './pages/OutroBem';
 import { DOCUMENT_TYPES, CATEGORIES } from './constants/categories';
 import { requestLocation } from './utils/geo';
 
@@ -340,6 +345,11 @@ function Router() {
     case 3: return <Result />;
     case 4: return <Documents />;
     case 5: return <Confirmation />;
+    case 6: return <Garantia />;
+    case 7: return <Imovel />;
+    case 8: return <Veiculo />;
+    case 9: return <Eletronico />;
+    case 10: return <OutroBem />;
     default: return <Home />;
   }
 }

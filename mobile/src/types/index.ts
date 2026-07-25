@@ -48,6 +48,54 @@ export interface CategoryOption {
   highlight?: 'verde' | 'azul';
 }
 
+export type BemGarantiaType =
+  | 'IMOVEL'
+  | 'VEICULO'
+  | 'ELETRONICO'
+  | 'OUTRO';
+
+export type TipoDocImovel = 'ESCRITURA' | 'CONTRATO' | 'SEM_DOC' | '';
+
+export interface GarantiaImovel {
+  tipoImovel: string;
+  descricao: string;
+  endereco: string;
+  valorMercado: string;
+  tipoDocumentacao: TipoDocImovel;
+}
+
+export type TipoVeiculo = 'CARRO' | 'MOTO';
+
+export interface GarantiaVeiculo {
+  tipo: TipoVeiculo;
+  marca: string;
+  modelo: string;
+  quilometragem: string;
+  placa: string;
+  valorMercado: string;
+  possuiManual: boolean;
+  possuiChaveReserva: boolean;
+}
+
+export interface GarantiaEletronico {
+  tipoItem: string;
+  marca: string;
+  modelo: string;
+  estadoConservacao: string;
+  capacidade: string;
+  temCaixa: boolean;
+  temNotaFiscal: boolean;
+  temCarregador: boolean;
+  valorMercado: string;
+}
+
+export interface GarantiaOutro {
+  nome: string;
+  descricao: string;
+  estadoConservacao: string;
+  valorMercado: string;
+}
+
 export interface DocumentType {
   key: string;
   label: string;

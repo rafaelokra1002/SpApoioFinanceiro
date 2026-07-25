@@ -31,15 +31,21 @@ const fileFilter = (
     'image/png',
     'image/webp',
     'application/pdf',
+    // Vídeos das mídias de garantia (ex.: "Vídeo do bem", até 60s).
+    'video/mp4',
+    'video/quicktime',
+    'video/webm',
+    'video/3gpp',
+    'video/x-matroska',
   ];
 
-  const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.pdf'];
+  const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.pdf', '.mp4', '.mov', '.webm', '.3gp', '.m4v', '.mkv'];
   const ext = path.extname(file.originalname).toLowerCase();
 
-  if (allowedMimeTypes.includes(file.mimetype) || allowedExtensions.includes(ext)) {
+  if (allowedMimeTypes.includes(file.mimetype) || file.mimetype.startsWith('video/') || allowedExtensions.includes(ext)) {
     cb(null, true);
   } else {
-    cb(new Error('Tipo de arquivo não permitido. Use JPEG, PNG, WebP ou PDF.'));
+    cb(new Error('Tipo de arquivo não permitido. Use JPEG, PNG, WebP, PDF ou vídeo.'));
   }
 };
 
@@ -47,7 +53,8 @@ export const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 25 * 1024 * 1024,
+    // Vídeos de garantia (até 60s) são bem maiores que fotos/PDF.
+    fileSize: 150 * 1024 * 1024,
     files: 15,
   },
 });

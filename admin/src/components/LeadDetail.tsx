@@ -5,6 +5,7 @@ import {
   Send, Shield, Users, FileText,
 } from 'lucide-react';
 import { Lead } from '../types';
+import { parseGarantia } from '../utils/garantia';
 import { fetchMessageLogs } from '../services/api';
 import { downloadDocument, downloadLeadDossier } from '../utils/leadDossier';
 import { METRICS, STATUS_ORDER, isInternalStatus, statusLabel } from '../constants/status';
@@ -106,6 +107,11 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
 
   const photoUrl = clientPhotoUrl(lead.documentos);
 
+  // Garantia: dados estruturados extraídos da observação (perfil COM_GARANTIA).
+  const garantia = parseGarantia(lead.observacao);
+  // Observação a exibir: sem o bloco de garantia (que ganha seção própria).
+  const observacaoCliente = garantia ? garantia.observacaoCliente : (lead.observacao || '');
+
   return (
     <div className="flex max-h-[90vh] w-[min(940px,95vw)] flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-xl">
       {/* Header */}
@@ -197,6 +203,30 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
 
         {/* Coluna direita */}
         <div className="space-y-5">
+          {/* Garantia: bem oferecido pelo cliente */}
+          {garantia && (
+            <div className="rounded-xl border border-emerald-600/30 bg-emerald-600/5 p-3.5">
+              <p className="mb-2.5 flex items-center gap-1.5 text-[14px] font-bold text-ink">
+                <Shield size={16} className="text-emerald-600" /> Bem em garantia
+                <span className="ml-1 rounded-md bg-emerald-600/15 px-2 py-0.5 text-[11.5px] font-semibold text-emerald-700 dark:text-emerald-400">
+                  {garantia.bem}
+                </span>
+              </p>
+              {garantia.campos.length > 0 ? (
+                <dl className="grid grid-cols-1 gap-x-4 gap-y-1.5 sm:grid-cols-2">
+                  {garantia.campos.map((c, i) => (
+                    <div key={i} className="flex flex-col">
+                      <dt className="text-[10.5px] font-semibold uppercase tracking-wide text-subtle">{c.label}</dt>
+                      <dd className="text-[13px] text-ink-2">{c.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              ) : (
+                <p className="text-[12.5px] text-subtle">Sem detalhes informados.</p>
+              )}
+            </div>
+          )}
+
           {/* Documentos */}
           <div>
             <p className="mb-3 flex items-center gap-1.5 text-[14px] font-bold text-ink">
@@ -240,12 +270,12 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
           </div>
 
           {/* Observação: logo abaixo dos documentos */}
-          {lead.observacao && (
+          {observacaoCliente && (
             <div className="flex gap-2.5 rounded-xl border-l-4 border-info bg-info/5 p-3">
               <MessageCircle size={16} className="mt-0.5 shrink-0 text-info" />
               <div>
                 <p className="text-[11px] font-semibold text-info">Observação do cliente</p>
-                <p className="mt-0.5 text-[12.5px] text-ink-2">{lead.observacao}</p>
+                <p className="mt-0.5 whitespace-pre-line text-[12.5px] text-ink-2">{observacaoCliente}</p>
               </div>
             </div>
           )}

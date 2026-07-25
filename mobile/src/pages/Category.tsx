@@ -106,7 +106,8 @@ export function Category() {
                   // Recalcula a simulação com a categoria (a taxa muda p/ SEM_COMPROVACAO).
                   const sim = simular(state.valor, state.parcelas, cat.value);
                   if (sim) dispatch({ type: 'SET_SIMULATION', payload: sim });
-                  dispatch({ type: 'SET_STEP', step: 4 });
+                  // Garantia tem uma etapa extra: escolher o tipo de bem antes dos documentos.
+                  dispatch({ type: 'SET_STEP', step: cat.value === 'COM_GARANTIA' ? 6 : 4 });
                 }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 14,

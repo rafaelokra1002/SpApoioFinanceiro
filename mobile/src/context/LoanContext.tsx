@@ -1,10 +1,20 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
-import { CategoryType, SimulationResult, UploadedFile } from '../types';
+import { BemGarantiaType, CategoryType, GarantiaImovel, GarantiaVeiculo, GarantiaEletronico, GarantiaOutro, SimulationResult, UploadedFile } from '../types';
 
 export interface LoanState {
-  // step: 0=home, 1=category, 2=simulation, 3=result, 4=documents, 5=confirmation
+  // step: 0=home, 1=simulation, 2=category, 3=result, 4=documents, 5=confirmation, 6=bem em garantia
   step: number;
   categoria: CategoryType | '';
+  /** Tipo de bem oferecido em garantia — só usado quando categoria = COM_GARANTIA. */
+  bemGarantia: BemGarantiaType | '';
+  /** Detalhes do imóvel oferecido em garantia (quando bemGarantia = IMOVEL). */
+  garantiaImovel: GarantiaImovel;
+  /** Detalhes do veículo/moto oferecido em garantia (quando bemGarantia = VEICULO). */
+  garantiaVeiculo: GarantiaVeiculo;
+  /** Detalhes do eletrônico oferecido em garantia (quando bemGarantia = ELETRONICO). */
+  garantiaEletronico: GarantiaEletronico;
+  /** Detalhes de outro bem de valor oferecido em garantia (quando bemGarantia = OUTRO). */
+  garantiaOutro: GarantiaOutro;
   valor: number;
   parcelas: number;
   cidade: string;
@@ -44,7 +54,18 @@ type Action =
   | { type: 'RESET' };
 
 const initial: LoanState = {
-  step: 0, categoria: '', valor: 0, parcelas: 2, cidade: '',
+  step: 0, categoria: '', bemGarantia: '',
+  garantiaImovel: { tipoImovel: '', descricao: '', endereco: '', valorMercado: '', tipoDocumentacao: '' },
+  garantiaVeiculo: {
+    tipo: 'CARRO', marca: '', modelo: '', quilometragem: '', placa: '', valorMercado: '',
+    possuiManual: true, possuiChaveReserva: true,
+  },
+  garantiaEletronico: {
+    tipoItem: '', marca: '', modelo: '', estadoConservacao: '', capacidade: '',
+    temCaixa: true, temNotaFiscal: true, temCarregador: true, valorMercado: '',
+  },
+  garantiaOutro: { nome: '', descricao: '', estadoConservacao: '', valorMercado: '' },
+  valor: 0, parcelas: 2, cidade: '',
   renda: '', instagram: '', indicacao: '', simulation: null,
   nome: '', telefone: '', cpf: '', email: '',
   nomeEmpresa: '', bairroTrabalho: '',
