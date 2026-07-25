@@ -5,7 +5,7 @@ import {
   Send, Shield, Users, FileText,
 } from 'lucide-react';
 import { Lead } from '../types';
-import { parseGarantia } from '../utils/garantia';
+import { parseGarantia, isBemDoc } from '../utils/garantia';
 import { fetchMessageLogs } from '../services/api';
 import { downloadDocument, downloadLeadDossier } from '../utils/leadDossier';
 import { METRICS, STATUS_ORDER, isInternalStatus, statusLabel } from '../constants/status';
@@ -111,6 +111,43 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
   const garantia = parseGarantia(lead.observacao);
   // Observação a exibir: sem o bloco de garantia (que ganha seção própria).
   const observacaoCliente = garantia ? garantia.observacaoCliente : (lead.observacao || '');
+
+  // Separa as mídias do bem (fotos/vídeo do item) dos documentos pessoais.
+  const docs = lead.documentos ?? [];
+  const bemDocs = docs.filter((d) => isBemDoc(docLabel(d)));
+  const pessoalDocs = docs.filter((d) => !isBemDoc(docLabel(d)));
+  const separarDocs = bemDocs.length > 0 && pessoalDocs.length > 0;
+
+  const renderDocsGrid = (lista: typeof docs) => (
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      {lista.map((doc) => {
+        const isImage = IMAGE_EXT.test(doc.filename) || IMAGE_EXT.test(doc.url);
+        return (
+          <div key={doc.id} className="overflow-hidden rounded-xl border border-line">
+            <a href={doc.url} target="_blank" rel="noopener noreferrer"
+              className="flex h-24 items-center justify-center bg-canvas">
+              {isImage
+                ? <img src={doc.url} alt={docLabel(doc)} loading="lazy" className="h-full w-full object-cover"
+                    onError={(e) => { (e.target as HTMLImageElement).style.opacity = '0'; }} />
+                : <FileText size={30} className="text-subtle" strokeWidth={1.5} />}
+            </a>
+            <div className="px-2 py-1.5">
+              <p className="truncate text-[11.5px] font-semibold text-ink" title={docLabel(doc)}>{docLabel(doc)}</p>
+              <p className="text-[10px] text-subtle">Enviado em {formatDate(doc.createdAt)}</p>
+              <button
+                onClick={() => baixarDocumento(doc)}
+                disabled={baixandoDoc === doc.id}
+                className="mt-1 flex w-full items-center justify-center gap-1 rounded-lg bg-brand/10 py-1 text-[11px] font-semibold text-brand-deep transition-colors hover:bg-brand/20 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60">
+                {baixandoDoc === doc.id
+                  ? <><Loader2 size={11} className="animate-spin" /> Baixando</>
+                  : <><Download size={11} /> Baixar</>}
+              </button>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
 
   return (
     <div className="flex max-h-[90vh] w-[min(940px,95vw)] flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-xl">
@@ -231,37 +268,27 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
           <div>
             <p className="mb-3 flex items-center gap-1.5 text-[14px] font-bold text-ink">
               <FileText size={16} className="text-info" /> Documentos e fotos enviados
-              {lead.documentos?.length > 0 && <span className="text-subtle">({lead.documentos.length})</span>}
+              {docs.length > 0 && <span className="text-subtle">({docs.length})</span>}
             </p>
-            {lead.documentos?.length > 0 ? (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                {lead.documentos.map((doc) => {
-                  const isImage = IMAGE_EXT.test(doc.filename) || IMAGE_EXT.test(doc.url);
-                  return (
-                    <div key={doc.id} className="overflow-hidden rounded-xl border border-line">
-                      <a href={doc.url} target="_blank" rel="noopener noreferrer"
-                        className="flex h-24 items-center justify-center bg-canvas">
-                        {isImage
-                          ? <img src={doc.url} alt={docLabel(doc)} loading="lazy" className="h-full w-full object-cover"
-                              onError={(e) => { (e.target as HTMLImageElement).style.opacity = '0'; }} />
-                          : <FileText size={30} className="text-subtle" strokeWidth={1.5} />}
-                      </a>
-                      <div className="px-2 py-1.5">
-                        <p className="truncate text-[11.5px] font-semibold text-ink" title={docLabel(doc)}>{docLabel(doc)}</p>
-                        <p className="text-[10px] text-subtle">Enviado em {formatDate(doc.createdAt)}</p>
-                        <button
-                          onClick={() => baixarDocumento(doc)}
-                          disabled={baixandoDoc === doc.id}
-                          className="mt-1 flex w-full items-center justify-center gap-1 rounded-lg bg-brand/10 py-1 text-[11px] font-semibold text-brand-deep transition-colors hover:bg-brand/20 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60">
-                          {baixandoDoc === doc.id
-                            ? <><Loader2 size={11} className="animate-spin" /> Baixando</>
-                            : <><Download size={11} /> Baixar</>}
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+            {docs.length > 0 ? (
+              separarDocs ? (
+                <div className="space-y-4">
+                  <div>
+                    <p className="mb-2 flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
+                      <Shield size={13} /> Mídias do bem <span className="text-subtle normal-case">({bemDocs.length})</span>
+                    </p>
+                    {renderDocsGrid(bemDocs)}
+                  </div>
+                  <div>
+                    <p className="mb-2 flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-wide text-subtle">
+                      <UserRound size={13} /> Documentos pessoais <span className="normal-case">({pessoalDocs.length})</span>
+                    </p>
+                    {renderDocsGrid(pessoalDocs)}
+                  </div>
+                </div>
+              ) : (
+                renderDocsGrid(docs)
+              )
             ) : (
               <p className="rounded-xl border border-line bg-canvas/60 py-8 text-center text-[13px] text-subtle">
                 Nenhum documento enviado.

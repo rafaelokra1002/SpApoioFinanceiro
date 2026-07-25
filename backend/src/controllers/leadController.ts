@@ -11,6 +11,21 @@ function getBaseUrl(req: Request): string {
   return `${protocol}://${req.get('host')}`;
 }
 
+/**
+ * O multer/busboy decodifica o nome do arquivo do multipart como latin1, o que
+ * embaralha acentos e o travessão (ex.: "Imóvel — Vídeo" vira "ImÃ³vel â€” VÃ­deo").
+ * Reinterpreta os bytes como UTF-8 para recuperar o nome original.
+ */
+function decodeFilename(name: string): string {
+  if (!name) return name;
+  try {
+    const fixed = Buffer.from(name, 'latin1').toString('utf8');
+    return fixed.includes('�') ? name : fixed;
+  } catch {
+    return name;
+  }
+}
+
 async function persistDocument(file: Express.Multer.File, baseUrl: string) {
   const url = shouldUseCloudinary()
     ? await uploadToCloudinary(file.path)
@@ -19,7 +34,7 @@ async function persistDocument(file: Express.Multer.File, baseUrl: string) {
   return {
     tipo: file.fieldname || 'documento',
     url,
-    filename: file.originalname || file.filename,
+    filename: decodeFilename(file.originalname) || file.filename,
   };
 }
 

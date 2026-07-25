@@ -41,3 +41,14 @@ export function parseGarantia(observacao: string | null | undefined): GarantiaIn
 export function isGarantia(perfil: string | null | undefined): boolean {
   return perfil === 'COM_GARANTIA';
 }
+
+/**
+ * True quando o documento é uma mídia do bem em garantia (foto/vídeo do item),
+ * e não um documento pessoal. O app nomeia essas mídias como
+ * "<Bem> — Foto/Vídeo …" (ex.: "Imóvel — Foto 1 (fachada)").
+ */
+const BEM_PREFIXOS = ['Imóvel', 'Veículo', 'Eletrônico', 'Outro bem'];
+export function isBemDoc(label: string): boolean {
+  const l = (label || '').trim();
+  return l.includes(' — ') && BEM_PREFIXOS.some((p) => l.startsWith(p));
+}
