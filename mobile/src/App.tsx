@@ -298,7 +298,7 @@ function DuvidasModal() {
   const { dispatch } = useLoan();
   const faqs = [
     { q: 'Qual o valor mínimo de empréstimo?', a: 'Não há valor mínimo: você simula o valor que precisar.' },
-    { q: 'Qual a taxa de juros?', a: 'A taxa é de 30% ao mês, exceto para a categoria Não Precisa Comprovar Renda, que é 35% ao mês.' },
+    { q: 'Qual a taxa de juros?', a: 'A taxa é de 30% ao mês para todas as categorias.' },
     { q: 'Em quanto tempo recebo o dinheiro?', a: 'Análise em menos de 24h. Aprovou, caiu na conta em minutos.' },
     { q: 'Preciso ter nome limpo?', a: 'Não necessariamente. Cada caso é analisado individualmente.' },
   ];

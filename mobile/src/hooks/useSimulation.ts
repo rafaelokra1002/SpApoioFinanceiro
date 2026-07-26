@@ -12,8 +12,8 @@ import { SimulationResult } from '../types';
 export function simular(valor: number, numParcelas: number, categoria?: string): SimulationResult | null {
   if (valor <= 0 || numParcelas <= 0) return null;
 
-  const isSemComprovacao = categoria === 'SEM_COMPROVACAO';
-  const taxaJuros = isSemComprovacao ? 35 : 30;
+  // Taxa única de 30% ao mês para todas as categorias.
+  const taxaJuros = 30;
   const i = taxaJuros / 100;
 
   const parcelaExata = (valor * i) / (1 - Math.pow(1 + i, -numParcelas));

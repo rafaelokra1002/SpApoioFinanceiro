@@ -176,6 +176,8 @@ export function Documents() {
   const docs = DOCUMENT_TYPES[state.categoria] || DOCUMENT_TYPES['CARTEIRA_ASSINADA'];
   const categoriaLabel = CATEGORIES.find(c => c.value === state.categoria)?.label || '';
   const beneficiario = state.categoria === 'BENEFICIARIO';
+  // Garantia não pede dados de emprego/renda — o bem é a garantia.
+  const garantia = state.categoria === 'COM_GARANTIA';
 
   const openFilePicker = (docKey: string) => {
     setCurrentDocKey(docKey);
@@ -652,7 +654,7 @@ export function Documents() {
                     onChange={v => dispatch({ type: 'SET_FIELD', field: 'bairroTrabalho', value: v })}
                   />
                 </>
-              ) : (
+              ) : garantia ? null : (
                 <>
                   <ExtraField
                     icon={<Building2 size={20} color="#2546f0" strokeWidth={1.8} />}
