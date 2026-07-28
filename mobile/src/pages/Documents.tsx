@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import {
-  ArrowLeft, BadgeCheck, Building2, Camera, CircleCheck, CircleHelp, Clock, FileText, House,
+  ArrowLeft, BadgeCheck, Briefcase, Building2, Camera, CircleCheck, CircleHelp, Clock, FileText, House,
   IdCard, Image as ImageIcon, Info, Landmark, MapPin, Pencil, Send, UserRound,
 } from 'lucide-react';
 import { useLoan } from '../context/LoanContext';
@@ -178,6 +178,8 @@ export function Documents() {
   const beneficiario = state.categoria === 'BENEFICIARIO';
   // Garantia não pede dados de emprego/renda — o bem é a garantia.
   const garantia = state.categoria === 'COM_GARANTIA';
+  const autonomo = state.categoria === 'AUTONOMO';
+  const semComprovacao = state.categoria === 'SEM_COMPROVACAO';
 
   const openFilePicker = (docKey: string) => {
     setCurrentDocKey(docKey);
@@ -654,7 +656,32 @@ export function Documents() {
                     onChange={v => dispatch({ type: 'SET_FIELD', field: 'bairroTrabalho', value: v })}
                   />
                 </>
-              ) : garantia ? null : (
+              ) : garantia ? null : autonomo ? (
+                <>
+                  <ExtraField
+                    icon={<Briefcase size={20} color="#2546f0" strokeWidth={1.8} />}
+                    iconBg="#eef3fd" label="Profissão ou atividade"
+                    placeholder="Ex: manicure, motorista, vendedor"
+                    value={state.nomeEmpresa}
+                    onChange={v => dispatch({ type: 'SET_FIELD', field: 'nomeEmpresa', value: v })}
+                  />
+                  <ExtraField
+                    icon={<MapPin size={20} color="#2546f0" strokeWidth={1.8} />}
+                    iconBg="#eef3fd" label="Onde atende ou trabalha"
+                    placeholder="Ex: Centro, Camaçari"
+                    value={state.bairroTrabalho}
+                    onChange={v => dispatch({ type: 'SET_FIELD', field: 'bairroTrabalho', value: v })}
+                  />
+                </>
+              ) : semComprovacao ? (
+                <ExtraField
+                  icon={<Briefcase size={20} color="#2546f0" strokeWidth={1.8} />}
+                  iconBg="#eef3fd" label="Dados de renda"
+                  placeholder="Você trabalha com o quê?"
+                  value={state.nomeEmpresa}
+                  onChange={v => dispatch({ type: 'SET_FIELD', field: 'nomeEmpresa', value: v })}
+                />
+              ) : (
                 <>
                   <ExtraField
                     icon={<Building2 size={20} color="#2546f0" strokeWidth={1.8} />}

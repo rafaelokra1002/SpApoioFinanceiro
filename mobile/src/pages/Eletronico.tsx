@@ -17,11 +17,6 @@ const MEDIA = {
 } as const;
 type MediaKey = keyof typeof MEDIA;
 
-const TIPOS_ITEM = [
-  'Celular / Smartphone', 'Notebook / Laptop', 'Tablet', 'Smart TV / TV',
-  'Videogame / Console', 'Fone / Áudio', 'Câmera', 'Outro eletrônico',
-];
-
 const ESTADOS = [
   'Novo (lacrado)', 'Seminovo', 'Usado – bom estado', 'Usado – com marcas de uso',
 ];
@@ -72,8 +67,6 @@ export function Eletronico() {
   };
 
   const continuar = () => {
-    if (!g.tipoItem) { setError('Selecione o tipo de item.'); return; }
-    if (!g.marca.trim()) { setError('Informe a marca.'); return; }
     if (!g.modelo.trim()) { setError('Informe o modelo.'); return; }
     if (!g.valorMercado.trim()) { setError('Informe o valor de mercado.'); return; }
     setError('');
@@ -131,18 +124,6 @@ export function Eletronico() {
 
         {/* Sobre o item */}
         <h2 style={secTitle}>Sobre o item</h2>
-
-        <Campo label="Descrição">
-          <Select value={g.tipoItem} placeholder="Selecione o tipo de item"
-            options={TIPOS_ITEM} onChange={val => setG({ tipoItem: val })} />
-        </Campo>
-
-        <Campo label="Marca">
-          <input style={inputStyle} value={g.marca}
-            placeholder="Ex: Samsung / Dell / LG"
-            onChange={e => setG({ marca: e.target.value })}
-            onFocus={foco} onBlur={desfoco} />
-        </Campo>
 
         <Campo label="Modelo">
           <input style={inputStyle} value={g.modelo}
