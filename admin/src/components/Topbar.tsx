@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ChevronDown, LogOut, Moon, Settings, Sun, User } from 'lucide-react';
 import { Theme } from '../hooks/useTheme';
 import { ADMIN_EMAIL } from '../services/api';
+import InstallButton from './InstallButton';
 
 interface TopbarProps {
   theme: Theme;
@@ -41,6 +42,8 @@ export default function Topbar({ theme, onToggleTheme, onOpenSettings, onSignOut
       border-b border-line bg-surface px-5 py-3.5 pl-16 lg:px-6 lg:pl-6">
 
       <div className="flex shrink-0 items-center gap-2">
+        <InstallButton />
+
         <button
           onClick={onToggleTheme}
           title={dark ? 'Mudar para modo claro' : 'Mudar para modo escuro'}
