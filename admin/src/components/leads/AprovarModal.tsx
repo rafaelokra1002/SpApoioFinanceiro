@@ -4,7 +4,7 @@ import {
 } from 'lucide-react';
 import { Lead } from '../../types';
 import { formatCurrency, modalidade } from '../../utils/analytics';
-import { getAprovacaoTemplate, renderAprovacaoTemplate } from '../../utils/localTemplates';
+import { getAprovacaoTemplate, renderAprovacaoTemplate, type ModalidadeAprovacao } from '../../utils/localTemplates';
 import { abrirWhatsApp } from '../../utils/whatsapp';
 import Avatar from '../Avatar';
 import { notify } from '../Notice';
@@ -17,12 +17,14 @@ interface Opcao {
   destaque: string;
   desc: string;
   modalidade: 'PARCELADO' | 'AVISTA';
+  /** Qual mensagem para o cliente esta opção usa (ver localTemplates). */
+  tpl: ModalidadeAprovacao;
 }
 
 const OPCOES: Opcao[] = [
-  { titulo: 'Aprovar na modalidade', destaque: 'Parcelado', desc: 'O cliente receberá o crédito em parcelas.', modalidade: 'PARCELADO' },
-  { titulo: 'Aprovar na modalidade', destaque: 'À vista', desc: 'O cliente receberá o valor total à vista.', modalidade: 'AVISTA' },
-  { titulo: 'Solicitado parcelado', destaque: 'Aprovado à vista', desc: 'O cliente solicitou parcelado, mas será aprovado à vista.', modalidade: 'AVISTA' },
+  { titulo: 'Aprovar na modalidade', destaque: 'Parcelado', desc: 'O cliente receberá o crédito em parcelas.', modalidade: 'PARCELADO', tpl: 'PARCELADO' },
+  { titulo: 'Aprovar na modalidade', destaque: 'À vista', desc: 'O cliente receberá o valor total à vista.', modalidade: 'AVISTA', tpl: 'AVISTA' },
+  { titulo: 'Solicitado parcelado', destaque: 'Aprovado à vista', desc: 'O cliente solicitou parcelado, mas será aprovado à vista.', modalidade: 'AVISTA', tpl: 'AVISTA_DE_PARCELADO' },
 ];
 
 interface AprovarModalProps {
@@ -49,15 +51,16 @@ function montarMensagem(
   nome: string,
   valorAprovado: number,
   valorTotal: number,
-  parcelado: boolean,
+  tpl: ModalidadeAprovacao,
   parcela: number,
 ): string {
-  return renderAprovacaoTemplate(getAprovacaoTemplate(), {
+  const parcelado = tpl === 'PARCELADO';
+  return renderAprovacaoTemplate(getAprovacaoTemplate(tpl), {
     nome,
     valor: formatCurrency(valorAprovado),
     total: formatCurrency(valorTotal),
     modalidade: parcelado ? 'Parcelado' : 'À vista',
-    parcelas: parcelado ? `em até ${PARCELAS}x de ${formatCurrency(parcela)}` : 'à vista',
+    parcelas: parcelado ? `até ${PARCELAS}x de ${formatCurrency(parcela)}` : 'à vista',
   });
 }
 
@@ -84,7 +87,7 @@ export default function AprovarModal({ lead, onClose, onConfirm }: AprovarModalP
     setCentavos(digits ? Number(digits) : 0);
   };
 
-  const mensagemDoCliente = () => montarMensagem(lead.nome, valorAprovado, valorTotal, parcelado, parcela);
+  const mensagemDoCliente = () => montarMensagem(lead.nome, valorAprovado, valorTotal, opcao.tpl, parcela);
 
   const copiarMensagem = async () => {
     try {

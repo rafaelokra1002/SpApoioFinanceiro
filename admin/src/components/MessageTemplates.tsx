@@ -6,8 +6,8 @@ import {
 import { fetchMessageTemplates, upsertMessageTemplate } from '../services/api';
 import { MOTIVOS_RECUSA } from './leads/RecusarModal';
 import {
-  APROVACAO_DEFAULT, RECUSA_DEFAULTS, getAprovacaoTemplate, getRecusaTemplates,
-  saveAprovacaoTemplate, saveRecusaTemplate,
+  APROVACAO_AVISTA_DEFAULT, APROVACAO_AVISTA_DE_PARCELADO_DEFAULT, APROVACAO_PARCELADO_DEFAULT,
+  RECUSA_DEFAULTS, getAprovacaoTemplate, getRecusaTemplates, saveAprovacaoTemplate, saveRecusaTemplate,
 } from '../utils/localTemplates';
 
 type ModuloId = 'solicitacoes' | 'painel';
@@ -27,9 +27,13 @@ interface MessageMeta {
 const VARS_LEAD = ['{{nome}}', '{{valor}}', '{{telefone}}', '{{cidade}}', '{{email}}', '{{cpf}}', '{{status}}'];
 const VARS_RECUSA = ['{{nome}}', '{{motivo}}'];
 const VARS_APROVACAO = ['{{nome}}', '{{valor}}', '{{total}}', '{{modalidade}}', '{{parcelas}}'];
+/** À vista não tem parcelas: o texto do pagamento é fixo. */
+const VARS_APROVACAO_AVISTA = ['{{nome}}', '{{valor}}', '{{total}}', '{{modalidade}}'];
 
-/** Chave do template de aprovação (não é status: vem do modal de aprovar). */
-const APROVACAO_KEY = 'aprovacao';
+/** Chaves dos templates de aprovação (não são status: vêm do modal de aprovar). */
+const APROVACAO_PARCELADO_KEY = 'aprovacao-parcelado';
+const APROVACAO_AVISTA_KEY = 'aprovacao-avista';
+const APROVACAO_AVISTA_DE_PARCELADO_KEY = 'aprovacao-avista-de-parcelado';
 
 /** Mensagens editáveis, agrupadas pelo módulo a que pertencem. */
 const MENSAGENS: MessageMeta[] = [
@@ -61,13 +65,31 @@ const MENSAGENS: MessageMeta[] = [
     variaveis: VARS_LEAD,
   },
   {
-    key: APROVACAO_KEY,
+    key: APROVACAO_PARCELADO_KEY,
     modulo: 'painel',
-    titulo: 'Aprovação — mensagem para copiar',
-    descricao: 'Texto do botão "Copiar mensagem" no modal de aprovar cliente.',
+    titulo: 'Aprovação parcelada — mensagem',
+    descricao: 'Texto copiado no modal ao aprovar na modalidade parcelada.',
     icon: BadgeCheck,
     iconClass: 'bg-success/10 text-success',
     variaveis: VARS_APROVACAO,
+  },
+  {
+    key: APROVACAO_AVISTA_KEY,
+    modulo: 'painel',
+    titulo: 'Aprovação à vista — mensagem',
+    descricao: 'Texto copiado no modal ao aprovar à vista.',
+    icon: BadgeCheck,
+    iconClass: 'bg-success/10 text-success',
+    variaveis: VARS_APROVACAO_AVISTA,
+  },
+  {
+    key: APROVACAO_AVISTA_DE_PARCELADO_KEY,
+    modulo: 'painel',
+    titulo: 'Aprovação à vista (pediu parcelado) — mensagem',
+    descricao: 'Texto copiado quando o cliente pediu parcelado, mas foi aprovado só à vista.',
+    icon: BadgeCheck,
+    iconClass: 'bg-success/10 text-success',
+    variaveis: VARS_APROVACAO_AVISTA,
   },
   ...MOTIVOS_RECUSA.map<MessageMeta>((m) => ({
     key: String(m.grupo),
@@ -99,14 +121,19 @@ function idDe(m: MessageMeta): string {
 
 function textoPadrao(m: MessageMeta): string {
   if (m.modulo === 'solicitacoes') return DEFAULT_TEMPLATES[m.key] ?? '';
-  if (m.key === APROVACAO_KEY) return APROVACAO_DEFAULT;
+  if (m.key === APROVACAO_PARCELADO_KEY) return APROVACAO_PARCELADO_DEFAULT;
+  if (m.key === APROVACAO_AVISTA_KEY) return APROVACAO_AVISTA_DEFAULT;
+  if (m.key === APROVACAO_AVISTA_DE_PARCELADO_KEY) return APROVACAO_AVISTA_DE_PARCELADO_DEFAULT;
   return RECUSA_DEFAULTS[Number(m.key)] ?? '';
 }
 
 /** Texto atual gravado no navegador (só para as mensagens do módulo "painel"). */
 function textoSalvo(m: MessageMeta, recusas: Record<number, string>): string {
   if (m.modulo === 'solicitacoes') return textoPadrao(m);
-  return m.key === APROVACAO_KEY ? getAprovacaoTemplate() : recusas[Number(m.key)];
+  if (m.key === APROVACAO_PARCELADO_KEY) return getAprovacaoTemplate('PARCELADO');
+  if (m.key === APROVACAO_AVISTA_KEY) return getAprovacaoTemplate('AVISTA');
+  if (m.key === APROVACAO_AVISTA_DE_PARCELADO_KEY) return getAprovacaoTemplate('AVISTA_DE_PARCELADO');
+  return recusas[Number(m.key)];
 }
 
 export default function MessageTemplates() {
@@ -136,7 +163,9 @@ export default function MessageTemplates() {
       const res = await upsertMessageTemplate(m.key, content);
       return res.success;
     }
-    if (m.key === APROVACAO_KEY) saveAprovacaoTemplate(content);
+    if (m.key === APROVACAO_PARCELADO_KEY) saveAprovacaoTemplate('PARCELADO', content);
+    else if (m.key === APROVACAO_AVISTA_KEY) saveAprovacaoTemplate('AVISTA', content);
+    else if (m.key === APROVACAO_AVISTA_DE_PARCELADO_KEY) saveAprovacaoTemplate('AVISTA_DE_PARCELADO', content);
     else saveRecusaTemplate(Number(m.key), content);
     return true;
   };

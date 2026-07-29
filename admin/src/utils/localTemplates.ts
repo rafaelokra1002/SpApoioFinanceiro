@@ -15,15 +15,51 @@ export const RECUSA_DEFAULTS: Record<number, string> = {
   3: TEXTO_RECUSA,
 };
 
-export const APROVACAO_DEFAULT = 'Olá, {{nome}}! Temos uma ótima notícia: seu crédito foi *APROVADO*!\n\n'
-  + 'Valor aprovado: {{valor}}\n'
-  + 'Total a pagar: {{total}}\n'
-  + 'Pagamento: {{parcelas}}\n\n'
-  + 'Nossa equipe entrará em contato para finalizar o processo.\n\n'
-  + '*Equipe SP Apoio Financeiro*';
+/**
+ * Modalidade de aprovação: cada uma tem sua própria mensagem para o cliente.
+ * AVISTA_DE_PARCELADO = cliente pediu parcelado, mas foi aprovado só à vista.
+ */
+export type ModalidadeAprovacao = 'AVISTA' | 'PARCELADO' | 'AVISTA_DE_PARCELADO';
+
+export const APROVACAO_PARCELADO_DEFAULT = 'Olá, {{nome}}!\n\n'
+  + 'Sua solicitação foi *APROVADA*! ✅\n\n'
+  + '💰 Valor aprovado: {{valor}}\n'
+  + '💳 Parcelamento: {{parcelas}}\n'
+  + '📌 Total a pagar: {{total}}\n\n'
+  + 'Para continuar, fale com nossa equipe no WhatsApp:\n\n'
+  + 'https://wa.me/5571983024664\n\n'
+  + 'Ao chamar, envie:\n'
+  + '* Nome completo\n'
+  + '* Data escolhida para pagamento';
+
+export const APROVACAO_AVISTA_DEFAULT = 'Olá, {{nome}}!\n\n'
+  + 'Sua solicitação foi *APROVADA*! ✅\n\n'
+  + '💰 Valor aprovado: {{valor}}\n'
+  + '💳 Pagamento: à vista (até 30 dias)\n'
+  + '📌 Total a pagar: {{total}}\n\n'
+  + '📲 Para concluir a contratação, fale com nossa equipe pelo WhatsApp:\n\n'
+  + '👉 https://wa.me/5571983024664\n\n'
+  + 'Ao chamar, envie:\n'
+  + '* Nome completo\n'
+  + '* Data escolhida para pagamento';
+
+export const APROVACAO_AVISTA_DE_PARCELADO_DEFAULT = '🎉 Olá, {{nome}}!\n\n'
+  + 'Sua solicitação foi *ANALISADA*! ✅\n\n'
+  + '📋 Você solicitou o parcelamento, porém, no momento, foi aprovado apenas o crédito à vista.\n\n'
+  + '💰 Valor aprovado: {{valor}}\n'
+  + '💳 Pagamento: à vista (até 30 dias)\n'
+  + '📌 Total a pagar: {{total}}\n\n'
+  + '📲 Para concluir a contratação, fale com nossa equipe pelo WhatsApp:\n\n'
+  + '👉 https://wa.me/5571983024664\n\n'
+  + 'Ao chamar, envie:\n'
+  + '* Nome completo\n'
+  + '* Data escolhida para pagamento';
 
 const RECUSA_KEY = 'sp-admin-recusa-templates';
-const APROVACAO_KEY = 'sp-admin-aprovacao-template';
+/** Chave antiga = parcelado (preserva edições já salvas); as demais têm chave própria. */
+const APROVACAO_KEY_PARCELADO = 'sp-admin-aprovacao-template';
+const APROVACAO_KEY_AVISTA = 'sp-admin-aprovacao-avista-template';
+const APROVACAO_KEY_AVISTA_DE_PARCELADO = 'sp-admin-aprovacao-avista-de-parcelado-template';
 
 export function getRecusaTemplates(): Record<number, string> {
   try {
@@ -43,12 +79,19 @@ export function saveRecusaTemplate(grupo: number, content: string) {
   localStorage.setItem(RECUSA_KEY, JSON.stringify({ ...atual, [grupo]: content }));
 }
 
-export function getAprovacaoTemplate(): string {
-  return localStorage.getItem(APROVACAO_KEY) || APROVACAO_DEFAULT;
+const APROVACAO_CONFIG: Record<ModalidadeAprovacao, { key: string; padrao: string }> = {
+  PARCELADO: { key: APROVACAO_KEY_PARCELADO, padrao: APROVACAO_PARCELADO_DEFAULT },
+  AVISTA: { key: APROVACAO_KEY_AVISTA, padrao: APROVACAO_AVISTA_DEFAULT },
+  AVISTA_DE_PARCELADO: { key: APROVACAO_KEY_AVISTA_DE_PARCELADO, padrao: APROVACAO_AVISTA_DE_PARCELADO_DEFAULT },
+};
+
+export function getAprovacaoTemplate(modalidade: ModalidadeAprovacao): string {
+  const { key, padrao } = APROVACAO_CONFIG[modalidade];
+  return localStorage.getItem(key) || padrao;
 }
 
-export function saveAprovacaoTemplate(content: string) {
-  localStorage.setItem(APROVACAO_KEY, content);
+export function saveAprovacaoTemplate(modalidade: ModalidadeAprovacao, content: string) {
+  localStorage.setItem(APROVACAO_CONFIG[modalidade].key, content);
 }
 
 function primeiroNome(nome: string): string {
