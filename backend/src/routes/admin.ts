@@ -19,6 +19,13 @@ import {
   handleSeedCategories,
 } from '../controllers/categoryController';
 import {
+  handleGetCities,
+  handleCreateCity,
+  handleUpdateCity,
+  handleDeleteCity,
+  handleSeedCities,
+} from '../controllers/cityController';
+import {
   handleWhatsAppStatus,
   handleWhatsAppQRCode,
   handleWhatsAppDisconnect,
@@ -59,6 +66,13 @@ router.delete('/categories/:id', handleDeleteCategory);
 router.post('/categories/:id/documents', handleAddDocument);
 router.put('/categories/documents/:docId', handleUpdateDocument);
 router.delete('/categories/documents/:docId', handleDeleteDocument);
+
+// City management
+router.get('/cities', handleGetCities);
+router.post('/cities', handleCreateCity);
+router.post('/cities/seed', handleSeedCities);
+router.put('/cities/:id', handleUpdateCity);
+router.delete('/cities/:id', handleDeleteCity);
 
 // WhatsApp
 router.get('/whatsapp/status', handleWhatsAppStatus);

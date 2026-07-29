@@ -6,6 +6,7 @@ import simulationRoutes from './routes/simulation';
 import leadRoutes from './routes/lead';
 import adminRoutes from './routes/admin';
 import categoryRoutes from './routes/category';
+import cityRoutes from './routes/city';
 import { errorHandler } from './middleware/errorHandler';
 import { ensureAuthReady } from './services/authService';
 
@@ -30,6 +31,7 @@ app.use('/api/simulation', simulationRoutes);
 app.use('/api/lead', leadRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/cities', cityRoutes);
 
 // Health check
 app.get('/api/health', (_req, res) => {

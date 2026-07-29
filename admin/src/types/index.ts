@@ -75,3 +75,11 @@ export interface Category {
   active: boolean;
   documents: CategoryDocument[];
 }
+
+export interface City {
+  id: string;
+  nome: string;
+  uf: string;
+  order: number;
+  active: boolean;
+}

@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { useLoan } from '../context/LoanContext';
 import { simular } from '../hooks/useSimulation';
-import { CITIES } from '../constants/cities';
+import { useCities } from '../hooks/useCities';
 import { PARCELAS } from '../constants/categories';
 import { formatCurrency } from '../utils/formatCurrency';
 
@@ -9,6 +9,7 @@ const MAX_PARCELAS = PARCELAS[PARCELAS.length - 1].value;
 
 export function Simulation() {
   const { state, dispatch } = useLoan();
+  const cities = useCities();
   const [inputValue, setInputValue] = useState('');
   const [rendaInput, setRendaInput] = useState('');
   // `parcelas` no contexto começa em 12; à vista é sempre 1 parcela.
@@ -134,7 +135,7 @@ export function Simulation() {
                 paddingRight: 18, color: state.cidade ? '#0d1836' : '#9ca3af',
               }}>
               <option value="">Selecione</option>
-              {CITIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+              {cities.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
             </select>
             <ChevronDown />
           </div>

@@ -78,6 +78,16 @@ model Category {
   documents CategoryDocument[]
 }
 
+model City {
+  id        String   @id @default(uuid())
+  nome      String
+  uf        String   @default("BA")
+  order     Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model CategoryDocument {
   id          String   @id @default(uuid())
   categoryId  String

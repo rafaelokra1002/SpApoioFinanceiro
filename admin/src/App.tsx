@@ -14,6 +14,7 @@ import RecusadosView from './components/leads/RecusadosView';
 import AprovadosView from './components/leads/AprovadosView';
 import LeadDetail from './components/LeadDetail';
 import CategoryManager from './components/CategoryManager';
+import CityManager from './components/CityManager';
 import MessageTemplates from './components/MessageTemplates';
 import PhotosGallery from './components/PhotosGallery';
 import BackupPanel from './components/BackupPanel';
@@ -449,7 +450,12 @@ export default function App() {
           <CategoryManager categories={categories} loading={catLoading} onReload={loadCategories} />
         )}
 
-        {page === 'mensagens' && <MessageTemplates />}
+        {page === 'mensagens' && (
+          <>
+            <MessageTemplates />
+            <CityManager />
+          </>
+        )}
 
         {page === 'relatorio' && (
           <Placeholder

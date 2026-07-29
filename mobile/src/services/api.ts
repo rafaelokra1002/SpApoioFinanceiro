@@ -1,4 +1,4 @@
-import { LeadData } from '../types';
+import { City, LeadData } from '../types';
 
 const API_BASE = import.meta.env.VITE_API_BASE || (
   import.meta.env.DEV
@@ -11,6 +11,14 @@ interface ApiResponse<T = any> {
   data?: T;
   error?: string;
   message?: string;
+}
+
+/** Cidades atendidas, definidas no painel. Lança em caso de erro (o hook usa a lista fixa como reserva). */
+export async function fetchCities(): Promise<City[]> {
+  const res = await fetch(`${API_BASE}/cities`);
+  const result: ApiResponse<City[]> = await res.json();
+  if (!res.ok || !result.success || !result.data) throw new Error(result.error || 'Erro ao carregar cidades');
+  return result.data;
 }
 
 export async function submitLeadWithDocuments(

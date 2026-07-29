@@ -135,6 +135,28 @@ export async function seedCategories() {
   return req('/admin/categories/seed', { method: 'POST' });
 }
 
+/* ----------------------------------------------------------------- cities */
+
+export async function fetchCities() {
+  return req('/admin/cities');
+}
+
+export async function createCity(data: { nome: string; uf?: string; order?: number; active?: boolean }) {
+  return req('/admin/cities', { method: 'POST', body: JSON.stringify(data) });
+}
+
+export async function updateCity(id: string, data: { nome?: string; uf?: string; order?: number; active?: boolean }) {
+  return req(`/admin/cities/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+}
+
+export async function deleteCity(id: string) {
+  return req(`/admin/cities/${id}`, { method: 'DELETE' });
+}
+
+export async function seedCities() {
+  return req('/admin/cities/seed', { method: 'POST' });
+}
+
 /* -------------------------------------------------------------- whatsapp */
 
 export async function getWhatsAppStatus() {
