@@ -45,10 +45,9 @@ interface RecusarModalProps {
 }
 
 export default function RecusarModal({ lead, onClose, onConfirm }: RecusarModalProps) {
-  const [motivoIdx, setMotivoIdx] = useState(0);
-  const [mensagem, setMensagem] = useState(
-    () => montarMensagem(lead.nome, MOTIVOS_RECUSA[0].grupo, MOTIVOS_RECUSA[0].motivoCurto),
-  );
+  // Começa sem motivo escolhido: o operador precisa selecionar um antes de recusar.
+  const [motivoIdx, setMotivoIdx] = useState<number | null>(null);
+  const [mensagem, setMensagem] = useState('');
   const [copiado, setCopiado] = useState(false);
 
   useEffect(() => {
@@ -73,6 +72,7 @@ export default function RecusarModal({ lead, onClose, onConfirm }: RecusarModalP
   };
 
   const confirmar = () => {
+    if (motivoIdx === null) return;
     const m = MOTIVOS_RECUSA[motivoIdx];
     onConfirm({ grupo: m.grupo, motivoRecusa: m.motivoCurto, mensagem: mensagem.trim() });
   };
@@ -195,7 +195,9 @@ export default function RecusarModal({ lead, onClose, onConfirm }: RecusarModalP
           </button>
           <button
             onClick={confirmar}
-            className="rounded-xl bg-danger px-5 py-2.5 text-[13px] font-bold text-white transition-colors hover:brightness-110 cursor-pointer"
+            disabled={motivoIdx === null}
+            className="rounded-xl bg-danger px-5 py-2.5 text-[13px] font-bold text-white transition-colors hover:brightness-110 cursor-pointer
+              disabled:cursor-not-allowed disabled:opacity-40"
           >
             Recusar e enviar mensagem
           </button>
