@@ -77,12 +77,8 @@ export default function CategoryManager({ categories, loading, onReload }: Categ
 
   return (
     <div>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-xl font-extrabold text-ink">Categorias</h2>
-          <p className="text-sm text-subtle mt-0.5">Gerencie as categorias e documentos do app</p>
-        </div>
+      {/* Header — o título "Categorias" já vem do cabeçalho da página (App.tsx) */}
+      <div className="flex items-center justify-end mb-6">
         <button
           onClick={handleSeed}
           disabled={seeding}

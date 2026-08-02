@@ -45,7 +45,7 @@ export const DOCUMENT_TYPES: Record<string, DocumentType[]> = {
     { key: 'RG ou CNH (frente)', label: 'RG ou CNH (frente)', description: 'Foto da parte da frente', icon: '🪪' },
     { key: 'RG ou CNH (verso)', label: 'RG ou CNH (verso)', description: 'Foto da parte de trás', icon: '🪪' },
     { key: 'Selfie (rosto)', label: 'Selfie', description: 'Rosto nítido, sem filtro', icon: '📷' },
-    { key: 'Extrato bancário (últimos 30 dias) ou comprovante do último pagamento', label: 'Extrato bancário ou último pagamento', description: 'Últimos 30 dias ou comprovante recente', icon: '📄' },
+    { key: 'Carteira de Trabalho Digital (PDF)', label: 'Carteira de Trabalho Digital (PDF)', description: 'Envie o PDF da Carteira de Trabalho Digital (app ou gov.br)', icon: '💼' },
     { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz – últimos 2 meses', icon: '🏠' },
   ],
   CLT_SEM_REGISTRO: [

@@ -8,6 +8,7 @@ import { getRecusaTemplates, renderRecusaTemplate } from '../../utils/localTempl
 import { abrirWhatsApp } from '../../utils/whatsapp';
 import Avatar from '../Avatar';
 import { notify } from '../Notice';
+import PerfilCliente from './PerfilCliente';
 
 /** Cada motivo de recusa corresponde a um grupo (1/2/3) e a um texto curto salvo no lead. */
 export const MOTIVOS_RECUSA = [
@@ -115,7 +116,7 @@ export default function RecusarModal({ lead, onClose, onConfirm }: RecusarModalP
               <InfoRow icon={CreditCard} label="Modalidade solicitada">
                 <span className="rounded-md bg-brand/10 px-2 py-0.5 text-[12px] text-brand-deep">{modalidade(lead.prazo)}</span>
               </InfoRow>
-              <InfoRow icon={UserRound} label="Indicado por">{lead.indicacao || '—'}</InfoRow>
+              <PerfilCliente lead={lead} />
             </div>
           </div>
 

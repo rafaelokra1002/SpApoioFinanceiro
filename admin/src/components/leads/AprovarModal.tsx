@@ -8,6 +8,7 @@ import { getAprovacaoTemplate, renderAprovacaoTemplate, type ModalidadeAprovacao
 import { abrirWhatsApp } from '../../utils/whatsapp';
 import Avatar from '../Avatar';
 import { notify } from '../Notice';
+import PerfilCliente from './PerfilCliente';
 
 /** Nº de parcelas usado só para ilustrar a simulação no painel (não é persistido). */
 const PARCELAS = 12;
@@ -87,11 +88,14 @@ export default function AprovarModal({ lead, onClose, onConfirm }: AprovarModalP
     setCentavos(digits ? Number(digits) : 0);
   };
 
-  const mensagemDoCliente = () => montarMensagem(lead.nome, valorAprovado, valorTotal, opcao.tpl, parcela);
+  const mensagemDoCliente = useMemo(
+    () => montarMensagem(lead.nome, valorAprovado, valorTotal, opcao.tpl, parcela),
+    [lead.nome, valorAprovado, valorTotal, opcao.tpl, parcela],
+  );
 
   const copiarMensagem = async () => {
     try {
-      await navigator.clipboard.writeText(mensagemDoCliente());
+      await navigator.clipboard.writeText(mensagemDoCliente);
       setCopiado(true);
       setTimeout(() => setCopiado(false), 1500);
     } catch {
@@ -141,7 +145,7 @@ export default function AprovarModal({ lead, onClose, onConfirm }: AprovarModalP
               <InfoRow icon={CreditCard} label="Modalidade solicitada">
                 <span className="rounded-md bg-brand/10 px-2 py-0.5 text-[12px] text-brand-deep">{modalidade(lead.prazo)}</span>
               </InfoRow>
-              <InfoRow icon={UserRound} label="Indicado por">{lead.indicacao || '—'}</InfoRow>
+              <PerfilCliente lead={lead} />
             </div>
           </div>
 
@@ -221,6 +225,15 @@ export default function AprovarModal({ lead, onClose, onConfirm }: AprovarModalP
                 <ResumoRow label="Parcelas" value={parcelado ? `${PARCELAS}x de ${formatCurrency(parcela)}` : 'À vista'} />
               </div>
 
+              {/* Prévia da mensagem que será copiada/enviada ao cliente */}
+              <div className="mt-3 rounded-lg border border-line bg-surface p-3">
+                <p className="mb-1.5 flex items-center gap-1.5 text-[11.5px] font-semibold text-muted">
+                  <MessageCircle size={13} className="text-subtle" />
+                  Mensagem que será enviada ao cliente
+                </p>
+                <p className="whitespace-pre-wrap text-[12.5px] leading-relaxed text-ink-2">{mensagemDoCliente}</p>
+              </div>
+
               {/* Mesma dupla do modal de recusa, colada no canto inferior direito */}
               <div className="-mr-1.5 mt-3 flex flex-wrap items-center justify-end gap-2">
                 <button
@@ -234,7 +247,7 @@ export default function AprovarModal({ lead, onClose, onConfirm }: AprovarModalP
                   {copiado ? 'Copiado' : 'Copiar'}
                 </button>
                 <button
-                  onClick={() => abrirWhatsApp(lead.telefone, mensagemDoCliente())}
+                  onClick={() => abrirWhatsApp(lead.telefone, mensagemDoCliente)}
                   disabled={valorAprovado <= 0}
                   title="Abre a conversa no WhatsApp com a mensagem pronta"
                   className="flex items-center gap-1.5 rounded-lg bg-purple-600 px-2.5 py-1.5
