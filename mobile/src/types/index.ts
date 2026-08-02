@@ -23,6 +23,8 @@ export interface LeadData {
   nomeEmpresa?: string;
   bairroTrabalho?: string;
   indicacao?: string;
+  /** Origem escolhida pelo cliente: 'PANFLETO' | 'INSTAGRAM' | 'INDICACAO'. */
+  origem?: string;
 }
 
 export interface UploadedFile {

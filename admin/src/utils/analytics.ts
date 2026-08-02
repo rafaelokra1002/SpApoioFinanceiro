@@ -41,12 +41,22 @@ export function addMonths(key: string, delta: number): string {
   return monthKey(new Date(y, m - 1 + delta, 1));
 }
 
+/** Rótulos das origens reais escolhidas no app (campo `origem`). */
+const ORIGEM_LABELS: Record<string, string> = {
+  INDICACAO: 'Indicação de Amigos',
+  INSTAGRAM: 'Instagram e Blogueiros',
+  PANFLETO: 'Panfleto',
+};
+
 /**
- * Origem do cliente derivada do campo livre `indicacao` ("Quem indicou você?").
- * Enquanto não existe uma coluna `origem` no banco, classificamos por palavra-chave
- * e caímos em "Indicação de Amigos" quando há um nome preenchido.
+ * Origem do cliente. Leads novos trazem o campo real `origem` (escolhido no envio);
+ * para os antigos, sem esse campo, derivamos por palavra-chave sobre o texto livre
+ * `indicacao` — caindo em "Indicação de Amigos" quando há um nome preenchido.
  */
 export function origemOf(lead: Lead): string {
+  const origem = (lead.origem || '').trim().toUpperCase();
+  if (origem && ORIGEM_LABELS[origem]) return ORIGEM_LABELS[origem];
+
   const raw = (lead.indicacao || '').trim();
   // Sem indicação preenchida, consideramos origem "Panfleto".
   if (!raw) return 'Panfleto';

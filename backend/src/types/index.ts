@@ -25,6 +25,7 @@ export interface LeadInput {
   nomeEmpresa?: string;
   bairroTrabalho?: string;
   indicacao?: string;
+  origem?: string;
   endereco?: string;
   cep?: string;
   enderecoTrabalho?: string;

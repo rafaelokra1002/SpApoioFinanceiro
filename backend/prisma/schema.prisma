@@ -24,6 +24,7 @@ model Lead {
   nomeEmpresa     String?
   bairroTrabalho  String?
   indicacao       String?
+  origem          String?
   endereco        String?
   cep             String?
   enderecoTrabalho String?

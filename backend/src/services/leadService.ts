@@ -19,6 +19,7 @@ export async function createLead(data: LeadInput) {
       nomeEmpresa: data.nomeEmpresa || null,
       bairroTrabalho: data.bairroTrabalho || null,
       indicacao: data.indicacao || null,
+      origem: data.origem || null,
       endereco: data.endereco || null,
       cep: data.cep || null,
       enderecoTrabalho: data.enderecoTrabalho || null,

@@ -114,6 +114,7 @@ export async function handleCreateLeadWithDocs(
       nomeEmpresa: body.nomeEmpresa || undefined,
       bairroTrabalho: body.bairroTrabalho || undefined,
       indicacao: body.indicacao || undefined,
+      origem: body.origem || undefined,
       endereco: body.endereco || undefined,
       cep: body.cep || undefined,
       enderecoTrabalho: body.enderecoTrabalho || undefined,

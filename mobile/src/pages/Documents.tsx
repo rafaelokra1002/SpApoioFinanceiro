@@ -258,6 +258,8 @@ export function Documents() {
       nomeEmpresa: state.nomeEmpresa || undefined,
       bairroTrabalho: state.bairroTrabalho || undefined,
       indicacao: state.indicacao || undefined,
+      // Origem real escolhida no passo "Como você conheceu a SP?" (campo próprio no banco).
+      origem: origem || undefined,
       endereco: state.endereco || undefined,
       cep: state.cep || undefined,
       enderecoTrabalho: state.enderecoTrabalho || undefined,
