@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
 import { CalendarDays, Info, Loader2, X } from 'lucide-react';
 import { Lead } from '../../types';
-import { CARD_ORDER, CHART_SERIES, METRICS, MetricKey, STATUS_ORDER } from '../../constants/status';
+import { CARD_ORDER, CHART_SERIES, METRICS, MetricKey } from '../../constants/status';
 import {
   afterDashboardStart, buildSummary, countLastDays, countMetrics, currentMonth, fullMonthLabel,
   monthKey, monthSeries, origemOf, rank,
 } from '../../utils/analytics';
-import LineChart, { ChartMode } from '../charts/LineChart';
+import LineChart from '../charts/LineChart';
 import StatCard from './StatCard';
 import RankingCard from './RankingCard';
 import PeriodSummary from './PeriodSummary';
@@ -27,8 +27,6 @@ export default function Dashboard({ leads: allLeads, loading, onDrillDown }: Das
   // porém, seguem mostrando os totais reais de todo o histórico (allLeads).
   const leads = useMemo(() => allLeads.filter(afterDashboardStart), [allLeads]);
 
-  const [chartMode, setChartMode] = useState<ChartMode>('quantidade');
-  const [cityStatus, setCityStatus] = useState<MetricKey>('APROVADO');
   // '' = todos os meses; senão 'YYYY-MM'.
   const [month, setMonth] = useState<string>('');
 
@@ -65,8 +63,8 @@ export default function Dashboard({ leads: allLeads, loading, onDrillDown }: Das
   );
 
   const cityRank = useMemo(
-    () => rank(scoped.filter((l) => l.status === cityStatus), (l) => l.cidade, 10),
-    [scoped, cityStatus],
+    () => rank(scoped.filter((l) => l.status === 'APROVADO'), (l) => l.cidade, 10),
+    [scoped],
   );
   const origemRank = useMemo(() => rank(scoped, origemOf, 10), [scoped]);
 
@@ -153,56 +151,27 @@ export default function Dashboard({ leads: allLeads, loading, onDrillDown }: Das
               Solicitações por mês
               <Info size={13} className="text-subtle" aria-label={`Últimos ${CHART_MONTHS} meses`} />
             </h2>
-
-            <div className="flex rounded-lg bg-line p-0.5">
-              {(['quantidade', 'percentual'] as ChartMode[]).map((mode) => (
-                <button
-                  key={mode}
-                  onClick={() => setChartMode(mode)}
-                  className={`rounded-md px-3 py-1 text-[11.5px] font-semibold capitalize transition-colors cursor-pointer
-                    ${chartMode === mode ? 'bg-brand text-white shadow-sm' : 'text-muted hover:text-ink-2'}`}
-                >
-                  {mode}
-                </button>
-              ))}
-            </div>
           </header>
 
           <div className="mb-1 flex flex-wrap gap-x-4 gap-y-1.5">
-            {/* No modo percentual a série "total" não é desenhada (seria sempre 100%),
-                então também não entra na legenda. */}
-            {CHART_SERIES
-              .filter((key) => chartMode === 'quantidade' || key !== 'total')
-              .map((key) => (
-                <span key={key} className="flex items-center gap-1.5 text-[11.5px] text-muted">
-                  <span className="h-0.5 w-3.5 rounded-full" style={{ background: METRICS[key].hex }} />
-                  {METRICS[key].label}
-                </span>
-              ))}
+            {CHART_SERIES.map((key) => (
+              <span key={key} className="flex items-center gap-1.5 text-[11.5px] text-muted">
+                <span className="h-0.5 w-3.5 rounded-full" style={{ background: METRICS[key].hex }} />
+                {METRICS[key].label}
+              </span>
+            ))}
           </div>
 
-          <LineChart points={chartSeries} series={CHART_SERIES} mode={chartMode} />
+          <LineChart points={chartSeries} series={CHART_SERIES} mode="quantidade" />
         </section>
 
         <RankingCard
           title="Clientes por Cidade"
           labelHeader="Cidade"
-          valueHeader={METRICS[cityStatus].label}
+          valueHeader={METRICS.APROVADO.label}
           rows={cityRank.rows}
           total={cityRank.total}
           numbered
-          action={
-            <select
-              value={cityStatus}
-              onChange={(e) => setCityStatus(e.target.value as MetricKey)}
-              className="cursor-pointer rounded-lg border border-line bg-surface px-3 py-1.5 text-[12px]
-                font-medium text-ink-2 focus:outline-none focus:border-brand"
-            >
-              {STATUS_ORDER.map((s) => (
-                <option key={s} value={s}>{METRICS[s].label}</option>
-              ))}
-            </select>
-          }
         />
       </div>
 

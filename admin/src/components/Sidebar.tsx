@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {
   LayoutGrid, ClipboardList, UserCircle, Clock, CheckCircle2, XCircle, UserX,
   UserRoundCheck, MessageSquare, HardDrive, ImageIcon, FolderOpen, Settings,
-  ShieldCheck, ChevronRight, ChevronLeft, Headset, Menu, X, type LucideIcon,
+  ShieldCheck, ChevronRight, ChevronLeft, Menu, X, type LucideIcon,
 } from 'lucide-react';
 import { Counts } from '../utils/analytics';
 import { MetricKey } from '../constants/status';
@@ -53,7 +53,7 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   { key: 'dashboard', label: 'Dashboard', icon: LayoutGrid },
-  { key: 'pendentes', label: 'Pendentes', icon: Clock, badge: 'PENDENTE' },
+  { key: 'pendentes', label: 'Pendentes', icon: Clock },
   { key: 'garantias', label: 'Garantias', icon: ShieldCheck },
   { key: 'aprovados', label: 'Aprovados', icon: CheckCircle2 },
   { key: 'recusados', label: 'Recusados', icon: XCircle },
@@ -73,7 +73,8 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ page, counts, onNavigate }: SidebarProps) {
-  const [collapsed, setCollapsed] = useState(false);
+  // O sistema abre com o menu recolhido (só ícones); a seta expande.
+  const [collapsed, setCollapsed] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const go = (key: PageKey) => {
@@ -122,7 +123,28 @@ export default function Sidebar({ page, counts, onNavigate }: SidebarProps) {
           </div>
 
           {/* Atalhos */}
-          {!collapsed && (
+          {collapsed ? (
+            // Recolhido: os atalhos aparecem como ícones, com o chip colorido de destaque.
+            <div className="space-y-1">
+              {SHORTCUTS.map((s) => {
+                const Icon = s.icon;
+                const active = page === s.page;
+                return (
+                  <button
+                    key={s.label}
+                    onClick={() => go(s.page)}
+                    title={s.label}
+                    className={`flex w-full items-center justify-center rounded-xl px-3 py-3 transition-colors cursor-pointer
+                      ${active ? 'ring-1 ring-white/25' : 'hover:bg-white/10'}`}
+                  >
+                    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${s.chip}`}>
+                      <Icon size={17} strokeWidth={2.2} />
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
             <div className="space-y-2.5">
               {SHORTCUTS.map((s) => {
                 const Icon = s.icon;
@@ -206,15 +228,7 @@ export default function Sidebar({ page, counts, onNavigate }: SidebarProps) {
             </button>
           ) : (
             <>
-              <div className="mb-3 text-center">
-                <p className="flex items-center justify-center gap-1.5 text-[13px] font-bold text-white">
-                  <Headset size={14} />
-                  Precisa de ajuda?
-                </p>
-                <p className="mt-0.5 text-[11px] font-normal text-white/60">Fale com o suporte</p>
-              </div>
-
-              <div className="flex items-center justify-between border-t border-white/10 pt-3">
+              <div className="flex items-center justify-between">
                 <span className="text-[11.5px] font-medium text-white/55">© 2026 SP Apoio Financeiro</span>
                 <button
                   onClick={() => setCollapsed(true)}
