@@ -41,6 +41,23 @@ export function addMonths(key: string, delta: number): string {
   return monthKey(new Date(y, m - 1 + delta, 1));
 }
 
+/**
+ * Data de corte do dashboard (formato `YYYY-MM-DD`). As métricas, gráficos e
+ * rankings do painel só consideram solicitações criadas a partir deste dia
+ * (00:00, horário local). Serve para "zerar" o dashboard sem apagar nada: os
+ * leads anteriores continuam no banco e na lista de clientes — apenas não
+ * entram nas contas do dashboard.
+ *
+ * Deixe a string vazia ('') para voltar a exibir todo o histórico.
+ */
+export const DASHBOARD_START_DATE = '2026-08-03';
+
+/** `true` se o lead deve entrar no dashboard, conforme a data de corte acima. */
+export function afterDashboardStart(lead: Lead): boolean {
+  if (!DASHBOARD_START_DATE) return true;
+  return new Date(lead.createdAt).getTime() >= new Date(`${DASHBOARD_START_DATE}T00:00:00`).getTime();
+}
+
 /** Rótulos das origens reais escolhidas no app (campo `origem`). */
 const ORIGEM_LABELS: Record<string, string> = {
   INDICACAO: 'Indicação de Amigos',

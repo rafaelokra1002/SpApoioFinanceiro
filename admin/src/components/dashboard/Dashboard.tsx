@@ -3,7 +3,7 @@ import { CalendarDays, Info, Loader2, X } from 'lucide-react';
 import { Lead } from '../../types';
 import { CARD_ORDER, CHART_SERIES, METRICS, MetricKey, STATUS_ORDER } from '../../constants/status';
 import {
-  buildSummary, countLastDays, countMetrics, currentMonth, fullMonthLabel,
+  afterDashboardStart, buildSummary, countLastDays, countMetrics, currentMonth, fullMonthLabel,
   monthKey, monthSeries, origemOf, rank,
 } from '../../utils/analytics';
 import LineChart, { ChartMode } from '../charts/LineChart';
@@ -21,7 +21,12 @@ interface DashboardProps {
 
 const CHART_MONTHS = 6;
 
-export default function Dashboard({ leads, loading, onDrillDown }: DashboardProps) {
+export default function Dashboard({ leads: allLeads, loading, onDrillDown }: DashboardProps) {
+  // Recorte pela data de corte (ver DASHBOARD_START_DATE): o dashboard só conta
+  // solicitações a partir dela. Os leads anteriores continuam no banco e na lista
+  // de clientes — aqui apenas não entram nas métricas.
+  const leads = useMemo(() => allLeads.filter(afterDashboardStart), [allLeads]);
+
   const [chartMode, setChartMode] = useState<ChartMode>('quantidade');
   const [cityStatus, setCityStatus] = useState<MetricKey>('APROVADO');
   // '' = todos os meses; senão 'YYYY-MM'.
