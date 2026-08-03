@@ -22,9 +22,9 @@ interface DashboardProps {
 const CHART_MONTHS = 6;
 
 export default function Dashboard({ leads: allLeads, loading, onDrillDown }: DashboardProps) {
-  // Recorte pela data de corte (ver DASHBOARD_START_DATE): o dashboard só conta
-  // solicitações a partir dela. Os leads anteriores continuam no banco e na lista
-  // de clientes — aqui apenas não entram nas métricas.
+  // Data de corte (ver DASHBOARD_START_DATE): os gráficos e rankings de baixo só
+  // consideram solicitações a partir dela — "começam do zero". Os cards do topo,
+  // porém, seguem mostrando os totais reais de todo o histórico (allLeads).
   const leads = useMemo(() => allLeads.filter(afterDashboardStart), [allLeads]);
 
   const [chartMode, setChartMode] = useState<ChartMode>('quantidade');
@@ -32,21 +32,31 @@ export default function Dashboard({ leads: allLeads, loading, onDrillDown }: Das
   // '' = todos os meses; senão 'YYYY-MM'.
   const [month, setMonth] = useState<string>('');
 
-  // Meses disponíveis (dos leads + mês atual), mais recentes primeiro.
+  // Meses disponíveis (de todo o histórico + mês atual), mais recentes primeiro.
   const monthOptions = useMemo(() => {
-    const set = new Set(leads.map((l) => monthKey(new Date(l.createdAt))));
+    const set = new Set(allLeads.map((l) => monthKey(new Date(l.createdAt))));
     set.add(currentMonth());
     return [...set].sort().reverse();
-  }, [leads]);
+  }, [allLeads]);
 
-  // Recorte pelo mês selecionado (ou todos).
+  /* --- Cards do topo: totais reais (todo o histórico), com o filtro de mês. --- */
+  const scopedAll = useMemo(
+    () => (month ? allLeads.filter((l) => monthKey(new Date(l.createdAt)) === month) : allLeads),
+    [allLeads, month],
+  );
+  const counts = useMemo(() => countMetrics(scopedAll), [scopedAll]);
+  const weekCounts = useMemo(() => countLastDays(allLeads, 7), [allLeads]);
+  // A mini-tendência dos cards acompanha os números reais.
+  const cardSeries = useMemo(
+    () => monthSeries(allLeads, month || currentMonth(), CHART_MONTHS),
+    [allLeads, month],
+  );
+
+  /* --- Gráficos e rankings de baixo: recortados pela data de corte. --- */
   const scoped = useMemo(
     () => (month ? leads.filter((l) => monthKey(new Date(l.createdAt)) === month) : leads),
     [leads, month],
   );
-
-  const counts = useMemo(() => countMetrics(scoped), [scoped]);
-  const weekCounts = useMemo(() => countLastDays(leads, 7), [leads]);
 
   // O gráfico mostra a tendência dos últimos 6 meses até o mês selecionado.
   const chartSeries = useMemo(
@@ -129,7 +139,7 @@ export default function Dashboard({ leads: allLeads, loading, onDrillDown }: Das
             value={counts[metric]}
             week={weekCounts[metric]}
             caption={cardCaption}
-            trend={chartSeries.map((p) => p.counts[metric])}
+            trend={cardSeries.map((p) => p.counts[metric])}
             onClick={() => onDrillDown(metric)}
           />
         ))}
