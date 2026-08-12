@@ -109,6 +109,21 @@ export function modalidade(prazoDias: number): string {
   return prazoDias <= 30 ? 'À vista' : 'Parcelado';
 }
 
+/**
+ * Rótulos dos dois campos de trabalho/renda conforme a categoria (perfil).
+ * O app reaproveita `nomeEmpresa`/`bairroTrabalho` com sentidos diferentes por
+ * categoria (ver mobile Documents.tsx) — aqui traduzimos para exibição.
+ */
+export function camposEmprego(perfil: string): { empresa: string; local: string } {
+  switch (perfil) {
+    case 'BENEFICIARIO': return { empresa: 'Banco do benefício', local: 'Tipo de benefício' };
+    case 'AUTONOMO': return { empresa: 'Profissão / atividade', local: 'Onde atende / trabalha' };
+    case 'SEM_COMPROVACAO': return { empresa: 'Dados de renda', local: 'Local de trabalho' };
+    case 'COM_GARANTIA': return { empresa: 'Empresa', local: 'Local de trabalho' };
+    default: return { empresa: 'Empresa', local: 'Local de trabalho' };
+  }
+}
+
 /** Telefone só com dígitos, para casar o mesmo cliente entre solicitações. */
 function phoneKey(lead: Lead): string {
   return (lead.telefone || '').replace(/\D/g, '');

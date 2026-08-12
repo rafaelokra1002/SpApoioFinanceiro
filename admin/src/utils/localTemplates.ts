@@ -13,7 +13,18 @@ export const RECUSA_DEFAULTS: Record<number, string> = {
   1: TEXTO_RECUSA,
   2: TEXTO_RECUSA,
   3: TEXTO_RECUSA,
+  4: TEXTO_RECUSA,
 };
+
+/** Mensagem de recusa genérica (sem motivo específico escolhido). */
+export const RECUSA_PADRAO = 'Olá, {{nome}}! Após análise da sua solicitação, infelizmente não foi possível aprovar seu crédito no momento.\nAgradecemos o interesse e ficamos à disposição.';
+
+/** Mensagem padrão de atualização de andamento (botão "Enviar status"). */
+export const STATUS_PADRAO = 'Olá {{nome}},\n\n'
+  + 'Estamos entrando em contato para atualizar o status da sua solicitação.\n'
+  + 'Sua análise continua em andamento e, em breve, retornaremos com uma posição.\n'
+  + 'Se precisar de mais informações, estamos à disposição.\n\n'
+  + 'Atenciosamente,\nEquipe SP Apoio Financeiro';
 
 /**
  * Modalidade de aprovação: cada uma tem sua própria mensagem para o cliente.
@@ -68,6 +79,7 @@ export function getRecusaTemplates(): Record<number, string> {
       1: saved['1'] || RECUSA_DEFAULTS[1],
       2: saved['2'] || RECUSA_DEFAULTS[2],
       3: saved['3'] || RECUSA_DEFAULTS[3],
+      4: saved['4'] || RECUSA_DEFAULTS[4],
     };
   } catch {
     return { ...RECUSA_DEFAULTS };

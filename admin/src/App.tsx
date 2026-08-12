@@ -405,7 +405,7 @@ export default function App() {
         {selectedLead && (
           <div className="fixed inset-0 z-40 flex items-center justify-center p-4" role="dialog" aria-modal="true">
             <div className="absolute inset-0 bg-black/40" onClick={() => setSelectedLead(null)} />
-            <div className="relative z-10 max-h-[90vh] overflow-y-auto">
+            <div className="relative z-10">
               <LeadDetail
                 lead={selectedLead}
                 onClose={() => setSelectedLead(null)}

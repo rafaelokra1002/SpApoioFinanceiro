@@ -1,7 +1,31 @@
+import { useEffect, useState } from 'react';
 import { useLoan } from '../context/LoanContext';
+import { requestLocation } from '../utils/geo';
 
 export function Home() {
-  const { dispatch } = useLoan();
+  const { state, dispatch } = useLoan();
+  // Overlay de localização: só é aberto quando o cliente tenta iniciar sem a
+  // permissão concedida. Sem localização não há continuidade da solicitação.
+  const [gateOpen, setGateOpen] = useState(false);
+
+  // Enquanto o overlay estiver aberto, assim que a permissão for concedida o
+  // cliente entra direto no fluxo (não precisa clicar de novo).
+  useEffect(() => {
+    if (gateOpen && state.geo === 'granted') {
+      setGateOpen(false);
+      dispatch({ type: 'SET_STEP', step: 1 });
+    }
+  }, [gateOpen, state.geo, dispatch]);
+
+  const solicitarAgora = () => {
+    if (state.geo === 'granted') {
+      dispatch({ type: 'SET_STEP', step: 1 });
+      return;
+    }
+    // Sem permissão: abre o bloqueio e (re)pede a localização.
+    setGateOpen(true);
+    requestLocation(dispatch);
+  };
 
   return (
     <div style={{
@@ -96,7 +120,7 @@ export function Home() {
 
         {/* Ações */}
         <div style={{ marginTop: 'auto', paddingTop: 40, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <button onClick={() => dispatch({ type: 'SET_STEP', step: 1 })} style={{
+          <button onClick={solicitarAgora} style={{
             display: 'flex', alignItems: 'center', gap: 14, width: '100%',
             padding: '14px 18px', borderRadius: 16, border: 'none', cursor: 'pointer',
             background: 'linear-gradient(135deg, #2546f0, #1a32c4)',
@@ -147,6 +171,86 @@ export function Home() {
             Dúvidas frequentes
           </button>
         </div>
+      </div>
+
+      {gateOpen && (
+        <LocationGate
+          status={state.geo}
+          onRetry={() => requestLocation(dispatch)}
+          onClose={() => setGateOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+/**
+ * Bloqueio de localização. Aparece quando o cliente tenta iniciar a solicitação
+ * sem conceder a permissão. Sem localização não há como continuar.
+ */
+function LocationGate({ status, onRetry, onClose }: {
+  status: 'pending' | 'granted' | 'denied';
+  onRetry: () => void;
+  onClose: () => void;
+}) {
+  const negado = status === 'denied';
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 50,
+      background: 'rgba(9,16,40,0.55)', backdropFilter: 'blur(3px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+    }}>
+      <div style={{
+        width: '100%', maxWidth: 380, background: '#fff', borderRadius: 20,
+        padding: '26px 22px 22px', boxShadow: '0 20px 50px rgba(9,16,40,0.35)',
+        textAlign: 'center',
+      }}>
+        <div style={{
+          width: 64, height: 64, borderRadius: '50%', background: '#eef3fd',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px',
+        }}>
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#2546f0" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 21c4-4.5 6-7.7 6-10.5a6 6 0 10-12 0C6 13.3 8 16.5 12 21z"/>
+            <circle cx="12" cy="10.5" r="2.2"/>
+          </svg>
+        </div>
+
+        <h2 style={{ fontSize: 20, fontWeight: 800, color: '#0d1836', margin: 0 }}>
+          Ative sua localização
+        </h2>
+        <p style={{ fontSize: 14, color: '#6b7280', lineHeight: 1.5, marginTop: 8 }}>
+          {negado
+            ? 'Você não permitiu o acesso à localização. Ela é obrigatória para continuar a solicitação. Libere a localização nas permissões do navegador e tente novamente.'
+            : 'Precisamos da sua localização para continuar com a solicitação. Toque em "Permitir" quando o navegador pedir.'}
+        </p>
+
+        {negado && (
+          <div style={{
+            background: '#fff4e5', border: '1px solid #fadcae', borderRadius: 12,
+            padding: '11px 13px', marginTop: 14, textAlign: 'left',
+          }}>
+            <p style={{ fontSize: 12.5, color: '#8a5a00', margin: 0, lineHeight: 1.5 }}>
+              Toque no cadeado/ícone ao lado do endereço no navegador → Permissões → Localização → Permitir. Depois volte e toque em "Tentar novamente".
+            </p>
+          </div>
+        )}
+
+        <button onClick={onRetry} style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          width: '100%', padding: '15px', borderRadius: 12, border: 'none', cursor: 'pointer',
+          background: 'linear-gradient(135deg, #2546f0, #1a32c4)',
+          color: '#fff', fontWeight: 800, fontSize: 16, marginTop: 18,
+          boxShadow: '0 6px 18px rgba(37,70,240,0.3)',
+        }}>
+          {status === 'pending' ? 'Aguardando permissão...' : 'Tentar novamente'}
+        </button>
+
+        <button onClick={onClose} style={{
+          background: 'none', border: 'none', cursor: 'pointer', padding: '10px 0 2px',
+          fontSize: 13.5, fontWeight: 600, color: '#59637a', width: '100%',
+        }}>
+          Voltar
+        </button>
       </div>
     </div>
   );

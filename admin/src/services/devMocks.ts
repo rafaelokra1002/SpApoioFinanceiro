@@ -90,6 +90,17 @@ export const DEV_SAMPLE_LEADS: Lead[] = [
   mk('Sérgio Barbosa', 'Pojuca', 1400, 'PENDENTE', 'Amigo', 30, 47),
   mk('Patrícia Nunes', 'Camaçari', 2100, 'PENDENTE', 'panfleto', 90, 101),
 
+  // Cliente COM bem em garantia — para pré-visualizar as abas "Informações do bem"
+  // e "Fotos e vídeo do bem". A observação carrega o bloco "— Garantia: —" que o
+  // painel interpreta (parseGarantia); as fotos do veículo entram como mídias do bem.
+  mk('Marina Gonçalves', 'Camaçari', 5000, 'PENDENTE', 'Instagram', 90, 1, 'marina.g',
+    { perfil: 'COM_GARANTIA', nomeEmpresa: 'Autônoma', enderecoTrabalho: 'Feira de artesanato – Centro',
+      endereco: 'Av. Jorge Amado, 500 – Centro, Camaçari/BA', cep: '42800-000',
+      latitude: -12.6996, longitude: -38.3242,
+      observacao: 'Quero usar meu carro como garantia para conseguir um valor maior.\n\n'
+        + '— Garantia: Carro —\nMarca: Honda\nModelo: Civic EXL 2019\nQuilometragem: 62.000 km\n'
+        + 'Placa: ABC1D23\nValor de mercado: R$ 85.000\nManual: Sim\nChave reserva: Sim' }),
+
   // Clientes que JÁ solicitaram antes (mesmo telefone) — alimentam "Solicitações anteriores".
   mk('Eliana Santana dos Santos', 'Camaçari', 900, 'RECUSADO', 'Achei pelo instagram', 30, 66, 'eliana.ss',
     { telefone: '(71) 99251-8849' }),
@@ -148,6 +159,18 @@ function fullDocs(lead: Lead, seed: number): Lead['documentos'] {
   ];
 }
 
+/** Mídias do bem em garantia (fotos do item) — o painel as separa dos documentos
+ *  pessoais pelo prefixo "Veículo — …" (ver isBemDoc). */
+function bemMediaDocs(lead: Lead, seed: number): Lead['documentos'] {
+  const img = (i: number) => `https://picsum.photos/seed/${seed + i}/600/600`;
+  return [
+    devDoc(lead.id, 8, 'Veículo — Foto frontal', 'veiculo-frontal.jpg', img(8)),
+    devDoc(lead.id, 9, 'Veículo — Foto traseira', 'veiculo-traseira.jpg', img(9)),
+    devDoc(lead.id, 10, 'Veículo — Foto lateral', 'veiculo-lateral.jpg', img(10)),
+    devDoc(lead.id, 11, 'Veículo — Vídeo do bem', 'veiculo-video.mp4', 'https://www.w3schools.com/html/mov_bbb.mp4'),
+  ];
+}
+
 let docSeed = 100;
 DEV_SAMPLE_LEADS.forEach((lead) => {
   if (lead.status === 'PENDENTE') {
@@ -160,6 +183,10 @@ DEV_SAMPLE_LEADS.forEach((lead) => {
     const all = fullDocs(lead, docSeed);
     // RG (frente), comprovante de renda e a SELFIE — para a foto de perfil aparecer.
     lead.documentos = [all[0], all[4], all[6]];
+  }
+  // Leads com bem em garantia ganham também as fotos do item.
+  if (lead.perfil === 'COM_GARANTIA') {
+    lead.documentos = [...lead.documentos, ...bemMediaDocs(lead, docSeed)];
   }
   docSeed += 10;
 });

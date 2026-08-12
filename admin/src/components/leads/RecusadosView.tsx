@@ -20,23 +20,18 @@ interface RecusadosViewProps {
 
 type Periodo = 'sempre' | '7' | '30' | '90';
 
-function formatDateTime(dateStr: string): string {
-  const d = new Date(dateStr);
-  const data = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-  const hora = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-  return `${data} às ${hora}`;
-}
-
 /** Cores da etiqueta de grupo, seguindo o mockup: 1 vermelho, 2 roxo, 3 laranja. */
 const GRUPO_BADGE: Record<number, string> = {
   1: 'bg-danger/10 text-danger',
-  2: 'bg-purple-500/10 text-purple-600',
-  3: 'bg-orange/10 text-orange',
+  2: 'bg-orange/10 text-orange',
+  3: 'bg-purple-500/10 text-purple-600',
+  4: 'bg-info/10 text-info',
 };
 const GRUPO_ICON: Record<number, string> = {
   1: 'bg-danger/10 text-danger',
-  2: 'bg-purple-500/10 text-purple-600',
-  3: 'bg-orange/10 text-orange',
+  2: 'bg-orange/10 text-orange',
+  3: 'bg-purple-500/10 text-purple-600',
+  4: 'bg-info/10 text-info',
 };
 
 const PERIODO_DIAS: Record<Periodo, number | null> = { sempre: null, '7': 7, '30': 30, '90': 90 };
@@ -80,8 +75,8 @@ export default function RecusadosView({ leads, loading, onView, onWhatsApp, onSt
         <StatCard icon={UserX} iconClass="bg-danger/10 text-danger" label="Total de recusados"
           value={leads.length} caption="clientes recusados" highlight />
         <StatCard icon={Users} iconClass={GRUPO_ICON[1]} label={motivoTitulo(1)} value={grupoCount[1]} caption="clientes caíram" valueClass="text-danger" />
-        <StatCard icon={Users} iconClass={GRUPO_ICON[2]} label={motivoTitulo(2)} value={grupoCount[2]} caption="clientes caíram" valueClass="text-purple-600" />
-        <StatCard icon={Users} iconClass={GRUPO_ICON[3]} label={motivoTitulo(3)} value={grupoCount[3]} caption="clientes caíram" valueClass="text-orange" />
+        <StatCard icon={Users} iconClass={GRUPO_ICON[2]} label={motivoTitulo(2)} value={grupoCount[2]} caption="clientes caíram" valueClass="text-orange" />
+        <StatCard icon={Users} iconClass={GRUPO_ICON[3]} label={motivoTitulo(3)} value={grupoCount[3]} caption="clientes caíram" valueClass="text-purple-600" />
       </div>
 
       {/* Busca + filtros */}
@@ -233,7 +228,6 @@ function RecusadoCard({ lead, onView, onWhatsApp, onStatusChange, onDelete }: {
           <span className="text-subtle">—</span>
         )}
       </MetaRow>
-      <MetaRow icon={Calendar} label="Data da recusa">{formatDateTime(lead.updatedAt)}</MetaRow>
     </div>
   );
 

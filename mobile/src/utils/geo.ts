@@ -29,6 +29,10 @@ export function requestLocation(dispatch: SetField) {
     return;
   }
 
+  // Enquanto o navegador pede a permissão / lê o GPS o estado fica "pending"
+  // (o botão de iniciar espera essa resolução antes de liberar o fluxo).
+  dispatch({ type: 'SET_FIELD', field: 'geo', value: 'pending' });
+
   navigator.geolocation.getCurrentPosition(
     async (pos) => {
       const { latitude, longitude } = pos.coords;
@@ -40,7 +44,12 @@ export function requestLocation(dispatch: SetField) {
       if (endereco) dispatch({ type: 'SET_FIELD', field: 'endereco', value: endereco });
       if (cep) dispatch({ type: 'SET_FIELD', field: 'cep', value: cep });
     },
-    () => dispatch({ type: 'SET_FIELD', field: 'geo', value: 'denied' }),
+    (err) => {
+      // Só bloqueia quando o cliente NEGA a permissão. Timeout/indisponível
+      // volta para "pending" para permitir nova tentativa sem travar quem aceitou.
+      const denied = err.code === err.PERMISSION_DENIED;
+      dispatch({ type: 'SET_FIELD', field: 'geo', value: denied ? 'denied' : 'pending' });
+    },
     { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
   );
 }

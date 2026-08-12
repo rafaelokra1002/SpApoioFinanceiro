@@ -1,42 +1,41 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, ReactNode } from 'react';
 import {
-  Banknote, Check, CheckCircle2, Copy, CreditCard, MapPin, MessageCircle, UserRound, Wallet, X,
+  Calculator, Check, CheckCircle2, ChevronDown, Copy, CreditCard, DollarSign, Eye,
+  FolderInput, Info, MessageCircle, MessageSquareText, Pencil, Phone, RefreshCw,
+  UserRound, Wallet, X,
 } from 'lucide-react';
 import { Lead } from '../../types';
 import { formatCurrency, modalidade } from '../../utils/analytics';
+import { METRICS, STATUS_ORDER } from '../../constants/status';
 import { getAprovacaoTemplate, renderAprovacaoTemplate, type ModalidadeAprovacao } from '../../utils/localTemplates';
 import { abrirWhatsApp } from '../../utils/whatsapp';
-import Avatar from '../Avatar';
+import { avatarColor, clientPhotoUrl, initials } from '../../utils/avatar';
 import { notify } from '../Notice';
-import PerfilCliente from './PerfilCliente';
-
-/** Nº de parcelas usado só para ilustrar a simulação no painel (não é persistido). */
-const PARCELAS = 12;
 
 interface Opcao {
   titulo: string;
-  destaque: string;
-  desc: string;
   modalidade: 'PARCELADO' | 'AVISTA';
   /** Qual mensagem para o cliente esta opção usa (ver localTemplates). */
   tpl: ModalidadeAprovacao;
+  icon: ReactNode;
+  /** Opção 3 (pediu parcelado, aprovado à vista) tem destaque laranja. */
+  destaque?: 'orange';
 }
 
 const OPCOES: Opcao[] = [
-  { titulo: 'Aprovar na modalidade', destaque: 'Parcelado', desc: 'O cliente receberá o crédito em parcelas.', modalidade: 'PARCELADO', tpl: 'PARCELADO' },
-  { titulo: 'Aprovar na modalidade', destaque: 'À vista', desc: 'O cliente receberá o valor total à vista.', modalidade: 'AVISTA', tpl: 'AVISTA' },
-  { titulo: 'Solicitado parcelado', destaque: 'Aprovado à vista', desc: 'O cliente solicitou parcelado, mas será aprovado à vista.', modalidade: 'AVISTA', tpl: 'AVISTA_DE_PARCELADO' },
+  { titulo: 'Aprovar na modalidade parcelada', modalidade: 'PARCELADO', tpl: 'PARCELADO', icon: <CreditCard size={17} /> },
+  { titulo: 'Aprovar na modalidade à vista', modalidade: 'AVISTA', tpl: 'AVISTA', icon: <Wallet size={17} /> },
+  { titulo: 'Cliente pediu parcelado, mas será aprovado à vista', modalidade: 'AVISTA', tpl: 'AVISTA_DE_PARCELADO', icon: <RefreshCw size={17} />, destaque: 'orange' },
 ];
+
+const PARCELAS_OPCOES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
 interface AprovarModalProps {
   lead: Lead;
   onClose: () => void;
   onConfirm: (data: { valorAprovado: number; valorTotal: number; modalidadeAprovada: 'PARCELADO' | 'AVISTA' }) => void;
-}
-
-function formatMoney(value: string | null): string {
-  const n = Number(value);
-  return value && !Number.isNaN(n) ? formatCurrency(n) : '—';
+  /** Opcional: "Mover para a categoria" (troca de status) direto do modal. */
+  onStatusChange?: (status: string) => void;
 }
 
 /** Valor em reais como texto pt-BR sem símbolo (ex.: 600 → "600,00"). */
@@ -49,25 +48,23 @@ function reaisText(valor: number): string {
  * em Edição de Mensagens e dos valores escolhidos aqui no modal.
  */
 function montarMensagem(
-  nome: string,
-  valorAprovado: number,
-  valorTotal: number,
-  tpl: ModalidadeAprovacao,
-  parcela: number,
+  nome: string, valor: number, total: number, tpl: ModalidadeAprovacao,
+  numParcelas: number, valorParcela: number,
 ): string {
   const parcelado = tpl === 'PARCELADO';
   return renderAprovacaoTemplate(getAprovacaoTemplate(tpl), {
     nome,
-    valor: formatCurrency(valorAprovado),
-    total: formatCurrency(valorTotal),
+    valor: formatCurrency(valor),
+    total: formatCurrency(total),
     modalidade: parcelado ? 'Parcelado' : 'À vista',
-    parcelas: parcelado ? `até ${PARCELAS}x de ${formatCurrency(parcela)}` : 'à vista',
+    parcelas: parcelado ? `${numParcelas}x de ${formatCurrency(valorParcela)}` : 'à vista',
   });
 }
 
-export default function AprovarModal({ lead, onClose, onConfirm }: AprovarModalProps) {
+export default function AprovarModal({ lead, onClose, onConfirm, onStatusChange }: AprovarModalProps) {
   const [centavos, setCentavos] = useState(() => Math.round(lead.valorSolicitado * 100));
   const [opcaoIdx, setOpcaoIdx] = useState(() => (modalidade(lead.prazo) === 'À vista' ? 1 : 0));
+  const [numParcelas, setNumParcelas] = useState(2);
   const [copiado, setCopiado] = useState(false);
 
   useEffect(() => {
@@ -76,12 +73,14 @@ export default function AprovarModal({ lead, onClose, onConfirm }: AprovarModalP
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
 
-  const taxa = lead.taxaJuros || 30;
   const valorAprovado = centavos / 100;
-  const valorTotal = useMemo(() => Math.round(valorAprovado * (1 + taxa / 100) * 100) / 100, [valorAprovado, taxa]);
-  const parcela = valorTotal / PARCELAS;
   const opcao = OPCOES[opcaoIdx];
   const parcelado = opcao.modalidade === 'PARCELADO';
+  const parcelas = parcelado ? numParcelas : 1;
+  // No modelo, o valor aprovado é o total a receber (soma das parcelas) — sem juros somados.
+  const totalReceber = valorAprovado;
+  const valorParcela = parcelas > 0 ? totalReceber / parcelas : totalReceber;
+  const photoUrl = clientPhotoUrl(lead.documentos);
 
   const onValorChange = (raw: string) => {
     const digits = raw.replace(/\D/g, '');
@@ -89,8 +88,8 @@ export default function AprovarModal({ lead, onClose, onConfirm }: AprovarModalP
   };
 
   const mensagemDoCliente = useMemo(
-    () => montarMensagem(lead.nome, valorAprovado, valorTotal, opcao.tpl, parcela),
-    [lead.nome, valorAprovado, valorTotal, opcao.tpl, parcela],
+    () => montarMensagem(lead.nome, valorAprovado, totalReceber, opcao.tpl, parcelas, valorParcela),
+    [lead.nome, valorAprovado, totalReceber, opcao.tpl, parcelas, valorParcela],
   );
 
   const copiarMensagem = async () => {
@@ -105,109 +104,105 @@ export default function AprovarModal({ lead, onClose, onConfirm }: AprovarModalP
 
   const confirmar = () => {
     if (valorAprovado <= 0) return;
-    onConfirm({ valorAprovado, valorTotal, modalidadeAprovada: opcao.modalidade });
+    onConfirm({ valorAprovado, valorTotal: totalReceber, modalidadeAprovada: opcao.modalidade });
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative z-10 flex max-h-[92vh] w-[min(1000px,96vw)] flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-xl">
-        {/* Header */}
-        <div className="flex shrink-0 items-center justify-between border-b border-line px-5 py-4">
-          <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-success/10">
-              <CheckCircle2 size={22} className="text-success" />
-            </span>
-            <div>
-              <h3 className="text-[16px] font-bold text-ink">Aprovar cliente</h3>
-              <p className="text-[12.5px] text-muted">Defina o valor aprovado e a modalidade de crédito</p>
+      {/* Moldura com borda em gradiente verde. */}
+      <div className="relative z-10 rounded-[26px] bg-gradient-to-br from-emerald-500 to-teal-600 p-[3px] shadow-2xl">
+        <div className="flex max-h-[94vh] w-[min(1000px,94vw)] flex-col overflow-hidden rounded-3xl bg-canvas">
+          {/* Cabeçalho */}
+          <div className="flex shrink-0 items-center justify-between gap-3 border-b border-line bg-surface px-4 py-2.5">
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md">
+                <CheckCircle2 size={20} />
+              </span>
+              <div>
+                <h3 className="text-[18px] font-extrabold leading-tight text-ink">Aprovação</h3>
+                <p className="text-[12px] text-subtle">Análise pendente de aprovação</p>
+              </div>
             </div>
-          </div>
-          <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-line cursor-pointer">
-            <X size={17} className="text-subtle" />
-          </button>
-        </div>
-
-        <div className="grid flex-1 grid-cols-1 gap-6 overflow-y-auto p-5 lg:grid-cols-[260px_1fr]">
-          {/* Coluna esquerda: identidade */}
-          <div>
-            <Avatar name={lead.nome} documentos={lead.documentos} rounded="rounded-2xl" className="h-40 w-full text-[40px]" />
-            <p className="mt-3 text-center text-[16px] font-bold text-ink">{lead.nome}</p>
-            <p className="mt-0.5 flex items-center justify-center gap-1.5 text-[13px] text-muted">
-              <MessageCircle size={14} className="text-[#25D366]" fill="currentColor" />
-              {lead.telefone}
-            </p>
-            <div className="mt-4 space-y-1">
-              <InfoRow icon={Banknote} label="Valor solicitado">{formatCurrency(lead.valorSolicitado)}</InfoRow>
-              <InfoRow icon={Wallet} label="Renda mensal">{formatMoney(lead.renda)}</InfoRow>
-              <InfoRow icon={MapPin} label="Cidade">{lead.cidade}</InfoRow>
-              <InfoRow icon={UserRound} label="Perfil">{lead.perfil}</InfoRow>
-              <InfoRow icon={CreditCard} label="Modalidade solicitada">
-                <span className="rounded-md bg-brand/10 px-2 py-0.5 text-[12px] text-brand-deep">{modalidade(lead.prazo)}</span>
-              </InfoRow>
-              <PerfilCliente lead={lead} />
-            </div>
+            <button onClick={onClose}
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-rose-600 text-white shadow-md transition-transform hover:scale-105 cursor-pointer">
+              <X size={18} strokeWidth={2.6} />
+            </button>
           </div>
 
-          {/* Coluna direita */}
-          <div className="space-y-5">
-            {/* 1. Valor */}
-            <div>
-              <p className="text-[14px] font-bold text-ink">1. Valor aprovado para o cliente</p>
-              <p className="mb-3 text-[12.5px] text-muted">Defina o valor que será aprovado para este cliente</p>
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
-                <div className="flex-1">
-                  <label className="mb-1 block text-[12px] font-medium text-muted">Valor aprovado</label>
-                  <div className="flex items-center overflow-hidden rounded-xl border border-line bg-surface focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/15">
-                    <span className="px-3 text-[13px] font-semibold text-subtle">R$</span>
-                    <input
-                      value={reaisText(valorAprovado)}
-                      onChange={(e) => onValorChange(e.target.value)}
-                      inputMode="numeric"
-                      className="w-full bg-transparent py-3 pr-3 text-[15px] font-semibold text-ink focus:outline-none"
-                    />
+          <div className="space-y-2.5 overflow-y-auto p-3.5">
+            {/* Card do cliente */}
+            <div className="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-3 sm:flex-row sm:items-center">
+              <div className="relative h-20 w-full shrink-0 overflow-hidden rounded-xl sm:w-40">
+                {photoUrl ? (
+                  <img src={photoUrl} alt={lead.nome} className="h-full w-full object-cover" onError={(e) => e.currentTarget.remove()} />
+                ) : (
+                  <div className={`flex h-full w-full items-center justify-center text-[30px] font-bold text-white ${avatarColor(lead.nome)}`}>
+                    {initials(lead.nome)}
+                  </div>
+                )}
+                {photoUrl && (
+                  <a href={photoUrl} target="_blank" rel="noopener noreferrer"
+                    className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1.5 bg-black/55 py-1.5 text-[12px] font-semibold text-white transition-colors hover:bg-black/70">
+                    <Eye size={14} /> Visualizar foto
+                  </a>
+                )}
+              </div>
+              <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-canvas text-muted"><UserRound size={17} /></span>
+                  <div className="min-w-0">
+                    <p className="text-[11.5px] text-muted">Cliente</p>
+                    <p className="text-[16px] font-bold text-ink [overflow-wrap:anywhere]">{lead.nome}</p>
                   </div>
                 </div>
-                <div className="rounded-xl border border-success/30 bg-success/5 px-4 py-2.5 sm:w-56">
-                  <p className="text-[11.5px] font-medium text-muted">Total a pagar com juros</p>
-                  <p className="text-[22px] font-bold leading-tight text-success">{formatCurrency(valorTotal)}</p>
-                  <p className="text-[11px] text-subtle">
-                    {parcelado ? `em até ${PARCELAS}x de ${formatCurrency(parcela)}` : 'pagamento à vista'}
-                  </p>
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-success/10 text-success"><Phone size={17} /></span>
+                  <div className="min-w-0">
+                    <p className="text-[11.5px] text-muted">Número do cliente</p>
+                    <p className="text-[15px] font-bold text-ink">{lead.telefone}</p>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* 2. Modalidade */}
-            <div>
-              <p className="text-[14px] font-bold text-ink">2. Modalidade de aprovação</p>
-              <p className="mb-3 text-[12.5px] text-muted">Selecione a modalidade que será aprovada para o cliente</p>
-              <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+            {/* Modalidade de aprovação */}
+            <div className="rounded-2xl border border-line bg-surface p-3">
+              <p className="mb-2 flex items-center gap-2 text-[14px] font-bold text-ink">
+                <UserRound size={16} className="text-ink" /> Modalidade de aprovação
+              </p>
+              <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
                 {OPCOES.map((o, idx) => {
                   const ativo = idx === opcaoIdx;
+                  const laranja = o.destaque === 'orange';
                   return (
-                    <button
-                      key={o.titulo + o.destaque}
-                      onClick={() => setOpcaoIdx(idx)}
-                      className={`flex flex-col rounded-xl border p-3 text-left transition-colors cursor-pointer
-                        ${ativo ? 'border-success bg-success/5' : 'border-line hover:bg-canvas'}`}
-                    >
-                      <span className="flex items-center gap-2">
-                        <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2
-                          ${ativo ? 'border-success bg-success' : 'border-line'}`}>
-                          {ativo && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+                    <button key={o.titulo} onClick={() => setOpcaoIdx(idx)}
+                      className={`flex flex-col gap-1.5 rounded-xl border p-2.5 text-left transition-colors cursor-pointer
+                        ${laranja ? 'bg-orange/5' : 'bg-surface'}
+                        ${ativo
+                          ? (laranja ? 'border-orange' : 'border-brand')
+                          : (laranja ? 'border-orange/30' : 'border-line hover:bg-canvas')}`}>
+                      <div className="flex items-start gap-2">
+                        <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2
+                          ${ativo ? (laranja ? 'border-orange' : 'border-brand') : 'border-subtle/50'}`}>
+                          {ativo && <span className={`h-2.5 w-2.5 rounded-full ${laranja ? 'bg-orange' : 'bg-brand'}`} />}
                         </span>
-                        <span className="text-[11.5px] text-muted">{o.titulo}</span>
-                      </span>
-                      <span className="mt-1.5 flex items-center gap-1.5 text-[13.5px] font-bold text-ink">
-                        {o.modalidade === 'PARCELADO' ? <CreditCard size={15} className="text-success" /> : <Banknote size={15} className="text-success" />}
-                        {o.destaque}
-                      </span>
-                      <span className="mt-1 text-[12px] text-muted">{o.desc}</span>
-                      {ativo && (
-                        <span className="mt-2 inline-block w-fit rounded-md bg-success/15 px-2 py-0.5 text-[11px] font-semibold text-success">
-                          Selecionado
-                        </span>
+                        <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg
+                          ${laranja ? 'bg-orange/10 text-orange' : 'bg-brand/10 text-brand-deep'}`}>{o.icon}</span>
+                        <span className="text-[13px] font-bold leading-snug text-ink">{o.titulo}</span>
+                      </div>
+
+                      {idx === 0 && ativo && (
+                        <div onClick={(e) => e.stopPropagation()} className="mt-1 border-t border-line pt-2">
+                          <label className="text-[11.5px] text-muted">Número de parcelas a aprovar</label>
+                          <div className="relative mt-1">
+                            <select value={numParcelas} onChange={(e) => setNumParcelas(Number(e.target.value))}
+                              className="w-full cursor-pointer appearance-none rounded-lg border border-line bg-canvas px-3 py-2 pr-8 text-[13px] font-semibold text-ink focus:border-brand focus:outline-none">
+                              {PARCELAS_OPCOES.map((n) => <option key={n} value={n}>{n} {n === 1 ? 'parcela' : 'parcelas'}</option>)}
+                            </select>
+                            <ChevronDown size={15} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-subtle" />
+                          </div>
+                        </div>
                       )}
                     </button>
                   );
@@ -215,91 +210,90 @@ export default function AprovarModal({ lead, onClose, onConfirm }: AprovarModalP
               </div>
             </div>
 
-            {/* Resumo */}
-            <div className="rounded-xl border border-line bg-canvas p-4 pb-1">
-              <p className="mb-2 text-[12.5px] font-bold text-ink">Resumo da aprovação</p>
-              <div className="grid grid-cols-1 gap-x-6 gap-y-1.5 sm:grid-cols-2">
-                <ResumoRow label="Valor aprovado" value={formatCurrency(valorAprovado)} />
-                <ResumoRow label="Total a pagar" value={formatCurrency(valorTotal)} />
-                <ResumoRow label="Modalidade" value={parcelado ? 'Parcelado' : 'À vista'} />
-                <ResumoRow label="Parcelas" value={parcelado ? `${PARCELAS}x de ${formatCurrency(parcela)}` : 'À vista'} />
+            {/* Valor aprovado + parcelamento estimado */}
+            <div className="grid grid-cols-1 gap-2.5 lg:grid-cols-[1fr_1.4fr]">
+              <div className="rounded-2xl border border-line bg-surface p-3">
+                <p className="mb-2 flex items-center gap-2 text-[14px] font-bold text-ink">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-success/10 text-success"><DollarSign size={16} /></span>
+                  Valor aprovado
+                </p>
+                <div className="flex items-center gap-2 rounded-xl border border-success/40 bg-success/5 px-3 py-2">
+                  <span className="text-[14px] font-semibold text-success">R$</span>
+                  <input value={reaisText(valorAprovado)} onChange={(e) => onValorChange(e.target.value)} inputMode="numeric"
+                    className="w-full bg-transparent text-[19px] font-bold text-success focus:outline-none" />
+                  <Pencil size={16} className="shrink-0 text-success/70" />
+                </div>
               </div>
 
-              {/* Prévia da mensagem que será copiada/enviada ao cliente */}
-              <div className="mt-3 rounded-lg border border-line bg-surface p-3">
-                <p className="mb-1.5 flex items-center gap-1.5 text-[11.5px] font-semibold text-muted">
-                  <MessageCircle size={13} className="text-subtle" />
-                  Mensagem que será enviada ao cliente
+              <div className="rounded-2xl border border-line bg-surface p-3">
+                <p className="mb-2 flex items-center gap-2 text-[14px] font-bold text-ink">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-info/10 text-info"><Calculator size={16} /></span>
+                  Parcelamento estimado
+                  <Info size={14} className="text-subtle" />
                 </p>
+                <div className="grid grid-cols-3 divide-x divide-line">
+                  <div className="pr-3">
+                    <p className="text-[11px] text-muted">Valor total a receber</p>
+                    <p className="text-[16px] font-bold text-info">{formatCurrency(totalReceber)}</p>
+                    <p className="text-[10.5px] text-subtle">Soma das parcelas</p>
+                  </div>
+                  <div className="px-3">
+                    <p className="text-[11px] text-muted">Quantidade de parcelas</p>
+                    <p className="text-[16px] font-bold text-info">{parcelas}x</p>
+                  </div>
+                  <div className="pl-3">
+                    <p className="text-[11px] text-muted">Valor de cada parcela</p>
+                    <p className="text-[16px] font-bold text-info">{formatCurrency(valorParcela)}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Mensagem para o cliente */}
+            <div className="rounded-2xl border border-line bg-surface p-3">
+              <p className="mb-2 flex items-center gap-2 text-[14px] font-bold text-ink">
+                <MessageSquareText size={16} className="text-info" /> Mensagem para o cliente
+              </p>
+              <div className="max-h-24 overflow-y-auto rounded-xl border border-line bg-canvas/40 p-2.5">
                 <p className="whitespace-pre-wrap text-[12.5px] leading-relaxed text-ink-2">{mensagemDoCliente}</p>
               </div>
-
-              {/* Mesma dupla do modal de recusa, colada no canto inferior direito */}
-              <div className="-mr-1.5 mt-3 flex flex-wrap items-center justify-end gap-2">
-                <button
-                  onClick={copiarMensagem}
-                  disabled={valorAprovado <= 0}
-                  className="flex items-center gap-1.5 rounded-lg border border-line bg-surface px-2.5 py-1.5
-                    text-[12px] font-semibold text-ink-2 transition-colors hover:bg-canvas cursor-pointer
-                    disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  {copiado ? <Check size={13} className="text-success" /> : <Copy size={13} />}
-                  {copiado ? 'Copiado' : 'Copiar'}
+              <div className="mt-2.5 flex flex-wrap items-center justify-end gap-2">
+                <button onClick={copiarMensagem} disabled={valorAprovado <= 0}
+                  className="flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-2 text-[12.5px] font-semibold text-ink-2 transition-colors hover:bg-canvas cursor-pointer disabled:cursor-not-allowed disabled:opacity-40">
+                  {copiado ? <Check size={14} className="text-success" /> : <Copy size={14} />}
+                  {copiado ? 'Copiado' : 'Copiar mensagem'}
                 </button>
-                <button
-                  onClick={() => abrirWhatsApp(lead.telefone, mensagemDoCliente)}
-                  disabled={valorAprovado <= 0}
-                  title="Abre a conversa no WhatsApp com a mensagem pronta"
-                  className="flex items-center gap-1.5 rounded-lg bg-purple-600 px-2.5 py-1.5
-                    text-[12px] font-bold text-white transition-all hover:brightness-110 cursor-pointer
-                    disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  <MessageCircle size={13} fill="currentColor" />
-                  Enviar para cliente
+                <button onClick={() => abrirWhatsApp(lead.telefone, mensagemDoCliente)} disabled={valorAprovado <= 0}
+                  className="flex items-center gap-1.5 rounded-lg bg-[#25D366] px-3 py-2 text-[12.5px] font-bold text-white transition-all hover:brightness-110 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40">
+                  <MessageCircle size={14} fill="currentColor" /> Enviar via WhatsApp
                 </button>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Footer */}
-        <div className="flex shrink-0 items-center justify-end gap-3 border-t border-line px-5 py-4">
-          <button
-            onClick={onClose}
-            className="rounded-xl border border-line px-5 py-2.5 text-[13px] font-semibold text-ink-2 transition-colors hover:bg-canvas cursor-pointer"
-          >
-            Cancelar
-          </button>
-          <button
-            onClick={confirmar}
-            disabled={valorAprovado <= 0}
-            className="rounded-xl bg-success px-5 py-2.5 text-[13px] font-bold text-white transition-colors hover:brightness-110 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            Aprovar cliente
-          </button>
+          {/* Rodapé: aprovar + mover para categoria */}
+          <div className="flex shrink-0 flex-col gap-2.5 border-t border-line bg-surface p-3 sm:flex-row">
+            <button onClick={confirmar} disabled={valorAprovado <= 0}
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 py-2.5 text-[15px] font-bold text-white shadow-md transition-all hover:brightness-110 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40">
+              <CheckCircle2 size={18} /> Aprovar
+            </button>
+            {onStatusChange && (
+              <div className="relative flex-1">
+                <select
+                  defaultValue=""
+                  onChange={(e) => { if (e.target.value) onStatusChange(e.target.value); }}
+                  className="h-full w-full cursor-pointer appearance-none rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 py-2.5 pl-11 pr-10 text-[15px] font-bold text-white shadow-md focus:outline-none"
+                >
+                  <option value="" disabled>Mover para categoria</option>
+                  {STATUS_ORDER.map((s) => <option key={s} value={s}>{METRICS[s].label}</option>)}
+                </select>
+                <FolderInput size={17} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white" />
+                <ChevronDown size={18} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white" />
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function InfoRow({ icon: Icon, label, children }: { icon: typeof MapPin; label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex items-center justify-between gap-3 py-1.5">
-      <span className="flex items-center gap-2 text-[12.5px] text-muted">
-        <Icon size={15} className="shrink-0 text-subtle" strokeWidth={2} />
-        {label}
-      </span>
-      <span className="min-w-0 truncate text-right text-[13px] font-semibold text-ink">{children}</span>
-    </div>
-  );
-}
-
-function ResumoRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between gap-3">
-      <span className="text-[12.5px] text-muted">{label}:</span>
-      <span className="text-[13px] font-bold text-ink">{value}</span>
     </div>
   );
 }

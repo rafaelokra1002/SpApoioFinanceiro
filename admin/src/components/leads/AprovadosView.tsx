@@ -10,7 +10,7 @@ import { statusBadge, statusLabel } from '../../constants/status';
 import useInfiniteList from '../../hooks/useInfiniteList';
 import { LimparFiltros, SelectButton } from './Filters';
 import Avatar from '../Avatar';
-import OrigemIcon from '../dashboard/OrigemIcon';
+import LeadCardDetailed from './LeadCardDetailed';
 
 type ViewMode = 'grade' | 'lista';
 type Periodo = 'todo' | '7' | '30' | '90';
@@ -170,7 +170,7 @@ export default function AprovadosView({ leads, loading, onView, onWhatsApp }: Ap
       ) : view === 'grade' ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {shown.map((lead) => (
-            <AprovadoCard key={lead.id} lead={lead} onView={onView} onWhatsApp={onWhatsApp} />
+            <LeadCardDetailed key={lead.id} lead={lead} onView={onView} onWhatsApp={onWhatsApp} />
           ))}
         </div>
       ) : (
@@ -183,127 +183,6 @@ export default function AprovadosView({ leads, loading, onView, onWhatsApp }: Ap
           <Loader2 size={20} className="animate-spin text-brand" />
         </div>
       )}
-    </div>
-  );
-}
-
-/* --------------------------------------------------------------- card aprovado */
-
-function Field({ icon, label, children }: { icon: ReactNode; label: string; children: ReactNode }) {
-  return (
-    <div className="flex items-start gap-2.5">
-      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-canvas text-muted">{icon}</span>
-      <div className="min-w-0">
-        <p className="text-[11px] text-muted">{label}</p>
-        <p className="truncate text-[13px] font-semibold text-ink" title={String(children)}>{children}</p>
-      </div>
-    </div>
-  );
-}
-
-function ValueBox({ icon, iconClass, label, value, valueClass = 'text-ink' }: {
-  icon: ReactNode; iconClass: string; label: string; value: string; valueClass?: string;
-}) {
-  return (
-    <div className="flex items-center gap-2 rounded-xl bg-canvas px-2.5 py-2.5">
-      <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${iconClass}`}>{icon}</span>
-      <div className="min-w-0">
-        <p className="truncate text-[10.5px] font-medium text-muted">{label}</p>
-        <p className={`truncate text-[14px] font-bold leading-tight ${valueClass}`}>{value}</p>
-      </div>
-    </div>
-  );
-}
-
-function AprovadoCard({ lead, onView, onWhatsApp }: {
-  lead: Lead; onView: (l: Lead) => void; onWhatsApp: (l: Lead) => void;
-}) {
-  const origem = origemOf(lead);
-
-  return (
-    <div className="flex flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-sm transition-shadow hover:shadow-md">
-      <div className="p-4">
-        {/* Identidade */}
-        <div className="flex items-start gap-3">
-          <div className="relative shrink-0">
-            <Avatar name={lead.nome} documentos={lead.documentos} className="h-14 w-14 text-[18px]" />
-            <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-surface bg-success" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-start justify-between gap-2">
-              <p className="min-w-0 truncate text-[15px] font-bold text-ink" title={lead.nome}>{lead.nome}</p>
-              <span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10.5px] font-semibold ${statusBadge(lead.status)}`}>
-                <CheckCircle2 size={11} />
-                {statusLabel(lead.status)}
-              </span>
-            </div>
-            <div className="mt-0.5 flex items-center justify-between gap-2">
-              <p className="flex items-center gap-1.5 text-[12.5px] text-muted">
-                {lead.telefone}
-                <button onClick={() => onWhatsApp(lead)} title="Enviar mensagem via WhatsApp"
-                  className="text-[#25D366] transition-transform hover:scale-110 cursor-pointer">
-                  <MessageCircle size={14} fill="currentColor" />
-                </button>
-              </p>
-              <p className="shrink-0 text-[11.5px] text-subtle">{dateTime(lead.updatedAt)}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Valores */}
-        <div className="mt-4 grid grid-cols-2 gap-2.5">
-          <ValueBox icon={<CircleDollarSign size={16} />} iconClass="bg-success/10 text-success"
-            label="Valor aprovado" value={formatCurrency(valorAprovadoDe(lead))} valueClass="text-success" />
-          <ValueBox icon={<CalendarClock size={16} />} iconClass="bg-info/10 text-info"
-            label="A pagar" value={formatCurrency(lead.valorTotal)} />
-        </div>
-
-        {/* Campos */}
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Field icon={<MapPin size={15} />} label="Cidade">{lead.cidade}</Field>
-          <Field icon={<Banknote size={15} />} label="Renda mensal">{formatMoney(lead.renda)}</Field>
-          <Field icon={<Briefcase size={15} />} label="Perfil profissional">{lead.perfil}</Field>
-          <Field icon={<CreditCard size={15} />} label="Modalidade">
-            <span className="rounded-md bg-brand/10 px-2 py-0.5 text-[12px] text-brand-deep">{modalidadeAprovadaLabel(lead)}</span>
-          </Field>
-          <Field icon={<Building2 size={15} />} label="Empresa">{lead.nomeEmpresa || '—'}</Field>
-          <Field icon={<Briefcase size={15} />} label="Local de trabalho">
-            {lead.enderecoTrabalho || lead.bairroTrabalho || '—'}
-          </Field>
-          <Field icon={<UserRound size={15} />} label="Indicado por">{lead.indicacao || '—'}</Field>
-          <Field icon={<Share2 size={15} />} label="Origem do cliente">
-            <span className="flex items-center gap-1.5">
-              <span className="[&>svg]:h-4 [&>svg]:w-4"><OrigemIcon label={origem} /></span>
-              {origem}
-            </span>
-          </Field>
-          <Field icon={<Home size={15} />} label="Local da solicitação">
-            {lead.endereco ? `${lead.endereco}${lead.cep ? ` — CEP: ${lead.cep}` : ''}` : '—'}
-          </Field>
-          <Field icon={<CalendarCheck2 size={15} />} label="Data da aprovação">{dateTimeLong(lead.updatedAt)}</Field>
-        </div>
-
-        {/* Observação */}
-        {lead.observacao && (
-          <div className="mt-4 flex gap-2.5 rounded-xl border-l-4 border-info bg-info/5 p-3">
-            <MessageSquareText size={16} className="mt-0.5 shrink-0 text-info" />
-            <div>
-              <p className="text-[11px] font-semibold text-info">Observação do cliente</p>
-              <p className="mt-0.5 text-[12.5px] text-ink-2">{lead.observacao}</p>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <button
-        onClick={() => onView(lead)}
-        className="mt-auto flex items-center justify-between border-t border-line bg-line px-5 py-3
-          text-[13px] font-bold text-ink-2 transition-colors hover:bg-canvas cursor-pointer"
-      >
-        <span className="flex-1" />
-        <span className="flex items-center gap-2"><Eye size={15} /> Ver detalhes</span>
-        <span className="flex flex-1 justify-end"><ChevronRight size={17} /></span>
-      </button>
     </div>
   );
 }

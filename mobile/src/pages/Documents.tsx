@@ -233,6 +233,11 @@ export function Documents() {
       setError('Envie todos os documentos obrigatórios.');
       return;
     }
+    // Localização é obrigatória — se foi negada/revogada no meio do fluxo, não envia.
+    if (state.geo !== 'granted') {
+      setError('Ative a localização para concluir sua solicitação.');
+      return;
+    }
     setError('');
     setSubmitting(true);
 

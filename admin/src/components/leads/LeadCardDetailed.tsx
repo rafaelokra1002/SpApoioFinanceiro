@@ -1,13 +1,12 @@
 import { ReactNode } from 'react';
 import {
-  Banknote, Briefcase, Building2, CalendarClock, CreditCard, Eye, Home, MapPin,
-  MessageCircle, MessageSquareText, Share2, UserRound, Wallet,
+  Banknote, Briefcase, Building2, Calendar, CreditCard, Eye, IdCard, MapPin,
+  MessageCircle, UserRound, Users, Wallet, AtSign,
 } from 'lucide-react';
 import { Lead } from '../../types';
-import { formatCurrency, modalidade, origemOf } from '../../utils/analytics';
+import { camposEmprego, formatCurrency, modalidade, origemOf } from '../../utils/analytics';
 import { avatarColor, clientPhotoUrl, initials } from '../../utils/avatar';
-import { isInternalStatus, statusBadge, statusLabel } from '../../constants/status';
-import OrigemIcon from '../dashboard/OrigemIcon';
+import { METRICS, MetricKey, isInternalStatus, statusBadge, statusLabel } from '../../constants/status';
 
 interface LeadCardDetailedProps {
   lead: Lead;
@@ -26,18 +25,55 @@ function formatMoney(value: string | null): string {
   return value && !Number.isNaN(n) ? formatCurrency(n) : '—';
 }
 
-function Field({ icon, label, children }: { icon: ReactNode; label: string; children: ReactNode }) {
+/** "08/08/2026 • 14:35" — data/hora exibida ao lado da situação. */
+function formatDateTime(dateStr: string): string {
+  const d = new Date(dateStr);
+  const data = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const hora = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  return `${data} • ${hora}`;
+}
+
+/** Item da grade: ícone colorido + rótulo + valor (com subtítulo opcional). */
+function Field({ icon, iconBg, label, value, sub }: {
+  icon: ReactNode; iconBg: string; label: string; value: ReactNode; sub?: string;
+}) {
   return (
     <div className="flex items-start gap-2.5">
-      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-canvas text-muted">
-        {icon}
-      </span>
+      <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${iconBg}`}>{icon}</span>
       <div className="min-w-0">
-        <p className="text-[11px] text-muted">{label}</p>
-        <p className="truncate text-[13px] font-semibold text-ink" title={String(children)}>{children}</p>
+        <p className="text-[11px] leading-tight text-muted">{label}</p>
+        <p className="text-[13.5px] font-bold leading-snug text-ink [overflow-wrap:anywhere]">{value}</p>
+        {sub && <p className="text-[11px] leading-tight text-subtle">{sub}</p>}
       </div>
     </div>
   );
+}
+
+/** Linha da grade: duas colunas com divisória vertical no meio. */
+function FieldRow({ left, right }: { left: ReactNode; right?: ReactNode }) {
+  return (
+    <div className="grid grid-cols-2 divide-x divide-line">
+      <div className="py-3 pr-3">{left}</div>
+      <div className="py-3 pl-3">{right}</div>
+    </div>
+  );
+}
+
+/** Borda da card conforme a situação (recusado vermelho, aprovado verde, etc.). */
+const CARD_BORDER: Record<string, string> = {
+  RECUSADO: 'border-danger/30',
+  APROVADO: 'border-success/30',
+  PENDENTE: 'border-warning/30',
+};
+
+/** Rótulo curto do perfil para a badge do cabeçalho. */
+const PERFIL_LABELS: Record<string, string> = {
+  CARTEIRA_ASSINADA: 'CLT', CLT_SEM_REGISTRO: 'CLT Informal', AUTONOMO: 'Autônomo',
+  BENEFICIARIO: 'Beneficiário', ESTAGIARIO: 'Estagiário', COM_GARANTIA: 'Com garantia',
+  SEM_COMPROVACAO: 'Sem comprovação',
+};
+function perfilLabel(perfil: string): string {
+  return PERFIL_LABELS[perfil] ?? perfil;
 }
 
 export default function LeadCardDetailed({
@@ -45,13 +81,20 @@ export default function LeadCardDetailed({
 }: LeadCardDetailedProps) {
   const internal = isInternalStatus(lead.status);
   const origem = origemOf(lead);
+  const StatusIcon = METRICS[lead.status as MetricKey]?.icon;
+
+  // Parcelas derivadas do prazo (não é campo real — igual à "Modalidade").
+  const parcelado = modalidade(lead.prazo) === 'Parcelado';
+  const vezes = Math.max(1, Math.round(lead.prazo / 30));
+  const valorParcela = parcelado ? lead.valorTotal / vezes : lead.valorTotal;
+  const campos = camposEmprego(lead.perfil);
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-sm transition-shadow hover:shadow-md">
-      <div className="p-4">
+    <div className={`flex flex-col overflow-hidden rounded-2xl border bg-surface shadow-sm transition-shadow hover:shadow-md ${CARD_BORDER[lead.status] ?? 'border-line'}`}>
+      <div className="flex flex-1 flex-col p-4">
         {/* Identidade */}
         <div className="flex items-start gap-3">
-          <span className={`relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full text-[18px] font-bold text-white ${avatarColor(lead.nome)}`}>
+          <span className={`relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full text-[20px] font-bold text-white ${avatarColor(lead.nome)}`}>
             {initials(lead.nome)}
             {clientPhotoUrl(lead.documentos) && (
               <img
@@ -65,16 +108,10 @@ export default function LeadCardDetailed({
           </span>
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-2">
-              <p className="min-w-0 truncate text-[15px] font-bold text-ink" title={lead.nome}>{lead.nome}</p>
-              <span className="flex shrink-0 items-center gap-1">
-                <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10.5px] font-semibold ${statusBadge(lead.status)}`}>
-                  <span className="h-1.5 w-1.5 rounded-full bg-current" />
-                  {statusLabel(lead.status)}
-                </span>
-                {headerAction}
-              </span>
+              <p className="min-w-0 text-[18px] font-extrabold leading-tight text-ink" title={lead.nome}>{lead.nome}</p>
+              {headerAction}
             </div>
-            <p className="mt-0.5 flex items-center gap-1.5 text-[12.5px] text-muted">
+            <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-muted">
               {lead.telefone}
               {!internal && (
                 <button onClick={() => onWhatsApp(lead)} title="Enviar status via WhatsApp"
@@ -83,57 +120,57 @@ export default function LeadCardDetailed({
                 </button>
               )}
             </p>
+            <div className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+              <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-semibold ${statusBadge(lead.status)}`}>
+                {StatusIcon && <StatusIcon size={13} />}
+                {statusLabel(lead.status)}
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-500/10 px-2.5 py-1 text-[12px] font-semibold text-purple-600">
+                <IdCard size={13} /> {perfilLabel(lead.perfil)}
+              </span>
+              <span className="inline-flex items-center gap-1.5 text-[12.5px] text-muted">
+                <Calendar size={14} className="text-subtle" /> {formatDateTime(lead.updatedAt)}
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Valores em destaque */}
-        <div className="mt-4 grid grid-cols-2 gap-3">
-          <div className="rounded-xl bg-info/5 px-3 py-2.5">
-            <p className="flex items-center gap-1.5 text-[11px] font-medium text-muted">
-              <Wallet size={13} className="text-info" /> Valor solicitado
-            </p>
-            <p className="mt-0.5 truncate text-[17px] font-bold text-info">{formatCurrency(lead.valorSolicitado)}</p>
-          </div>
-          <div className="rounded-xl bg-info/5 px-3 py-2.5">
-            <p className="flex items-center gap-1.5 text-[11px] font-medium text-muted">
-              <CalendarClock size={13} className="text-info" /> A pagar
-            </p>
-            <p className="mt-0.5 truncate text-[17px] font-bold text-ink">{formatCurrency(lead.valorTotal)}</p>
-          </div>
+        {/* Campos (2 colunas com divisórias, ícones coloridos) */}
+        <div className="mt-4 divide-y divide-line border-t border-line">
+          <FieldRow
+            left={<Field icon={<Wallet size={16} className="text-violet-500" />} iconBg="bg-violet-500/10" label="Renda mensal" value={formatMoney(lead.renda)} />}
+            right={<Field icon={<Building2 size={16} className="text-blue-500" />} iconBg="bg-blue-500/10" label={campos.empresa} value={lead.nomeEmpresa || '—'} />}
+          />
+          <FieldRow
+            left={<Field icon={<Banknote size={16} className="text-emerald-500" />} iconBg="bg-emerald-500/10" label="Valor solicitado" value={formatCurrency(lead.valorSolicitado)} />}
+            right={<Field icon={<Briefcase size={16} className="text-violet-500" />} iconBg="bg-violet-500/10" label={campos.local} value={lead.enderecoTrabalho || lead.bairroTrabalho || '—'} />}
+          />
+          <FieldRow
+            left={<Field icon={<CreditCard size={16} className="text-blue-500" />} iconBg="bg-blue-500/10" label="Valor total a pagar" value={formatCurrency(lead.valorTotal)} />}
+            right={<Field icon={<AtSign size={16} className="text-pink-500" />} iconBg="bg-pink-500/10" label="Instagram (URL)" value={lead.instagram || '—'} />}
+          />
+          <FieldRow
+            left={<Field icon={<Calendar size={16} className="text-violet-500" />} iconBg="bg-violet-500/10"
+              label={parcelado ? 'Parcelado em' : 'Pagamento'}
+              value={parcelado ? `${vezes} vezes` : 'À vista'}
+              sub={parcelado ? `${formatCurrency(valorParcela)} por parcela` : undefined} />}
+            right={<Field icon={<UserRound size={16} className="text-emerald-500" />} iconBg="bg-emerald-500/10" label="Indicado por" value={lead.indicacao || '—'} />}
+          />
+          <FieldRow
+            left={<Field icon={<CreditCard size={16} className="text-blue-500" />} iconBg="bg-blue-500/10" label="Modalidade" value={modalidade(lead.prazo)} />}
+            right={<Field icon={<Users size={16} className="text-orange" />} iconBg="bg-orange/10" label="Origem" value={origem} />}
+          />
+          <FieldRow
+            left={<Field icon={<MapPin size={16} className="text-orange" />} iconBg="bg-orange/10" label="Cidade" value={lead.cidade} />}
+          />
         </div>
 
-        {/* Campos */}
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Field icon={<MapPin size={15} />} label="Cidade">{lead.cidade}</Field>
-          <Field icon={<Banknote size={15} />} label="Renda mensal">{formatMoney(lead.renda)}</Field>
-          <Field icon={<Briefcase size={15} />} label="Perfil profissional">{lead.perfil}</Field>
-          <Field icon={<CreditCard size={15} />} label="Modalidade">
-            <span className="rounded-md bg-brand/10 px-2 py-0.5 text-[12px] text-brand-deep">{modalidade(lead.prazo)}</span>
-          </Field>
-          <Field icon={<Building2 size={15} />} label="Empresa">{lead.nomeEmpresa || '—'}</Field>
-          <Field icon={<Briefcase size={15} />} label="Local de trabalho">
-            {lead.enderecoTrabalho || lead.bairroTrabalho || '—'}
-          </Field>
-          <Field icon={<UserRound size={15} />} label="Indicado por">{lead.indicacao || '—'}</Field>
-          <Field icon={<Share2 size={15} />} label="Origem do cliente">
-            <span className="flex items-center gap-1.5">
-              <span className="[&>svg]:h-4 [&>svg]:w-4"><OrigemIcon label={origem} /></span>
-              {origem}
-            </span>
-          </Field>
-          <Field icon={<Home size={15} />} label="Local da solicitação">
-            {lead.endereco
-              ? `${lead.endereco}${lead.cep ? ` — CEP: ${lead.cep}` : ''}`
-              : '—'}
-          </Field>
-        </div>
-
-        {/* Observação do cliente */}
-        {lead.observacao && (
-          <div className="mt-4 flex gap-2.5 rounded-xl border-l-4 border-info bg-info/5 p-3">
-            <MessageSquareText size={16} className="mt-0.5 shrink-0 text-info" />
+        {/* Observação do cliente (quando não há um `extra` específico) */}
+        {!extra && lead.observacao && (
+          <div className="mt-4 flex gap-2.5 rounded-xl bg-info/8 p-3">
+            <MessageCircle size={17} className="mt-0.5 shrink-0 text-info" />
             <div>
-              <p className="text-[11px] font-semibold text-info">Observação do cliente</p>
+              <p className="text-[12px] font-semibold text-info">Observação</p>
               <p className="mt-0.5 text-[12.5px] text-ink-2">{lead.observacao}</p>
             </div>
           </div>
@@ -142,15 +179,15 @@ export default function LeadCardDetailed({
         {extra}
 
         {actions && <div className="mt-4">{actions}</div>}
-      </div>
 
-      <button
-        onClick={() => onView(lead)}
-        className="mt-auto flex items-center justify-center gap-2 border-t border-line bg-line py-3
-          text-[13px] font-bold text-ink-2 transition-colors hover:bg-canvas cursor-pointer"
-      >
-        <Eye size={15} /> Ver detalhes
-      </button>
+        <button
+          onClick={() => onView(lead)}
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-info/10 py-3
+            text-[13px] font-bold text-info transition-colors hover:bg-info/15 cursor-pointer"
+        >
+          <Eye size={15} /> Ver detalhes
+        </button>
+      </div>
     </div>
   );
 }
