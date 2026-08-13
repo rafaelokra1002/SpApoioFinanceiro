@@ -109,6 +109,7 @@ export async function handleCreateLeadWithDocs(
       renda: body.renda || undefined,
       valorSolicitado: parseFloat(body.valorSolicitado) || 0,
       valorTotal: parseFloat(body.valorTotal) || 0,
+      parcelas: body.parcelas ? parseInt(body.parcelas, 10) : undefined,
       cidade: body.cidade || '',
       perfil: body.perfil || '',
       nomeEmpresa: body.nomeEmpresa || undefined,

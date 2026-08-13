@@ -63,7 +63,7 @@ function montarMensagem(
 
 export default function AprovarModal({ lead, onClose, onConfirm, onStatusChange }: AprovarModalProps) {
   const [centavos, setCentavos] = useState(() => Math.round(lead.valorSolicitado * 100));
-  const [opcaoIdx, setOpcaoIdx] = useState(() => (modalidade(lead.prazo) === 'À vista' ? 1 : 0));
+  const [opcaoIdx, setOpcaoIdx] = useState(() => (modalidade(lead.parcelas) === 'À vista' ? 1 : 0));
   const [numParcelas, setNumParcelas] = useState(2);
   const [copiado, setCopiado] = useState(false);
 

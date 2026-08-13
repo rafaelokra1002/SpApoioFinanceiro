@@ -155,7 +155,7 @@ export default function CobrancaFacilModal({ lead, onClose }: CobrancaFacilModal
                   value={<span className="inline-block rounded-md bg-success/10 px-2 py-0.5 text-[12px] font-semibold text-success">{lead.perfil}</span>} />
                 <InfoCard icon={<UserRound size={16} />} label="Indicado por" value={lead.indicacao || '—'} />
                 <InfoCard icon={<Building2 size={16} />} label={camposEmprego(lead.perfil).local} value={localTrabalho} />
-                <InfoCard icon={<CreditCard size={16} />} label="Modalidade" value={modalidade(lead.prazo)} />
+                <InfoCard icon={<CreditCard size={16} />} label="Modalidade" value={modalidade(lead.parcelas)} />
               </div>
             </div>
 

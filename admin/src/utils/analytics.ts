@@ -104,9 +104,9 @@ export function countMetrics(leads: Lead[]): Counts {
   return counts;
 }
 
-/** Modalidade derivada do prazo (não é campo real): até 30 dias = À vista. */
-export function modalidade(prazoDias: number): string {
-  return prazoDias <= 30 ? 'À vista' : 'Parcelado';
+/** Modalidade conforme o nº de parcelas escolhido pelo cliente: 1 = à vista. */
+export function modalidade(parcelas: number): string {
+  return parcelas > 1 ? 'Parcelado' : 'À vista';
 }
 
 /**

@@ -84,8 +84,8 @@ export default function LeadCardDetailed({
   const StatusIcon = METRICS[lead.status as MetricKey]?.icon;
 
   // Parcelas derivadas do prazo (não é campo real — igual à "Modalidade").
-  const parcelado = modalidade(lead.prazo) === 'Parcelado';
-  const vezes = Math.max(1, Math.round(lead.prazo / 30));
+  const vezes = Math.max(1, lead.parcelas);
+  const parcelado = vezes > 1;
   const valorParcela = parcelado ? lead.valorTotal / vezes : lead.valorTotal;
   const campos = camposEmprego(lead.perfil);
 
@@ -157,7 +157,7 @@ export default function LeadCardDetailed({
             right={<Field icon={<UserRound size={16} className="text-emerald-500" />} iconBg="bg-emerald-500/10" label="Indicado por" value={lead.indicacao || '—'} />}
           />
           <FieldRow
-            left={<Field icon={<CreditCard size={16} className="text-blue-500" />} iconBg="bg-blue-500/10" label="Modalidade" value={modalidade(lead.prazo)} />}
+            left={<Field icon={<CreditCard size={16} className="text-blue-500" />} iconBg="bg-blue-500/10" label="Modalidade" value={modalidade(lead.parcelas)} />}
             right={<Field icon={<Users size={16} className="text-orange" />} iconBg="bg-orange/10" label="Origem" value={origem} />}
           />
           <FieldRow

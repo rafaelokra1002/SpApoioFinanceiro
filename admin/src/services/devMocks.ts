@@ -31,6 +31,8 @@ function mk(
     valorTotal: Math.round(valor * 1.3),
     taxaJuros: 30,
     prazo,
+    // Preview: deriva as parcelas do prazo (30d = 1x/à vista, 60d = 2x, 90d = 3x).
+    parcelas: Math.max(1, Math.round(prazo / 30)),
     cidade,
     perfil: 'CLT',
     nomeEmpresa: null,

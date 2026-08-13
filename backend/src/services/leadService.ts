@@ -14,6 +14,7 @@ export async function createLead(data: LeadInput) {
       renda: data.renda || null,
       valorSolicitado: data.valorSolicitado,
       valorTotal: data.valorTotal,
+      parcelas: Number(data.parcelas) > 0 ? Number(data.parcelas) : 1,
       cidade: data.cidade,
       perfil: data.perfil,
       nomeEmpresa: data.nomeEmpresa || null,

@@ -51,7 +51,7 @@ function valorAprovadoDe(lead: Lead): number {
 function modalidadeAprovadaLabel(lead: Lead): string {
   if (lead.modalidadeAprovada === 'PARCELADO') return 'Parcelado';
   if (lead.modalidadeAprovada === 'AVISTA') return 'À vista';
-  return modalidade(lead.prazo);
+  return modalidade(lead.parcelas);
 }
 
 /** Intervalo [início, fim] do período selecionado; `null` em "Todo o período". */

@@ -10,6 +10,8 @@ export interface Lead {
   valorTotal: number;
   taxaJuros: number;
   prazo: number;
+  /** Nº de parcelas escolhido pelo cliente (1 = à vista). */
+  parcelas: number;
   cidade: string;
   perfil: string;
   nomeEmpresa: string | null;

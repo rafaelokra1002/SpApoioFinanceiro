@@ -20,6 +20,8 @@ export interface LeadInput {
   renda?: string;
   valorSolicitado: number;
   valorTotal: number;
+  /** Nº de parcelas escolhido pelo cliente (1 = à vista). */
+  parcelas?: number;
   cidade: string;
   perfil: string;
   nomeEmpresa?: string;

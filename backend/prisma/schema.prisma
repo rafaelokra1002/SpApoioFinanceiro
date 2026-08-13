@@ -19,6 +19,7 @@ model Lead {
   valorTotal      Float
   taxaJuros       Float      @default(30)
   prazo           Int        @default(30)
+  parcelas        Int        @default(1)
   cidade          String
   perfil          String
   nomeEmpresa     String?
