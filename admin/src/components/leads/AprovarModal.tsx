@@ -77,8 +77,9 @@ export default function AprovarModal({ lead, onClose, onConfirm, onStatusChange 
   const opcao = OPCOES[opcaoIdx];
   const parcelado = opcao.modalidade === 'PARCELADO';
   const parcelas = parcelado ? numParcelas : 1;
-  // No modelo, o valor aprovado é o total a receber (soma das parcelas) — sem juros somados.
-  const totalReceber = valorAprovado;
+  // Total a pagar = valor aprovado + juros (taxa do lead, padrão 30%).
+  const taxa = lead.taxaJuros || 30;
+  const totalReceber = Math.round(valorAprovado * (1 + taxa / 100) * 100) / 100;
   const valorParcela = parcelas > 0 ? totalReceber / parcelas : totalReceber;
   const photoUrl = clientPhotoUrl(lead.documentos);
 
@@ -254,8 +255,8 @@ export default function AprovarModal({ lead, onClose, onConfirm, onStatusChange 
               <p className="mb-2 flex items-center gap-2 text-[14px] font-bold text-ink">
                 <MessageSquareText size={16} className="text-info" /> Mensagem para o cliente
               </p>
-              <div className="max-h-24 overflow-y-auto rounded-xl border border-line bg-canvas/40 p-2.5">
-                <p className="whitespace-pre-wrap text-[12.5px] leading-relaxed text-ink-2">{mensagemDoCliente}</p>
+              <div className="max-h-56 overflow-y-auto rounded-xl border border-line bg-canvas/40 p-3">
+                <p className="whitespace-pre-wrap text-[13.5px] leading-relaxed text-ink-2">{mensagemDoCliente}</p>
               </div>
               <div className="mt-2.5 flex flex-wrap items-center justify-end gap-2">
                 <button onClick={copiarMensagem} disabled={valorAprovado <= 0}
@@ -284,8 +285,8 @@ export default function AprovarModal({ lead, onClose, onConfirm, onStatusChange 
                   onChange={(e) => { if (e.target.value) onStatusChange(e.target.value); }}
                   className="h-full w-full cursor-pointer appearance-none rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 py-2.5 pl-11 pr-10 text-[15px] font-bold text-white shadow-md focus:outline-none"
                 >
-                  <option value="" disabled>Mover para categoria</option>
-                  {STATUS_ORDER.map((s) => <option key={s} value={s}>{METRICS[s].label}</option>)}
+                  <option value="" disabled className="bg-surface text-subtle">Mover para categoria</option>
+                  {STATUS_ORDER.map((s) => <option key={s} value={s} className="bg-surface text-ink">{METRICS[s].label}</option>)}
                 </select>
                 <FolderInput size={17} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white" />
                 <ChevronDown size={18} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white" />

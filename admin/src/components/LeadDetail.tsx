@@ -4,6 +4,7 @@ import {
   Wallet, CalendarClock, MapPin, Briefcase, Building2, UserRound, CreditCard,
   Send, Shield, Users, FileText, Search, ChevronDown, Calendar, AtSign, Target,
   Monitor, CloudDownload, ClipboardList, Camera, Clock, Zap, ExternalLink, Play,
+  MoreHorizontal, Check, FolderInput,
 } from 'lucide-react';
 import { Lead } from '../types';
 import { parseGarantia, isBemDoc, GarantiaInfo } from '../utils/garantia';
@@ -119,6 +120,10 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
   const [enviandoGrupo, setEnviandoGrupo] = useState(false);
   const [cobrancaFacil, setCobrancaFacil] = useState(false);
   const [enviandoStatus, setEnviandoStatus] = useState(false);
+  // "Mais ações" abre uma aba suspensa (modal) com marcações internas + envio ao grupo.
+  const [maisAcoes, setMaisAcoes] = useState(false);
+  // "Mover para a categoria" abre uma aba suspensa com os status disponíveis.
+  const [moverCategoria, setMoverCategoria] = useState(false);
   // Clicar numa barra de garantia abre uma tela suspensa (modal) com o conteúdo.
   const [modalBem, setModalBem] = useState<'info' | 'midia' | null>(null);
 
@@ -409,40 +414,21 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
                   <BigAction icon={<Trash2 size={15} />} label="Excluir solicitação"
                     gradient="bg-gradient-to-r from-rose-500 to-red-500"
                     onClick={() => onDelete(lead.id)} />
-                </div>
 
-                {/* Ações internas do fluxo (marcações e envio ao grupo). */}
-                <div className="flex flex-wrap gap-2">
-                  <MiniAction icon={<Shield size={13} />} label="Evitar golpes"
-                    active={lead.evitarGolpes} activeClass="bg-purple-500/15 text-purple-600 ring-purple-500"
-                    onClick={() => onUpdateGroups(lead.id, { evitarGolpes: !lead.evitarGolpes })} />
-                  <MiniAction icon={<Users size={13} />} label="Análise de clientes"
-                    active={lead.analiseCliente} activeClass="bg-orange/15 text-orange ring-orange"
-                    onClick={() => onUpdateGroups(lead.id, { analiseCliente: !lead.analiseCliente })} />
-                  <MiniAction icon={<Send size={13} />} label="Enviar para o grupo"
-                    onClick={() => setEnviandoGrupo(true)} />
+                  {/* Mais ações: abre uma aba suspensa (modal) com as marcações e o envio ao grupo. */}
+                  <BigAction icon={<MoreHorizontal size={15} />} label="Mais ações"
+                    gradient="bg-gradient-to-r from-slate-500 to-slate-600"
+                    onClick={() => setMaisAcoes(true)} />
                 </div>
               </div>
 
               {/* Mover para a categoria + legenda */}
               <div>
-                <div className="relative">
-                  <select
-                    value={STATUS_ORDER.includes(lead.status as never) ? lead.status : ''}
-                    onChange={(e) => onStatusChange(lead.id, e.target.value)}
-                    className="w-full cursor-pointer appearance-none rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 px-4 py-2.5 pr-10 text-[13px] font-semibold text-white shadow-md focus:outline-none"
-                  >
-                    {!STATUS_ORDER.includes(lead.status as never) && <option value="" disabled>{statusLabel(lead.status)}</option>}
-                    <option value="" disabled>Mover para a categoria</option>
-                    {STATUS_ORDER.map((s) => <option key={s} value={s}>{METRICS[s].label}</option>)}
-                  </select>
-                  <ChevronDown size={18} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white" />
-                </div>
-                <ul className="mt-2 space-y-1.5 text-[12.5px] font-medium text-ink-2">
-                  <li className="flex items-center gap-2"><CheckCircle size={15} className="text-success" /> Aprovado</li>
-                  <li className="flex items-center gap-2"><XCircle size={15} className="text-danger" /> Recusado</li>
-                  <li className="flex items-center gap-2"><Clock size={15} className="text-warning" /> Em análise</li>
-                </ul>
+                <button onClick={() => setMoverCategoria(true)}
+                  className="flex w-full items-center justify-between gap-2 rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 px-4 py-2.5 text-[13px] font-semibold text-white shadow-md transition-all hover:brightness-110 cursor-pointer">
+                  Mover para a categoria
+                  <ChevronDown size={18} className="text-white" />
+                </button>
               </div>
             </div>
 
@@ -515,6 +501,73 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
             onClose={() => setEnviandoStatus(false)}
             onEnviarStatus={() => onWhatsApp(lead)}
           />
+        )}
+
+        {/* Aba suspensa "Mais ações": marcações internas + envio ao grupo. */}
+        {maisAcoes && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+            <div className="absolute inset-0 bg-black/50" onClick={() => setMaisAcoes(false)} />
+            <div className="relative z-10 w-[min(400px,92vw)] overflow-hidden rounded-2xl border border-line bg-surface shadow-2xl">
+              <div className="flex items-center justify-between border-b border-line px-4 py-3">
+                <p className="flex items-center gap-2 text-[15px] font-bold text-ink">
+                  <MoreHorizontal size={17} className="text-ink-2" /> Mais ações
+                </p>
+                <button onClick={() => setMaisAcoes(false)}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-line cursor-pointer">
+                  <X size={16} className="text-subtle" />
+                </button>
+              </div>
+              <div className="space-y-1.5 p-3">
+                <MaisAcaoRow
+                  icon={<Shield size={17} />} label="Evitar golpes"
+                  ativo={lead.evitarGolpes} tint="purple"
+                  onClick={() => onUpdateGroups(lead.id, { evitarGolpes: !lead.evitarGolpes })}
+                />
+                <MaisAcaoRow
+                  icon={<Users size={17} />} label="Análise de clientes"
+                  ativo={lead.analiseCliente} tint="orange"
+                  onClick={() => onUpdateGroups(lead.id, { analiseCliente: !lead.analiseCliente })}
+                />
+                <MaisAcaoRow
+                  icon={<Send size={17} />} label="Enviar para o grupo"
+                  descricao="Compartilhar no grupo de análise"
+                  onClick={() => { setMaisAcoes(false); setEnviandoGrupo(true); }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Aba suspensa "Mover para a categoria": status disponíveis (exceto o atual). */}
+        {moverCategoria && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+            <div className="absolute inset-0 bg-black/50" onClick={() => setMoverCategoria(false)} />
+            <div className="relative z-10 w-[min(400px,92vw)] overflow-hidden rounded-2xl border border-line bg-surface shadow-2xl">
+              <div className="flex items-center justify-between border-b border-line px-4 py-3">
+                <p className="flex items-center gap-2 text-[15px] font-bold text-ink">
+                  <FolderInput size={17} className="text-purple-600" /> Mover para a categoria
+                </p>
+                <button onClick={() => setMoverCategoria(false)}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-line cursor-pointer">
+                  <X size={16} className="text-subtle" />
+                </button>
+              </div>
+              <div className="space-y-1.5 p-3">
+                {STATUS_ORDER.filter((s) => s !== lead.status).map((s) => {
+                  const Icon = METRICS[s].icon;
+                  return (
+                    <button key={s} onClick={() => { setMoverCategoria(false); onStatusChange(lead.id, s); }}
+                      className="flex w-full items-center gap-3 rounded-xl border border-line px-3 py-2.5 text-left transition-colors hover:bg-canvas cursor-pointer">
+                      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-canvas ${statusTone(s)}`}>
+                        <Icon size={17} />
+                      </span>
+                      <span className="text-[13.5px] font-semibold text-ink">{METRICS[s].label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Tela suspensa do bem em garantia (informações ou mídias). */}
@@ -805,17 +858,28 @@ function BigAction({ icon, label, gradient, disabled, onClick }: {
   );
 }
 
-/** Ação secundária compacta (marcações de fluxo). */
-function MiniAction({ icon, label, active, activeClass = '', onClick }: {
-  icon: ReactNode; label: string; active?: boolean; activeClass?: string; onClick?: () => void;
+/** Linha da aba suspensa "Mais ações": marcação (toggle) ou ação simples. */
+function MaisAcaoRow({ icon, label, descricao, ativo, tint, onClick }: {
+  icon: ReactNode; label: string; descricao?: string; ativo?: boolean; tint?: 'purple' | 'orange'; onClick?: () => void;
 }) {
+  const isToggle = ativo !== undefined;
+  const iconBox = !isToggle
+    ? 'bg-info/10 text-info'
+    : ativo
+    ? (tint === 'purple' ? 'bg-purple-500/15 text-purple-600' : 'bg-orange/15 text-orange')
+    : 'bg-canvas text-subtle';
+  const checkColor = tint === 'purple' ? 'text-purple-600' : 'text-orange';
   return (
-    <button
-      onClick={onClick}
-      className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-semibold ring-1 transition-colors cursor-pointer
-        ${active ? activeClass : 'bg-surface text-muted ring-line hover:bg-canvas'}`}
-    >
-      {icon} {label}
+    <button onClick={onClick}
+      className="flex w-full items-center gap-3 rounded-xl border border-line px-3 py-2.5 text-left transition-colors hover:bg-canvas cursor-pointer">
+      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${iconBox}`}>{icon}</span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[13.5px] font-semibold text-ink">{label}</span>
+        <span className="block text-[11.5px] text-subtle">
+          {isToggle ? (ativo ? 'Ativado' : 'Toque para ativar') : descricao}
+        </span>
+      </span>
+      {isToggle && ativo && <Check size={17} className={checkColor} />}
     </button>
   );
 }
