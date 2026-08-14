@@ -77,10 +77,13 @@ export default function AprovarModal({ lead, onClose, onConfirm, onStatusChange 
   const opcao = OPCOES[opcaoIdx];
   const parcelado = opcao.modalidade === 'PARCELADO';
   const parcelas = parcelado ? numParcelas : 1;
-  // Total a pagar = valor aprovado + juros (taxa do lead, padrão 30%).
+  // Juros pela Tabela Price (mesmo cálculo do app): parcela fixa; n=1 = à vista.
+  //   parcela = valor * i / (1 - (1 + i)^-n)   e   total = parcela * n
   const taxa = lead.taxaJuros || 30;
-  const totalReceber = Math.round(valorAprovado * (1 + taxa / 100) * 100) / 100;
-  const valorParcela = parcelas > 0 ? totalReceber / parcelas : totalReceber;
+  const i = taxa / 100;
+  const parcelaExata = valorAprovado > 0 ? (valorAprovado * i) / (1 - Math.pow(1 + i, -parcelas)) : 0;
+  const valorParcela = Math.round(parcelaExata * 100) / 100;
+  const totalReceber = Math.round(valorParcela * parcelas * 100) / 100;
   const photoUrl = clientPhotoUrl(lead.documentos);
 
   const onValorChange = (raw: string) => {
