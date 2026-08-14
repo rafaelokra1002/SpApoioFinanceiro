@@ -177,6 +177,10 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
 
   const StatusIcon = METRICS[lead.status as MetricKey]?.icon ?? CalendarClock;
 
+  // Enquanto qualquer modal de ação está aberto, a "Visão do Cliente" some (não fica atrás).
+  const algumModal = recusando || aprovando || enviandoGrupo || cobrancaFacil
+    || enviandoStatus || maisAcoes || moverCategoria || modalBem !== null;
+
   const renderDocCard = (doc: typeof docs[number], tall = false) => {
     const isImage = IMAGE_EXT.test(doc.filename) || IMAGE_EXT.test(doc.url);
     const isVideo = VIDEO_EXT.test(doc.filename) || VIDEO_EXT.test(doc.url);
@@ -217,8 +221,11 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
   };
 
   return (
-    // Moldura com borda em gradiente azul→roxo, como no modelo.
-    <div className="rounded-[26px] bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 p-[3px] shadow-2xl">
+    <>
+      {/* Visão do Cliente — oculta enquanto um modal de ação está aberto. */}
+      {!algumModal && (
+      // Moldura com borda em gradiente azul→roxo, como no modelo.
+      <div className="rounded-[26px] bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 p-[3px] shadow-2xl">
       <div className="flex max-h-[96vh] w-[min(1080px,94vw)] flex-col overflow-hidden rounded-3xl bg-canvas">
         {/* Cabeçalho */}
         <div className="flex shrink-0 flex-wrap items-center justify-between gap-2.5 border-b border-line bg-surface px-4 py-2.5">
@@ -460,9 +467,13 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
             )}
           </Section>
         </div>
+      </div>
+      </div>
+      )}
 
-        {/* Modal de recusa: motivo + mensagem ao cliente (aberto pelo botão Recusar). */}
-        {recusando && (
+      {/* Modais de ação — fora da Visão do Cliente para ela não ficar atrás. */}
+      {/* Modal de recusa: motivo + mensagem ao cliente (aberto pelo botão Recusar). */}
+      {recusando && (
           <RecusarModal
             lead={lead}
             onClose={() => setRecusando(false)}
@@ -581,8 +592,7 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
             onClose={() => setModalBem(null)}
           />
         )}
-      </div>
-    </div>
+    </>
   );
 }
 
