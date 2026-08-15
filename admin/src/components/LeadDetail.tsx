@@ -296,7 +296,8 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
                     ? <a href={lead.instagram.startsWith('http') ? lead.instagram : `https://instagram.com/${lead.instagram.replace(/^@/, '')}`}
                         target="_blank" rel="noopener noreferrer" className="hover:underline">{lead.instagram}</a>
                     : '—'} />
-                <InfoItem icon={<CreditCard size={15} className="text-amber-500" />} iconBg="bg-amber-500/10" label="Modalidade" value={modalidade(lead.parcelas)} />
+                <InfoItem icon={<CreditCard size={15} className="text-amber-500" />} iconBg="bg-amber-500/10" label="Modalidade"
+                  value={lead.parcelas > 1 ? `Parcelado (${lead.parcelas}x)` : 'À vista'} />
                 <InfoItem icon={<UserRound size={15} className="text-blue-500" />} iconBg="bg-blue-500/10" label="Indicado por" value={lead.indicacao || '—'} />
                 <InfoItem icon={<MapPin size={15} className="text-teal-500" />} iconBg="bg-teal-500/10" label="Cidade / Estado" value={lead.cidade} />
                 <InfoItem icon={<Users size={15} className="text-emerald-500" />} iconBg="bg-emerald-500/10" label="Origem" value={origemOf(lead)} />

@@ -54,9 +54,9 @@ interface NavItem {
 const NAV: NavItem[] = [
   { key: 'dashboard', label: 'Dashboard', icon: LayoutGrid },
   { key: 'pendentes', label: 'Pendentes', icon: Clock },
-  { key: 'garantias', label: 'Garantias', icon: ShieldCheck },
   { key: 'aprovados', label: 'Aprovados', icon: CheckCircle2 },
   { key: 'recusados', label: 'Recusados', icon: XCircle },
+  { key: 'garantias', label: 'Garantias', icon: ShieldCheck },
   { key: 'nao-contrataram', label: 'Não Contratou', icon: UserX },
   { key: 'colaborador', label: 'Passei para Colaborador', icon: UserRoundCheck },
   { key: 'mensagens', label: 'Templates', icon: MessageSquare },

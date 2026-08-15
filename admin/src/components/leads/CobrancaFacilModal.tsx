@@ -112,7 +112,7 @@ export default function CobrancaFacilModal({ lead, onClose }: CobrancaFacilModal
           <div className="space-y-3 overflow-y-auto p-4">
             {/* Card do cliente: foto + identidade */}
             <div className="flex flex-col gap-3.5 rounded-2xl border border-emerald-500/25 bg-emerald-500/5 p-3.5 sm:flex-row sm:items-center">
-              <div className="relative h-32 w-full shrink-0 overflow-hidden rounded-xl sm:w-44">
+              <div className="relative h-32 w-32 shrink-0 overflow-hidden rounded-xl">
                 {photoUrl ? (
                   <img src={photoUrl} alt={lead.nome} className="h-full w-full object-cover"
                     onError={(e) => e.currentTarget.remove()} />

@@ -121,7 +121,7 @@ export default function RecusarModal({ lead, onClose, onConfirm }: RecusarModalP
           <div className="space-y-2.5 overflow-y-auto p-3.5">
             {/* Card do cliente */}
             <div className="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-3 sm:flex-row sm:items-center">
-              <div className="relative h-20 w-full shrink-0 overflow-hidden rounded-xl sm:w-40">
+              <div className="relative h-32 w-32 shrink-0 overflow-hidden rounded-xl">
                 {photoUrl ? (
                   <img src={photoUrl} alt={lead.nome} className="h-full w-full object-cover" onError={(e) => e.currentTarget.remove()} />
                 ) : (
