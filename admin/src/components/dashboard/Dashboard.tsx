@@ -62,9 +62,15 @@ export default function Dashboard({ leads: allLeads, loading, onDrillDown }: Das
     [leads, month],
   );
 
+  // Clientes por Cidade tem o seu próprio seletor de período, independente do filtro geral.
+  const [cityMonth, setCityMonth] = useState<string>('');
+  const cityScoped = useMemo(
+    () => (cityMonth ? leads.filter((l) => monthKey(new Date(l.createdAt)) === cityMonth) : leads),
+    [leads, cityMonth],
+  );
   const cityRank = useMemo(
-    () => rank(scoped.filter((l) => l.status === 'APROVADO'), (l) => l.cidade, 10),
-    [scoped],
+    () => rank(cityScoped.filter((l) => l.status === 'APROVADO'), (l) => l.cidade, 10),
+    [cityScoped],
   );
   const origemRank = useMemo(() => rank(scoped, origemOf, 10), [scoped]);
 
@@ -172,6 +178,31 @@ export default function Dashboard({ leads: allLeads, loading, onDrillDown }: Das
           rows={cityRank.rows}
           total={cityRank.total}
           numbered
+          action={(
+            <div className="flex items-center gap-2">
+              {cityMonth && (
+                <button
+                  onClick={() => setCityMonth('')}
+                  className="flex items-center gap-1 rounded-lg border border-line bg-surface px-2.5 py-1 text-[12px]
+                    font-semibold text-ink-2 transition-colors hover:bg-canvas cursor-pointer"
+                >
+                  <X size={13} strokeWidth={2.2} />
+                  Limpar filtros
+                </button>
+              )}
+              <select
+                value={cityMonth}
+                onChange={(e) => setCityMonth(e.target.value)}
+                className="cursor-pointer rounded-lg border border-line bg-surface px-2.5 py-1 text-[12px]
+                  font-medium text-ink-2 focus:border-brand focus:outline-none"
+              >
+                <option value="">Todo o período</option>
+                {monthOptions.map((m) => (
+                  <option key={m} value={m}>{fullMonthLabel(m)}</option>
+                ))}
+              </select>
+            </div>
+          )}
         />
       </div>
 

@@ -99,6 +99,9 @@ const CARD_LABELS: Partial<Record<PageKey, CardLabels>> = {
   },
 };
 
+/** Listagens que não mostram o card de "valor total" no resumo. */
+const HIDE_VALUE_PAGES = new Set<PageKey>(['garantias', 'nao-contrataram', 'colaborador']);
+
 /** Card do dashboard → página de listagem correspondente. */
 const METRIC_TO_PAGE: Record<MetricKey, PageKey> = {
   total: 'solicitacoes',
@@ -395,6 +398,7 @@ export default function App() {
             countCaption={cardLabels.countCaption}
             valueLabel={cardLabels.valueLabel}
             valueCaption={cardLabels.valueCaption}
+            showValue={!HIDE_VALUE_PAGES.has(page)}
             onView={setSelectedLead}
             onWhatsApp={sendWhatsApp}
             onStatusChange={handleStatusChange}

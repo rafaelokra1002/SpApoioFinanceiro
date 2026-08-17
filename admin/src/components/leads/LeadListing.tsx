@@ -21,6 +21,8 @@ interface LeadListingProps {
   countCaption: string;
   valueLabel: string;
   valueCaption: string;
+  /** Exibe o card de "valor total". Padrão: true. */
+  showValue?: boolean;
   onView: (lead: Lead) => void;
   onWhatsApp: (lead: Lead) => void;
   onStatusChange?: (id: string, status: string) => void;
@@ -31,7 +33,8 @@ function initialView(): ViewMode {
 }
 
 export default function LeadListing({
-  leads, loading, countLabel, countCaption, valueLabel, valueCaption, onView, onWhatsApp, onStatusChange,
+  leads, loading, countLabel, countCaption, valueLabel, valueCaption, showValue = true,
+  onView, onWhatsApp, onStatusChange,
 }: LeadListingProps) {
   const [query, setQuery] = useState('');
   const [view, setViewState] = useState<ViewMode>(initialView);
@@ -55,8 +58,8 @@ export default function LeadListing({
   return (
     <div className="space-y-5">
       {/* Resumo */}
-      <div className="grid max-w-3xl grid-cols-1 gap-4 md:grid-cols-2">
-        <div className="flex items-center gap-4 rounded-2xl border border-line bg-surface p-5 shadow-sm">
+      <div className={`grid max-w-3xl grid-cols-1 gap-4 ${showValue ? 'md:grid-cols-2' : ''}`}>
+        <div className={`flex items-center gap-4 rounded-2xl border border-line bg-surface p-5 shadow-sm ${showValue ? '' : 'max-w-md'}`}>
           <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand/10">
             <Users size={24} className="text-brand-deep" strokeWidth={2} />
           </span>
@@ -67,18 +70,20 @@ export default function LeadListing({
           </div>
         </div>
 
-        <div className="flex items-center gap-4 rounded-2xl border border-line bg-surface p-5 shadow-sm">
-          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand/10">
-            <Wallet size={24} className="text-brand-deep" strokeWidth={2} />
-          </span>
-          <div className="min-w-0">
-            <p className="text-[13px] font-medium text-muted">{valueLabel}</p>
-            <p className="truncate text-[26px] font-bold leading-tight text-ink" title={formatCurrency(totalValue)}>
-              {formatCurrency(totalValue)}
-            </p>
-            <p className="text-[12px] text-subtle">{valueCaption}</p>
+        {showValue && (
+          <div className="flex items-center gap-4 rounded-2xl border border-line bg-surface p-5 shadow-sm">
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand/10">
+              <Wallet size={24} className="text-brand-deep" strokeWidth={2} />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[13px] font-medium text-muted">{valueLabel}</p>
+              <p className="truncate text-[26px] font-bold leading-tight text-ink" title={formatCurrency(totalValue)}>
+                {formatCurrency(totalValue)}
+              </p>
+              <p className="text-[12px] text-subtle">{valueCaption}</p>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Busca + alternância de visualização */}

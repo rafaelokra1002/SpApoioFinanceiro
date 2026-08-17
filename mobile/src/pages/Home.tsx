@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLoan } from '../context/LoanContext';
-import { requestLocation } from '../utils/geo';
+import { requestLocation, watchLocationPermission } from '../utils/geo';
 
 export function Home() {
   const { state, dispatch } = useLoan();
@@ -16,6 +16,16 @@ export function Home() {
       dispatch({ type: 'SET_STEP', step: 1 });
     }
   }, [gateOpen, state.geo, dispatch]);
+
+  // Com o bloqueio aberto, observa a permissão do navegador: quando o cliente
+  // libera nas configurações (mesmo sem clicar em "Tentar novamente"), pedimos a
+  // posição na hora — o navegador não deixa reabrir o balão só com o botão.
+  useEffect(() => {
+    if (!gateOpen) return undefined;
+    return watchLocationPermission((permState) => {
+      if (permState !== 'denied') requestLocation(dispatch);
+    });
+  }, [gateOpen, dispatch]);
 
   const solicitarAgora = () => {
     if (state.geo === 'granted') {

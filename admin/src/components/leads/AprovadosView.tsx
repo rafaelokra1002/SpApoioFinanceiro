@@ -1,7 +1,7 @@
 import { ReactNode, useMemo, useState } from 'react';
 import {
   Banknote, Briefcase, Building2, CalendarClock, CalendarCheck2, CheckCircle2, ClipboardCheck,
-  ChevronRight, CircleDollarSign, CreditCard, Eye, Home, LayoutGrid, List, Loader2,
+  ChevronRight, CreditCard, Eye, Home, LayoutGrid, List, Loader2,
   MapPin, MessageCircle, MessageSquareText, Search, Share2, UserRound,
 } from 'lucide-react';
 import { Lead } from '../../types';
@@ -85,8 +85,6 @@ export default function AprovadosView({ leads, loading, onView, onWhatsApp }: Ap
     });
   }, [leads, periodo]);
 
-  const totalValor = useMemo(() => noPeriodo.reduce((s, l) => s + valorAprovadoDe(l), 0), [noPeriodo]);
-
   const filtered = useMemo(
     () => (query.trim() ? noPeriodo.filter((l) => matchesSearch(l, query)) : noPeriodo),
     [noPeriodo, query],
@@ -105,7 +103,7 @@ export default function AprovadosView({ leads, loading, onView, onWhatsApp }: Ap
   return (
     <div className="space-y-5">
       {/* Resumo */}
-      <div className="grid max-w-3xl grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="max-w-md">
         <div className="flex items-center gap-4 rounded-2xl border border-line bg-surface p-5 shadow-sm">
           <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-success/10">
             <ClipboardCheck size={24} className="text-success" strokeWidth={2} />
@@ -116,20 +114,6 @@ export default function AprovadosView({ leads, loading, onView, onWhatsApp }: Ap
             <p className="text-[12px] text-subtle">Solicitações aprovadas</p>
           </div>
         </div>
-
-        <div className="flex items-center gap-4 rounded-2xl border border-line bg-surface p-5 shadow-sm">
-          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-info/10">
-            <CircleDollarSign size={24} className="text-info" strokeWidth={2} />
-          </span>
-          <div className="min-w-0">
-            <p className="text-[13px] font-medium text-muted">Valor total aprovado no período</p>
-            <p className="truncate text-[26px] font-bold leading-tight text-info" title={formatCurrency(totalValor)}>
-              {formatCurrency(totalValor)}
-            </p>
-            <p className="text-[12px] text-subtle">Total de valores aprovados</p>
-          </div>
-        </div>
-
       </div>
 
       {/* Busca + filtros + alternância */}

@@ -1,6 +1,38 @@
 /** Dispatch mínimo aceito por este módulo (compatível com o do LoanContext). */
 type SetField = (action: { type: 'SET_FIELD'; field: string; value: unknown }) => void;
 
+/**
+ * Observa a permissão de localização (Permissions API) e avisa quando ela muda.
+ *
+ * Serve para o caso em que o cliente BLOQUEIA a localização: o navegador não
+ * deixa o site reabrir o balão de permissão por JavaScript. Quando ele libera
+ * nas configurações, este observador dispara — permitindo pedir a posição na
+ * hora, sem depender de o cliente voltar e clicar em "Tentar novamente".
+ *
+ * Retorna uma função para cancelar a observação (ou `undefined` se a API não existir).
+ */
+export function watchLocationPermission(onChange: (state: PermissionState) => void): () => void {
+  const perms = navigator.permissions;
+  if (!perms?.query) return () => {};
+
+  let status: PermissionStatus | null = null;
+  let cancelled = false;
+  const handler = () => { if (status) onChange(status.state); };
+
+  perms.query({ name: 'geolocation' as PermissionName })
+    .then((s) => {
+      if (cancelled) return;
+      status = s;
+      s.addEventListener('change', handler);
+    })
+    .catch(() => { /* navegador sem suporte — ignora */ });
+
+  return () => {
+    cancelled = true;
+    status?.removeEventListener('change', handler);
+  };
+}
+
 /** Converte coordenadas em endereço legível + CEP (OpenStreetMap, sem chave). */
 async function reverseGeocode(lat: number, lon: number): Promise<{ endereco: string; cep: string }> {
   try {
