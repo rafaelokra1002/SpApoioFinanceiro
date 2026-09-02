@@ -173,13 +173,24 @@ export function Documents() {
   const [origem, setOrigem] = useState<OrigemKey | ''>('');
   const [origemNome, setOrigemNome] = useState('');
 
-  const docs = DOCUMENT_TYPES[state.categoria] || DOCUMENT_TYPES['CARTEIRA_ASSINADA'];
+  const servidorPublico = state.categoria === 'SERVIDOR_PUBLICO';
+  const comissionado = state.vinculoServidor === 'COMISSIONADO';
+  // Servidor público usa a lista de documentos do vínculo escolhido (efetivo x comissionado).
+  const docKey = servidorPublico ? `SERVIDOR_PUBLICO_${state.vinculoServidor || 'EFETIVO'}` : state.categoria;
+  const docs = DOCUMENT_TYPES[docKey] || DOCUMENT_TYPES['CARTEIRA_ASSINADA'];
   const categoriaLabel = CATEGORIES.find(c => c.value === state.categoria)?.label || '';
   const beneficiario = state.categoria === 'BENEFICIARIO';
   // Garantia não pede dados de emprego/renda — o bem é a garantia.
   const garantia = state.categoria === 'COM_GARANTIA';
   const autonomo = state.categoria === 'AUTONOMO';
   const semComprovacao = state.categoria === 'SEM_COMPROVACAO';
+
+  // No cabeçalho, o servidor público mostra o vínculo (Cargo efetivo/comissionado)
+  // no lugar da categoria.
+  const vinculoLabel = state.vinculoServidor === 'EFETIVO' ? 'Cargo efetivo'
+    : state.vinculoServidor === 'COMISSIONADO' ? 'Cargo comissionado' : '';
+  const badgeText = servidorPublico && vinculoLabel ? vinculoLabel
+    : categoriaLabel ? `Categoria: ${categoriaLabel}` : '';
 
   const openFilePicker = (docKey: string) => {
     setCurrentDocKey(docKey);
@@ -244,7 +255,7 @@ export function Documents() {
     // Quando há bem em garantia, junta os detalhes à observação para o admin.
     const observacao = [
       state.observacao, resumoGarantiaImovel(state), resumoGarantiaVeiculo(state),
-      resumoGarantiaEletronico(state), resumoGarantiaOutro(state),
+      resumoGarantiaEletronico(state), resumoGarantiaOutro(state), resumoServidorPublico(state),
     ].filter(Boolean).join('\n\n') || undefined;
 
     const leadData = {
@@ -514,7 +525,7 @@ export function Documents() {
               }}>
                 Envio de documentos
               </h1>
-              {categoriaLabel && (
+              {badgeText && (
                 <span style={{
                   display: 'inline-flex', alignItems: 'center', gap: 5, minWidth: 0, marginLeft: 'auto',
                   padding: '6px 11px', borderRadius: 999, background: 'rgba(255,255,255,0.16)',
@@ -522,8 +533,10 @@ export function Documents() {
                   fontSize: 11.5, fontWeight: 600, color: '#fff', whiteSpace: 'nowrap',
                   overflow: 'hidden', textOverflow: 'ellipsis',
                 }}>
-                  <Building2 size={13} strokeWidth={1.8} style={{ flexShrink: 0 }} />
-                  Categoria: {categoriaLabel}
+                  {servidorPublico
+                    ? <Briefcase size={13} strokeWidth={1.8} style={{ flexShrink: 0 }} />
+                    : <Building2 size={13} strokeWidth={1.8} style={{ flexShrink: 0 }} />}
+                  {badgeText}
                 </span>
               )}
             </div>
@@ -688,6 +701,33 @@ export function Documents() {
                   value={state.nomeEmpresa}
                   onChange={v => dispatch({ type: 'SET_FIELD', field: 'nomeEmpresa', value: v })}
                 />
+              ) : servidorPublico ? (
+                <>
+                  <ExtraField
+                    icon={<Building2 size={20} color="#2546f0" strokeWidth={1.8} />}
+                    iconBg="#eef3fd" label="Órgão onde trabalha"
+                    placeholder="Ex.: Prefeitura Municipal"
+                    value={state.nomeEmpresa}
+                    onChange={v => dispatch({ type: 'SET_FIELD', field: 'nomeEmpresa', value: v })}
+                  />
+                  <ExtraField
+                    icon={comissionado
+                      ? <Briefcase size={20} color="#2546f0" strokeWidth={1.8} />
+                      : <IdCard size={20} color="#2546f0" strokeWidth={1.8} />}
+                    iconBg="#eef3fd"
+                    label={comissionado ? 'Cargo que ocupa' : 'Matrícula funcional'}
+                    placeholder={comissionado ? 'Ex.: Assessor' : 'Ex.: 123456'}
+                    value={state.matriculaCargo}
+                    onChange={v => dispatch({ type: 'SET_FIELD', field: 'matriculaCargo', value: v })}
+                  />
+                  <ExtraField
+                    icon={<MapPin size={20} color="#2546f0" strokeWidth={1.8} />}
+                    iconBg="#eef3fd" label="Bairro, local de trabalho e cidade"
+                    placeholder="Ex.: Centro, Prefeitura Municipal, Camaçari"
+                    value={state.bairroTrabalho}
+                    onChange={v => dispatch({ type: 'SET_FIELD', field: 'bairroTrabalho', value: v })}
+                  />
+                </>
               ) : (
                 <>
                   <ExtraField
@@ -757,6 +797,18 @@ export function Documents() {
       )}
     </div>
   );
+}
+
+/** Resumo do servidor público (vínculo e matrícula/cargo), para anexar à observação. */
+function resumoServidorPublico(state: ReturnType<typeof useLoan>['state']): string {
+  if (state.categoria !== 'SERVIDOR_PUBLICO') return '';
+  const comissionado = state.vinculoServidor === 'COMISSIONADO';
+  const linhas = [
+    '— Servidor público —',
+    `Vínculo: ${comissionado ? 'Cargo comissionado' : 'Cargo efetivo'}`,
+    state.matriculaCargo && `${comissionado ? 'Cargo que ocupa' : 'Matrícula funcional'}: ${state.matriculaCargo}`,
+  ].filter(Boolean);
+  return linhas.length > 1 ? linhas.join('\n') : '';
 }
 
 /** Monta um resumo em texto do imóvel dado em garantia, para anexar à observação. */

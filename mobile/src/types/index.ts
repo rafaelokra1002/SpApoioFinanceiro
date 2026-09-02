@@ -38,8 +38,12 @@ export type CategoryType =
   | 'AUTONOMO'
   | 'BENEFICIARIO'
   | 'ESTAGIARIO'
+  | 'SERVIDOR_PUBLICO'
   | 'SEM_COMPROVACAO'
   | 'COM_GARANTIA';
+
+/** Vínculo do servidor público (só usado quando categoria = SERVIDOR_PUBLICO). */
+export type VinculoServidor = 'EFETIVO' | 'COMISSIONADO' | '';
 
 export interface CategoryOption {
   value: CategoryType;

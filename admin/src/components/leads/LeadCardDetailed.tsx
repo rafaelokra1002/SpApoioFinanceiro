@@ -68,8 +68,9 @@ const CARD_BORDER: Record<string, string> = {
 
 /** Rótulo curto do perfil para a badge do cabeçalho. */
 const PERFIL_LABELS: Record<string, string> = {
-  CARTEIRA_ASSINADA: 'CLT', CLT_SEM_REGISTRO: 'CLT Informal', AUTONOMO: 'Autônomo',
-  BENEFICIARIO: 'Beneficiário', ESTAGIARIO: 'Estagiário', COM_GARANTIA: 'Com garantia',
+  CARTEIRA_ASSINADA: 'CLT', CLT_SEM_REGISTRO: 'CLT Informal', AUTONOMO: 'Conta própria',
+  BENEFICIARIO: 'Beneficiário', ESTAGIARIO: 'Estagiário', SERVIDOR_PUBLICO: 'Servidor público',
+  COM_GARANTIA: 'Com garantia',
   SEM_COMPROVACAO: 'Sem comprovação',
 };
 function perfilLabel(perfil: string): string {

@@ -231,7 +231,7 @@ export async function handleSeedCategories(
         ],
       },
       {
-        value: 'AUTONOMO', label: 'Autônomo', icon: '🔧', order: 2,
+        value: 'AUTONOMO', label: 'Trabalho por conta própria', icon: '🔧', order: 2,
         documents: [
           { key: 'RG ou CNH (frente)', label: 'RG ou CNH (frente)', description: 'Documento de identificação', icon: '🪪' },
           { key: 'RG ou CNH (verso)', label: 'RG ou CNH (verso)', description: 'Documento de identificação', icon: '🪪' },
@@ -261,7 +261,16 @@ export async function handleSeedCategories(
         ],
       },
       {
-        value: 'SEM_COMPROVACAO', label: 'Não Precisa Comprovar Renda', icon: '❌', order: 5,
+        value: 'SERVIDOR_PUBLICO', label: 'Servidor público', icon: '🏛️', order: 5,
+        documents: [
+          { key: 'RG ou CNH (frente)', label: 'RG ou CNH (frente)', description: 'Documento de identificação', icon: '🪪' },
+          { key: 'RG ou CNH (verso)', label: 'RG ou CNH (verso)', description: 'Documento de identificação', icon: '🪪' },
+          { key: 'Selfie (rosto)', label: 'Selfie (rosto nítido)', description: 'Sem filtro, rosto bem visível', icon: '📷' },
+          { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz – últimos 2 meses', icon: '🏠' },
+        ],
+      },
+      {
+        value: 'SEM_COMPROVACAO', label: 'Não Precisa Comprovar Renda', icon: '❌', order: 6,
         documents: [
           { key: 'RG ou CNH (frente)', label: 'RG ou CNH (frente)', description: 'Documento de identificação', icon: '🪪' },
           { key: 'RG ou CNH (verso)', label: 'RG ou CNH (verso)', description: 'Documento de identificação', icon: '🪪' },

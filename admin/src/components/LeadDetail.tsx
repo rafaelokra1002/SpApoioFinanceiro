@@ -64,9 +64,10 @@ const VIDEO_EXT = /\.(mp4|mov|webm|m4v|avi|3gp|mkv)$/i;
 const PERFIL_LABELS: Record<string, string> = {
   CARTEIRA_ASSINADA: 'CLT Registrado',
   CLT_SEM_REGISTRO: 'CLT Informal',
-  AUTONOMO: 'Autônomo',
+  AUTONOMO: 'Trabalho por conta própria',
   BENEFICIARIO: 'Beneficiário',
   ESTAGIARIO: 'Estagiário',
+  SERVIDOR_PUBLICO: 'Servidor público',
   COM_GARANTIA: 'Bem como garantia',
   SEM_COMPROVACAO: 'Renda sem comprovação',
 };

@@ -2,6 +2,11 @@ import { useEffect, useState } from 'react';
 import { useLoan } from '../context/LoanContext';
 import { requestLocation, watchLocationPermission } from '../utils/geo';
 
+// Número (DDI+DDD, só dígitos) e mensagem do botão "Dúvidas? Fale com a gente".
+// TODO: trocar pelo número real de atendimento.
+const WHATSAPP_ATENDIMENTO = '5571983067447';
+const WHATSAPP_MSG = 'Olá! Tenho uma dúvida sobre o empréstimo.';
+
 export function Home() {
   const { state, dispatch } = useLoan();
   // Overlay de localização: só é aberto quando o cliente tenta iniciar sem a
@@ -105,7 +110,7 @@ export function Home() {
             // Halo claro forte: o texto passa por cima do casaco escuro do personagem.
             textShadow: '0 0 6px #fff, 0 0 14px rgba(255,255,255,0.95), 0 0 28px rgba(255,255,255,0.85)',
           }}>
-            Dinheiro<br/><span style={{ color: '#2546f0' }}>rápido.</span>
+            Crédito<br/><span style={{ color: '#2546f0' }}>direto</span><br/>no <span style={{ color: '#2546f0' }}>Pix.</span>
           </h1>
 
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginTop: 22 }}>
@@ -116,7 +121,7 @@ export function Home() {
               fontSize: 15, fontWeight: 600, color: '#0d1836', lineHeight: 1.35,
               textShadow: '0 0 5px #fff, 0 0 12px rgba(255,255,255,0.95), 0 0 22px rgba(255,255,255,0.9)',
             }}>
-              Receba sua análise<br/>em <span style={{ color: '#2546f0' }}>minutos.</span>
+              Faça sua<br/>simulação <span style={{ color: '#2546f0' }}>online.</span>
             </p>
           </div>
 
@@ -169,6 +174,34 @@ export function Home() {
               Como funciona
             </span>
             <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#2546f0" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14M13 6l6 6-6 6"/>
+            </svg>
+          </button>
+
+          <button
+            onClick={() => window.open(
+              `https://wa.me/${WHATSAPP_ATENDIMENTO}?text=${encodeURIComponent(WHATSAPP_MSG)}`,
+              '_blank', 'noopener,noreferrer',
+            )}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 14, width: '100%',
+              padding: '13px 18px', borderRadius: 16, cursor: 'pointer',
+              background: 'rgba(255,255,255,0.94)', border: '1.5px solid #dde4f5',
+              backdropFilter: 'blur(6px)',
+            }}
+          >
+            <span style={{
+              width: 38, height: 38, borderRadius: '50%', background: '#25d366',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            }}>
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="#fff">
+                <path d="M12 2a10 10 0 00-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1012 2zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-2.9.8.8-2.8-.2-.3A8.2 8.2 0 1112 20.2zm4.5-6.1c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.8.9-.1.2-.3.2-.5.1-1.3-.7-2.2-1.2-3.1-2.7-.2-.4.2-.4.6-1.2.1-.1 0-.3 0-.4l-.7-1.7c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.6.3-.2.2-.8.8-.8 1.9s.8 2.2.9 2.4c.1.2 1.6 2.5 4 3.5 1.5.6 2 .7 2.7.6.4-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1 0-.1-.2-.2-.4-.3z"/>
+              </svg>
+            </span>
+            <span style={{ flex: 1, textAlign: 'left', fontSize: 16, fontWeight: 700, color: '#0d1836' }}>
+              Dúvidas? Fale com a gente
+            </span>
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#12804a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 12h14M13 6l6 6-6 6"/>
             </svg>
           </button>

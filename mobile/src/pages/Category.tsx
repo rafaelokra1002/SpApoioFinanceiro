@@ -38,6 +38,14 @@ const categoryIcons: Record<string, React.ReactNode> = {
       <line x1="32" y1="14" x2="32" y2="28" stroke="#0d2b5e" strokeWidth="1.8"/>
     </svg>
   ),
+  SERVIDOR_PUBLICO: (
+    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+      <rect x="5" y="8" width="26" height="20" rx="3" stroke="#0d2b5e" strokeWidth="1.8" fill="#e8effc"/>
+      <circle cx="13" cy="16" r="3" stroke="#0d2b5e" strokeWidth="1.6"/>
+      <path d="M8.5 24c0-2.8 2-4.5 4.5-4.5S17.5 21.2 17.5 24" stroke="#0d2b5e" strokeWidth="1.6" strokeLinecap="round"/>
+      <path d="M21 14h6M21 18h6M21 22h4" stroke="#0d2b5e" strokeWidth="1.6" strokeLinecap="round"/>
+    </svg>
+  ),
   SEM_COMPROVACAO: (
     <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
       <path d="M13 30V17l6-9a3 3 0 014 3l-1.5 5H29a2.5 2.5 0 012.4 3.2l-2.6 9A3 3 0 0126 30z"
@@ -106,8 +114,12 @@ export function Category() {
                   // Recalcula a simulação com a categoria (a taxa muda p/ SEM_COMPROVACAO).
                   const sim = simular(state.valor, state.parcelas, cat.value);
                   if (sim) dispatch({ type: 'SET_SIMULATION', payload: sim });
-                  // Garantia tem uma etapa extra: escolher o tipo de bem antes dos documentos.
-                  dispatch({ type: 'SET_STEP', step: cat.value === 'COM_GARANTIA' ? 6 : 4 });
+                  // Algumas categorias têm uma etapa extra antes dos documentos:
+                  // garantia (tipo de bem) e servidor público (vínculo).
+                  const proximoStep = cat.value === 'COM_GARANTIA' ? 6
+                    : cat.value === 'SERVIDOR_PUBLICO' ? 11
+                    : 4;
+                  dispatch({ type: 'SET_STEP', step: proximoStep });
                 }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 14,

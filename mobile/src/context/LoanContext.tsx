@@ -1,10 +1,13 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
-import { BemGarantiaType, CategoryType, GarantiaImovel, GarantiaVeiculo, GarantiaEletronico, GarantiaOutro, SimulationResult, UploadedFile } from '../types';
+import { BemGarantiaType, CategoryType, GarantiaImovel, GarantiaVeiculo, GarantiaEletronico, GarantiaOutro, SimulationResult, UploadedFile, VinculoServidor } from '../types';
 
 export interface LoanState {
-  // step: 0=home, 1=simulation, 2=category, 3=result, 4=documents, 5=confirmation, 6=bem em garantia
+  // step: 0=home, 1=simulation, 2=category, 3=result, 4=documents, 5=confirmation,
+  //       6=bem em garantia, 7=imóvel, 8=veículo, 9=eletrônico, 10=outro bem, 11=vínculo servidor
   step: number;
   categoria: CategoryType | '';
+  /** Vínculo escolhido quando categoria = SERVIDOR_PUBLICO. */
+  vinculoServidor: VinculoServidor;
   /** Tipo de bem oferecido em garantia — só usado quando categoria = COM_GARANTIA. */
   bemGarantia: BemGarantiaType | '';
   /** Detalhes do imóvel oferecido em garantia (quando bemGarantia = IMOVEL). */
@@ -29,6 +32,8 @@ export interface LoanState {
   email: string;
   nomeEmpresa: string;
   bairroTrabalho: string;
+  /** Matrícula funcional (efetivo) ou cargo ocupado (comissionado) — servidor público. */
+  matriculaCargo: string;
   endereco: string;
   cep: string;
   enderecoTrabalho: string;
@@ -54,7 +59,7 @@ type Action =
   | { type: 'RESET' };
 
 const initial: LoanState = {
-  step: 0, categoria: '', bemGarantia: '',
+  step: 0, categoria: '', vinculoServidor: '', bemGarantia: '',
   garantiaImovel: { tipoImovel: '', descricao: '', endereco: '', valorMercado: '', tipoDocumentacao: '' },
   garantiaVeiculo: {
     tipo: 'CARRO', marca: '', modelo: '', quilometragem: '', placa: '', valorMercado: '',
@@ -68,7 +73,7 @@ const initial: LoanState = {
   valor: 0, parcelas: 2, cidade: '',
   renda: '', instagram: '', indicacao: '', simulation: null,
   nome: '', telefone: '', cpf: '', email: '',
-  nomeEmpresa: '', bairroTrabalho: '',
+  nomeEmpresa: '', bairroTrabalho: '', matriculaCargo: '',
   endereco: '', cep: '', enderecoTrabalho: '', observacao: '',
   latitude: null, longitude: null, geo: 'pending',
   documents: {}, loading: false,

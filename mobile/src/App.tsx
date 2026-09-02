@@ -11,6 +11,7 @@ import { Imovel } from './pages/Imovel';
 import { Veiculo } from './pages/Veiculo';
 import { Eletronico } from './pages/Eletronico';
 import { OutroBem } from './pages/OutroBem';
+import { VinculoServidor } from './pages/VinculoServidor';
 import { DOCUMENT_TYPES, CATEGORIES } from './constants/categories';
 import { requestLocation } from './utils/geo';
 
@@ -350,6 +351,7 @@ function Router() {
     case 8: return <Veiculo />;
     case 9: return <Eletronico />;
     case 10: return <OutroBem />;
+    case 11: return <VinculoServidor />;
     default: return <Home />;
   }
 }
