@@ -89,6 +89,11 @@ export default function LeadCardDetailed({
   const parcelado = vezes > 1;
   const valorParcela = parcelado ? lead.valorTotal / vezes : lead.valorTotal;
   const campos = camposEmprego(lead.perfil);
+  // Servidor público: vínculo e matrícula/cargo em campos próprios.
+  const isServidor = lead.perfil === 'SERVIDOR_PUBLICO';
+  const vinculoServidorLabel = lead.vinculoServidor === 'EFETIVO' ? 'Cargo efetivo'
+    : lead.vinculoServidor === 'COMISSIONADO' ? 'Cargo comissionado' : '—';
+  const matriculaCargoLabel = lead.vinculoServidor === 'COMISSIONADO' ? 'Cargo que ocupa' : 'Matrícula funcional';
 
   return (
     <div className={`flex flex-col overflow-hidden rounded-2xl border bg-surface shadow-sm transition-shadow hover:shadow-md ${CARD_BORDER[lead.status] ?? 'border-line'}`}>
@@ -163,7 +168,15 @@ export default function LeadCardDetailed({
           />
           <FieldRow
             left={<Field icon={<MapPin size={16} className="text-orange" />} iconBg="bg-orange/10" label="Cidade" value={lead.cidade} />}
+            right={isServidor
+              ? <Field icon={<Briefcase size={16} className="text-indigo-500" />} iconBg="bg-indigo-500/10" label="Vínculo" value={vinculoServidorLabel} />
+              : undefined}
           />
+          {isServidor && (
+            <FieldRow
+              left={<Field icon={<IdCard size={16} className="text-sky-500" />} iconBg="bg-sky-500/10" label={matriculaCargoLabel} value={lead.matriculaCargo || '—'} />}
+            />
+          )}
         </div>
 
         {/* Observação do cliente (quando não há um `extra` específico) */}
