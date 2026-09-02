@@ -175,6 +175,11 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
   // As barras do bem só valem para quem ofereceu garantia.
   const temGarantia = lead.perfil === 'COM_GARANTIA' || garantia !== null || bemDocs.length > 0;
   const campos = camposEmprego(lead.perfil);
+  // Servidor público: vínculo e matrícula/cargo em campos próprios.
+  const isServidor = lead.perfil === 'SERVIDOR_PUBLICO';
+  const vinculoServidorLabel = lead.vinculoServidor === 'EFETIVO' ? 'Cargo efetivo'
+    : lead.vinculoServidor === 'COMISSIONADO' ? 'Cargo comissionado' : '—';
+  const matriculaCargoLabel = lead.vinculoServidor === 'COMISSIONADO' ? 'Cargo que ocupa' : 'Matrícula funcional';
 
   const StatusIcon = METRICS[lead.status as MetricKey]?.icon ?? CalendarClock;
 
@@ -290,6 +295,12 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
                 <InfoItem icon={<Building2 size={15} className="text-indigo-500" />} iconBg="bg-indigo-500/10" label={campos.empresa} value={lead.nomeEmpresa || '—'} />
                 <InfoItem icon={<Wallet size={15} className="text-violet-500" />} iconBg="bg-violet-500/10" label="Valor solicitado" value={formatCurrency(lead.valorSolicitado)} />
                 <InfoItem icon={<Briefcase size={15} className="text-sky-500" />} iconBg="bg-sky-500/10" label={campos.local} value={lead.enderecoTrabalho || lead.bairroTrabalho || '—'} />
+                {isServidor && (
+                  <>
+                    <InfoItem icon={<Shield size={15} className="text-indigo-500" />} iconBg="bg-indigo-500/10" label="Vínculo" value={vinculoServidorLabel} />
+                    <InfoItem icon={<ClipboardList size={15} className="text-sky-500" />} iconBg="bg-sky-500/10" label={matriculaCargoLabel} value={lead.matriculaCargo || '—'} />
+                  </>
+                )}
                 <InfoItem icon={<CalendarClock size={15} className="text-rose-500" />} iconBg="bg-rose-500/10" label="Total a pagar com juros"
                   value={<span className="text-danger">{formatCurrency(lead.valorTotal)}</span>} />
                 <InfoItem icon={<AtSign size={15} className="text-pink-500" />} iconBg="bg-pink-500/10" label="Instagram (URL)"

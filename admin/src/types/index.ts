@@ -21,6 +21,10 @@ export interface Lead {
   endereco: string | null;
   cep: string | null;
   enderecoTrabalho: string | null;
+  /** Servidor público: vínculo (EFETIVO/COMISSIONADO). */
+  vinculoServidor: string | null;
+  /** Servidor público: matrícula funcional (efetivo) ou cargo ocupado (comissionado). */
+  matriculaCargo: string | null;
   observacao: string | null;
   latitude: number | null;
   longitude: number | null;

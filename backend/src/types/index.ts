@@ -31,6 +31,10 @@ export interface LeadInput {
   endereco?: string;
   cep?: string;
   enderecoTrabalho?: string;
+  /** Servidor público: vínculo escolhido (EFETIVO/COMISSIONADO). */
+  vinculoServidor?: string;
+  /** Servidor público: matrícula funcional (efetivo) ou cargo ocupado (comissionado). */
+  matriculaCargo?: string;
   observacao?: string;
   latitude?: number;
   longitude?: number;

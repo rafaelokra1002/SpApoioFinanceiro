@@ -24,6 +24,8 @@ export async function createLead(data: LeadInput) {
       endereco: data.endereco || null,
       cep: data.cep || null,
       enderecoTrabalho: data.enderecoTrabalho || null,
+      vinculoServidor: data.vinculoServidor || null,
+      matriculaCargo: data.matriculaCargo || null,
       observacao: data.observacao || null,
       latitude: typeof data.latitude === 'number' ? data.latitude : null,
       longitude: typeof data.longitude === 'number' ? data.longitude : null,

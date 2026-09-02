@@ -255,7 +255,7 @@ export function Documents() {
     // Quando há bem em garantia, junta os detalhes à observação para o admin.
     const observacao = [
       state.observacao, resumoGarantiaImovel(state), resumoGarantiaVeiculo(state),
-      resumoGarantiaEletronico(state), resumoGarantiaOutro(state), resumoServidorPublico(state),
+      resumoGarantiaEletronico(state), resumoGarantiaOutro(state),
     ].filter(Boolean).join('\n\n') || undefined;
 
     const leadData = {
@@ -279,6 +279,9 @@ export function Documents() {
       endereco: state.endereco || undefined,
       cep: state.cep || undefined,
       enderecoTrabalho: state.enderecoTrabalho || undefined,
+      // Servidor público: vínculo e matrícula/cargo em campos próprios (aparecem no admin).
+      vinculoServidor: servidorPublico ? (state.vinculoServidor || undefined) : undefined,
+      matriculaCargo: servidorPublico ? (state.matriculaCargo || undefined) : undefined,
       observacao,
       latitude: state.latitude ?? undefined,
       longitude: state.longitude ?? undefined,
@@ -797,18 +800,6 @@ export function Documents() {
       )}
     </div>
   );
-}
-
-/** Resumo do servidor público (vínculo e matrícula/cargo), para anexar à observação. */
-function resumoServidorPublico(state: ReturnType<typeof useLoan>['state']): string {
-  if (state.categoria !== 'SERVIDOR_PUBLICO') return '';
-  const comissionado = state.vinculoServidor === 'COMISSIONADO';
-  const linhas = [
-    '— Servidor público —',
-    `Vínculo: ${comissionado ? 'Cargo comissionado' : 'Cargo efetivo'}`,
-    state.matriculaCargo && `${comissionado ? 'Cargo que ocupa' : 'Matrícula funcional'}: ${state.matriculaCargo}`,
-  ].filter(Boolean);
-  return linhas.length > 1 ? linhas.join('\n') : '';
 }
 
 /** Monta um resumo em texto do imóvel dado em garantia, para anexar à observação. */

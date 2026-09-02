@@ -42,6 +42,8 @@ function mk(
     endereco: null,
     cep: null,
     enderecoTrabalho: null,
+    vinculoServidor: null,
+    matriculaCargo: null,
     observacao: null,
     latitude: null,
     longitude: null,

@@ -119,6 +119,8 @@ export async function handleCreateLeadWithDocs(
       endereco: body.endereco || undefined,
       cep: body.cep || undefined,
       enderecoTrabalho: body.enderecoTrabalho || undefined,
+      vinculoServidor: body.vinculoServidor || undefined,
+      matriculaCargo: body.matriculaCargo || undefined,
       observacao: body.observacao || undefined,
       latitude: body.latitude ? parseFloat(body.latitude) : undefined,
       longitude: body.longitude ? parseFloat(body.longitude) : undefined,
