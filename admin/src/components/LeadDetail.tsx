@@ -63,7 +63,7 @@ const VIDEO_EXT = /\.(mp4|mov|webm|m4v|avi|3gp|mkv)$/i;
 /** Rótulos amigáveis dos perfis (o app grava o código em `lead.perfil`). */
 const PERFIL_LABELS: Record<string, string> = {
   CARTEIRA_ASSINADA: 'CLT Registrado',
-  CLT_SEM_REGISTRO: 'CLT Informal',
+  CLT_SEM_REGISTRO: 'Trabalho Informal',
   AUTONOMO: 'Trabalho por conta própria',
   BENEFICIARIO: 'Beneficiário',
   ESTAGIARIO: 'Estagiário',

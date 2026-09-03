@@ -95,7 +95,7 @@ export function Category() {
         position: 'relative', minHeight: '60vh', padding: '26px 20px 24px',
       }}>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: '#0d2b5e', letterSpacing: '-0.02em' }}>
-          Escolha a categoria
+          Qual é seu tipo de renda?
         </h1>
         <p style={{ marginTop: 6, marginBottom: 20, fontSize: 14, lineHeight: 1.45, color: '#6b7280' }}>
           Selecione a categoria que melhor se encaixa no seu perfil.

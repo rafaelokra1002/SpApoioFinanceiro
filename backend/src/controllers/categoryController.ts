@@ -221,7 +221,7 @@ export async function handleSeedCategories(
         ],
       },
       {
-        value: 'CLT_SEM_REGISTRO', label: 'CLT sem Registro', icon: '📝', order: 1,
+        value: 'CLT_SEM_REGISTRO', label: 'Trabalho Informal', icon: '📝', order: 1,
         documents: [
           { key: 'RG ou CNH (frente)', label: 'RG ou CNH (frente)', description: 'Documento de identificação', icon: '🪪' },
           { key: 'RG ou CNH (verso)', label: 'RG ou CNH (verso)', description: 'Documento de identificação', icon: '🪪' },

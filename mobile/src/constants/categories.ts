@@ -2,9 +2,9 @@ import { CategoryOption, DocumentType, ParcelaOption, RendaOption } from '../typ
 
 export const CATEGORIES: CategoryOption[] = [
   { value: 'CARTEIRA_ASSINADA', label: 'CLT Registrado', icon: '👔',
-    description: 'Para quem possui carteira assinada.' },
-  { value: 'CLT_SEM_REGISTRO', label: 'CLT Informal', icon: '📝',
-    description: 'Para quem trabalha com carteira assinada sem registro.' },
+    description: 'Para quem trabalha com carteira assinada.' },
+  { value: 'CLT_SEM_REGISTRO', label: 'Trabalho Informal', icon: '📝',
+    description: 'Para quem trabalha em empresa sem carteira assinada.' },
   { value: 'AUTONOMO', label: 'Trabalho por conta própria', icon: '🔧',
     description: 'Para autônomos e prestadores de serviços.' },
   { value: 'BENEFICIARIO', label: 'Beneficiário', icon: '📋',
