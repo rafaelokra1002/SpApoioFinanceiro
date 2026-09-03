@@ -104,9 +104,8 @@ export function Category() {
         {/* Category List */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {CATEGORIES.map(cat => {
-            const selected = state.categoria === cat.value;
             const hl = cat.highlight ? highlightStyles[cat.highlight] : null;
-            const baseBorder = selected ? '#c0392b' : (hl ? hl.border : '#eef0f4');
+            const baseBorder = hl ? hl.border : '#eef0f4';
             return (
               <button key={cat.value}
                 onClick={() => {
@@ -125,12 +124,12 @@ export function Category() {
                   display: 'flex', alignItems: 'center', gap: 14,
                   padding: '14px 16px', borderRadius: 16, cursor: 'pointer',
                   background: hl ? hl.card : '#fff',
-                  border: `${selected ? '2.5px' : '1.5px'} solid ${baseBorder}`,
+                  border: `1.5px solid ${baseBorder}`,
                   boxShadow: '0 1px 3px rgba(13,43,94,0.06)',
                   transition: 'all 0.15s',
                 }}
-                onMouseEnter={e => { if (!selected) e.currentTarget.style.borderColor = '#0d2b5e'; }}
-                onMouseLeave={e => { if (!selected) e.currentTarget.style.borderColor = baseBorder; }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = '#0d2b5e'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = baseBorder; }}
               >
                 <div style={{
                   minWidth: 46, width: 46, height: 46, borderRadius: '50%',
