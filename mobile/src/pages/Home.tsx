@@ -219,7 +219,7 @@ export function Home() {
       {gateOpen && (
         <LocationGate
           status={state.geo}
-          onRetry={() => requestLocation(dispatch)}
+          onRetry={() => window.location.reload()}
           onClose={() => setGateOpen(false)}
         />
       )}

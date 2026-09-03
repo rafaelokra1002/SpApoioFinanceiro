@@ -21,7 +21,8 @@ const ORIGENS: {
   pedeNome: boolean; iconBg: string; icon: React.ReactNode;
   toIndicacao: (nome: string) => string;
 }[] = [
-  {
+  // Oculta a pedido do cliente. Reative descomentando.
+  /* {
     key: 'PANFLETO', label: 'Panfleto',
     description: 'Você conheceu a SP por meio de panfleto.',
     pedeNome: false, iconBg: '#eef3fd',
@@ -32,7 +33,7 @@ const ORIGENS: {
       </svg>
     ),
     toIndicacao: () => 'Panfleto',
-  },
+  }, */
   {
     key: 'INSTAGRAM', label: 'Instagram, página ou blogueira',
     description: 'Digite o nome do perfil, página ou blogueira.',

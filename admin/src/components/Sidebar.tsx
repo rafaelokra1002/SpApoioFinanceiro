@@ -56,7 +56,8 @@ const NAV: NavItem[] = [
   { key: 'pendentes', label: 'Pendentes', icon: Clock },
   { key: 'aprovados', label: 'Aprovados', icon: CheckCircle2 },
   { key: 'recusados', label: 'Recusados', icon: XCircle },
-  { key: 'garantias', label: 'Garantias', icon: ShieldCheck },
+  // Oculta a pedido do cliente (categoria de garantia desativada). Reative descomentando.
+  // { key: 'garantias', label: 'Garantias', icon: ShieldCheck },
   { key: 'nao-contrataram', label: 'Não Contratou', icon: UserX },
   { key: 'colaborador', label: 'Passei para Colaborador', icon: UserRoundCheck },
   { key: 'mensagens', label: 'Templates', icon: MessageSquare },
