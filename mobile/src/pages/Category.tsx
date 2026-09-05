@@ -70,7 +70,7 @@ export function Category() {
   const { state, dispatch } = useLoan();
 
   return (
-    <div style={{ minHeight: '100vh', background: '#fff' }}>
+    <div style={{ minHeight: '100vh', background: '#fff', display: 'flex', flexDirection: 'column' }}>
       {/* Faixa azul com o Voltar */}
       <div style={{
         background: 'linear-gradient(120deg, #123bd6 0%, #1a45e0 45%, #2551f0 100%)',
@@ -92,7 +92,8 @@ export function Category() {
       {/* Cartão branco subindo sobre a faixa azul */}
       <div style={{
         background: '#fff', borderRadius: '24px 24px 0 0', marginTop: -28,
-        position: 'relative', minHeight: '60vh', padding: '26px 20px 24px',
+        position: 'relative', flex: 1, display: 'flex', flexDirection: 'column',
+        padding: '26px 20px 24px',
       }}>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: '#0d2b5e', letterSpacing: '-0.02em' }}>
           Qual é seu tipo de renda?
@@ -102,7 +103,7 @@ export function Category() {
         </p>
 
         {/* Category List */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {CATEGORIES.map(cat => {
             const hl = cat.highlight ? highlightStyles[cat.highlight] : null;
             const baseBorder = hl ? hl.border : '#eef0f4';
@@ -121,8 +122,8 @@ export function Category() {
                   dispatch({ type: 'SET_STEP', step: proximoStep });
                 }}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 14,
-                  padding: '14px 16px', borderRadius: 16, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '11px 14px', borderRadius: 14, cursor: 'pointer',
                   background: hl ? hl.card : '#fff',
                   border: `1.5px solid ${baseBorder}`,
                   boxShadow: '0 1px 3px rgba(13,43,94,0.06)',
@@ -132,7 +133,7 @@ export function Category() {
                 onMouseLeave={e => { e.currentTarget.style.borderColor = baseBorder; }}
               >
                 <div style={{
-                  minWidth: 46, width: 46, height: 46, borderRadius: '50%',
+                  minWidth: 40, width: 40, height: 40, borderRadius: '50%',
                   background: hl ? hl.icon : '#eef3fd',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
@@ -141,7 +142,7 @@ export function Category() {
 
                 <div style={{ flex: 1, textAlign: 'left', minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                    <span style={{ fontWeight: 700, fontSize: 15.5, color: '#0d2b5e' }}>{cat.label}</span>
+                    <span style={{ fontWeight: 700, fontSize: 14.5, color: '#0d2b5e' }}>{cat.label}</span>
                     {cat.badge && hl && (
                       <span style={{
                         fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999,
@@ -150,7 +151,7 @@ export function Category() {
                     )}
                   </div>
                   {cat.description && (
-                    <p style={{ marginTop: 3, fontSize: 12.5, lineHeight: 1.4, color: '#6b7280' }}>
+                    <p style={{ marginTop: 2, fontSize: 12, lineHeight: 1.35, color: '#6b7280' }}>
                       {cat.description}
                     </p>
                   )}

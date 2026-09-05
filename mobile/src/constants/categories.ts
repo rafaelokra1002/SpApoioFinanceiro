@@ -17,9 +17,10 @@ export const CATEGORIES: CategoryOption[] = [
   // { value: 'COM_GARANTIA', label: 'Tenho um bem como garantia', icon: '🔒',
   //   description: 'Você oferece um bem como garantia para o empréstimo.',
   //   badge: 'Novo', highlight: 'verde' },
-  { value: 'SEM_COMPROVACAO', label: 'Tenho renda, mas não consigo comprovar', icon: '❌',
-    description: 'Para quem recebe renda, mas não tem ou não quer apresentar comprovante.',
-    badge: 'Simples', highlight: 'azul' },
+  // Oculta a pedido do cliente (não vai usar por enquanto). Reative descomentando.
+  // { value: 'SEM_COMPROVACAO', label: 'Tenho renda, mas não consigo comprovar', icon: '❌',
+  //   description: 'Para quem recebe renda, mas não tem ou não quer apresentar comprovante.',
+  //   badge: 'Simples', highlight: 'azul' },
 ];
 
 export const PARCELAS: ParcelaOption[] = [
