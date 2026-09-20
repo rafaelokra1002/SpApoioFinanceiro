@@ -60,5 +60,8 @@ input:focus, select:focus { outline: none; }
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
 
+/* Placeholder dos campos do tema escuro. */
+.dk-input::placeholder { color: #7d8aa0; opacity: 1; }
+
 /* Título do banner: fonte pesada de display. */
 .hero-title { font-family: 'Archivo Black', 'Inter', sans-serif; }

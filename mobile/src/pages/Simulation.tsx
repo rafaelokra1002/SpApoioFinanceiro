@@ -7,12 +7,20 @@ import { formatCurrency } from '../utils/formatCurrency';
 
 const MAX_PARCELAS = PARCELAS[PARCELAS.length - 1].value;
 
+// Tema escuro com dourado (mesma paleta da Home).
+const BG = '#060c15';
+const CARD = '#0b1422';
+const LINE = '#2a3850';
+const GOLD = '#e0b96f';
+const GOLD_DEEP = '#c9a05a';
+const MUTED = '#9aa8bf';
+
 export function Simulation() {
   const { state, dispatch } = useLoan();
   const cities = useCities();
   const [inputValue, setInputValue] = useState('');
   const [rendaInput, setRendaInput] = useState('');
-  // `parcelas` no contexto começa em 12; à vista é sempre 1 parcela.
+  // `parcelas` no contexto começa com um valor padrão; à vista é sempre 1 parcela.
   const [modalidade, setModalidade] = useState<'VISTA' | 'PARCELADO'>('VISTA');
   const valorRef = useRef<HTMLInputElement>(null);
 
@@ -48,28 +56,41 @@ export function Simulation() {
   const canCalc = state.valor > 0 && !!state.cidade && !!state.renda;
 
   return (
-    <div style={{ padding: '18px 16px 24px', minHeight: '100vh', background: '#f4f6fb' }}>
-      <button onClick={() => dispatch({ type: 'SET_STEP', step: 0 })} style={{
-        display: 'inline-flex', alignItems: 'center', gap: 8,
-        padding: '9px 16px', borderRadius: 10, cursor: 'pointer',
-        background: '#fff', border: '1.5px solid #2546f0',
-        color: '#2546f0', fontWeight: 700, fontSize: 14, marginBottom: 18,
-      }}>
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M19 12H5M12 19l-7-7 7-7"/>
-        </svg>
-        Voltar
-      </button>
+    <div style={{ padding: '18px 16px 26px', minHeight: '100vh', background: BG, colorScheme: 'dark' }}>
+      {/* Topo: voltar + progresso */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <button onClick={() => dispatch({ type: 'SET_STEP', step: 0 })} style={{
+          display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 4px',
+          background: 'none', border: 'none', cursor: 'pointer',
+          color: '#fff', fontWeight: 500, fontSize: 17,
+        }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          Voltar
+        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 14, color: MUTED }}>1 de 3</span>
+          <span style={{ display: 'flex', gap: 5 }}>
+            <span style={{ width: 28, height: 5, borderRadius: 3, background: GOLD }} />
+            <span style={{ width: 28, height: 5, borderRadius: 3, background: LINE }} />
+            <span style={{ width: 28, height: 5, borderRadius: 3, background: LINE }} />
+          </span>
+        </div>
+      </div>
 
-      <h1 style={{ fontSize: 28, fontWeight: 800, color: '#0d1836', letterSpacing: '-0.02em', marginBottom: 16 }}>
-        Você precisa de <span style={{ color: '#2546f0' }}>quanto?</span>
+      <h1 style={{
+        margin: '22px 0 20px', fontSize: 'clamp(26px, 7.6vw, 38px)', fontWeight: 800,
+        lineHeight: 1.1, letterSpacing: '-0.02em', color: '#fff',
+      }}>
+        Quanto você precisa?
       </h1>
 
       {/* Valor desejado */}
-      <div style={{ ...cardStyle, marginBottom: 18 }}>
-        <label style={{ fontSize: 13, color: '#6b7280', display: 'block', marginBottom: 4 }}>Valor desejado</label>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 20, fontWeight: 800, color: '#2546f0' }}>R$</span>
+      <div style={{ ...cardStyle, padding: '14px 18px 16px', marginBottom: 22 }}>
+        <label style={{ fontSize: 14, color: MUTED, display: 'block', marginBottom: 2 }}>Valor desejado</label>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 30, fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>R$</span>
           <input
             ref={valorRef}
             type="text" inputMode="numeric" placeholder="0,00"
@@ -77,15 +98,13 @@ export function Simulation() {
             onChange={handleValueChange}
             style={{
               flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent',
-              fontSize: 30, fontWeight: 800, color: '#0d1836', letterSpacing: '-0.02em', padding: 0,
+              fontSize: 30, fontWeight: 800, color: '#fff', letterSpacing: '-0.02em', padding: 0,
             }}
           />
           <button onClick={() => valorRef.current?.focus()} title="Editar valor" style={{
-            minWidth: 42, width: 42, height: 42, borderRadius: 11, cursor: 'pointer',
-            background: '#fff', border: '1.5px solid #c9d4f5',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex',
           }}>
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#2546f0" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 20l4.5-1 10-10a2.1 2.1 0 00-3-3l-10 10z"/><path d="M14.5 6.5l3 3"/>
             </svg>
           </button>
@@ -93,11 +112,11 @@ export function Simulation() {
       </div>
 
       {/* Modalidade */}
-      <h2 style={{ fontSize: 17, fontWeight: 800, color: '#0d1836', marginBottom: 10 }}>Como deseja pagar?</h2>
-      <div style={{ display: 'flex', gap: 12, marginBottom: 14 }}>
+      <h2 style={{ fontSize: 20, fontWeight: 700, color: '#fff', margin: '0 0 12px' }}>Como deseja pagar?</h2>
+      <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
         <ModalidadeCard
           ativo={modalidade === 'VISTA'} onClick={() => setModalidade('VISTA')}
-          titulo="À vista" selo="Maior chance de aprovação"
+          titulo="À vista" selo="Mais chance de aprovação"
         />
         <ModalidadeCard
           ativo={modalidade === 'PARCELADO'} onClick={() => setModalidade('PARCELADO')}
@@ -105,46 +124,28 @@ export function Simulation() {
         />
       </div>
 
-      {modalidade === 'PARCELADO' && (
-        <div style={{
-          display: 'flex', gap: 11, padding: '13px 15px', marginBottom: 18,
-          background: '#f1f5fd', border: '1px solid #dde5f8', borderRadius: 14,
-        }}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2546f0" strokeWidth="1.9" strokeLinecap="round" style={{ flexShrink: 0, marginTop: 1 }}>
-            <circle cx="12" cy="12" r="9.5"/><path d="M12 11v5.5M12 7.5v.5"/>
-          </svg>
-          <p style={{ fontSize: 13, color: '#41506e', lineHeight: 1.5, margin: 0 }}>
-            Se o parcelado não for aprovado, você ainda pode ser aprovado no{' '}
-            <strong style={{ color: '#2546f0' }}>crédito à vista</strong>, com uma análise mais flexível.
-          </p>
-        </div>
-      )}
-
       {/* Cidade + renda */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
         <div style={{ ...cardStyle, flex: 1, minWidth: 0 }}>
-          <label style={{ fontSize: 12.5, color: '#6b7280', display: 'block', marginBottom: 4 }}>Cidade</label>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7, position: 'relative' }}>
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#2546f0" strokeWidth="1.8" style={{ flexShrink: 0 }}>
-              <path d="M12 21c4-4.5 6-7.7 6-10.5a6 6 0 10-12 0C6 13.3 8 16.5 12 21z"/><circle cx="12" cy="10.5" r="2.2"/>
-            </svg>
+          <label style={fieldLabel}>Cidade</label>
+          <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
             <select value={state.cidade} onChange={e => dispatch({ type: 'SET_FIELD', field: 'cidade', value: e.target.value })}
               style={{
-                flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent',
-                fontSize: 14.5, fontWeight: 600, appearance: 'none', cursor: 'pointer',
-                paddingRight: 18, color: state.cidade ? '#0d1836' : '#9ca3af',
+                flex: 1, minWidth: 0, border: 'none', outline: 'none', background: CARD,
+                fontSize: 18, fontWeight: 500, appearance: 'none', cursor: 'pointer',
+                padding: '0 24px 0 0', color: state.cidade ? '#fff' : '#c4cee0',
               }}>
-              <option value="">Selecione</option>
-              {cities.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+              <option value="" style={optionStyle}>Selecione</option>
+              {cities.map(c => <option key={c.value} value={c.value} style={optionStyle}>{c.label}</option>)}
             </select>
             <ChevronDown />
           </div>
         </div>
 
         <div style={{ ...cardStyle, flex: 1, minWidth: 0 }}>
-          <label style={{ fontSize: 12.5, color: '#6b7280', display: 'block', marginBottom: 4 }}>Renda mensal</label>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-            <span style={{ fontSize: 15, fontWeight: 800, color: '#2546f0' }}>R$</span>
+          <label style={fieldLabel}>Renda mensal</label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 18, fontWeight: 500, color: '#fff' }}>R$</span>
             <input
               type="text" inputMode="numeric" placeholder="0,00"
               value={rendaInput
@@ -159,7 +160,7 @@ export function Simulation() {
               }}
               style={{
                 flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent',
-                fontSize: 15.5, fontWeight: 700, color: '#0d1836', padding: 0,
+                fontSize: 18, fontWeight: 500, color: '#fff', padding: 0,
               }}
             />
           </div>
@@ -169,19 +170,17 @@ export function Simulation() {
       {/* Quantidade de parcelas */}
       {modalidade === 'PARCELADO' && (
         <div style={{ ...cardStyle, marginBottom: 14 }}>
-          <label style={{ fontSize: 12.5, color: '#6b7280', display: 'block', marginBottom: 4 }}>Em quantas parcelas?</label>
+          <label style={fieldLabel}>Parcelas</label>
           <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
             <select value={state.parcelas}
               onChange={e => dispatch({ type: 'SET_FIELD', field: 'parcelas', value: Number(e.target.value) })}
               style={{
-                flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent',
-                fontSize: 16, fontWeight: 700, color: '#0d1836', appearance: 'none',
-                cursor: 'pointer', paddingRight: 22,
+                flex: 1, minWidth: 0, border: 'none', outline: 'none', background: CARD,
+                fontSize: 18, fontWeight: 500, color: '#fff', appearance: 'none',
+                cursor: 'pointer', padding: '0 26px 0 0',
               }}>
               {PARCELAS.map(p => (
-                <option key={p.value} value={p.value}>
-                  {p.value === 1 ? '1 parcela' : `${p.value} parcelas`}
-                </option>
+                <option key={p.value} value={p.value} style={optionStyle}>{p.value}x</option>
               ))}
             </select>
             <ChevronDown />
@@ -189,58 +188,59 @@ export function Simulation() {
         </div>
       )}
 
-      {/* Prévia */}
+      {/* Resumo do empréstimo */}
       {preview && (
         <div style={{
-          background: '#fff', border: '1.5px solid #2546f0', borderRadius: 16,
-          padding: '14px 16px 16px', marginBottom: 16,
+          background: CARD, border: `1.5px solid ${LINE}`, borderRadius: 16,
+          padding: '18px 18px 16px', marginBottom: 14,
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 12 }}>
-            <div style={{
-              width: 28, height: 28, borderRadius: 8, background: '#eef3fd',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2546f0" strokeWidth="1.8" strokeLinecap="round">
-                <rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19"/>
-              </svg>
-            </div>
-            <span style={{ fontSize: 12.5, fontWeight: 800, color: '#2546f0', letterSpacing: 0.4 }}>
-              {modalidade === 'VISTA' ? 'EMPRÉSTIMO À VISTA' : 'EMPRÉSTIMO PARCELADO'}
+          <h3 style={{ margin: '0 0 14px', fontSize: 20, fontWeight: 700, color: '#fff' }}>Resumo do empréstimo</h3>
+
+          <Linha label="Valor solicitado" valor={formatCurrency(preview.valorSolicitado)} />
+          <Linha label="Taxa ao mês" valor={`${preview.taxaJuros}%`} />
+          <Linha
+            label={preview.parcelas === 1 ? 'Prazo' : 'Parcelas'}
+            valor={preview.parcelas === 1 ? 'até 30 dias' : `${preview.parcelas}x`}
+          />
+          {/* À vista, parcela e total são o mesmo valor — só mostra a parcela no parcelado. */}
+          {preview.parcelas > 1 && (
+            <Linha label="Valor da parcela" valor={formatCurrency(preview.valorParcela)} />
+          )}
+
+          <div style={{ height: 1, background: LINE, margin: '12px 0 14px' }} />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+            <span style={{ fontSize: 19, fontWeight: 700, color: GOLD }}>Total a pagar</span>
+            <span style={{ fontSize: 23, fontWeight: 800, color: GOLD, letterSpacing: '-0.01em' }}>
+              {formatCurrency(preview.valorTotal)}
             </span>
           </div>
-
-          <div style={{ display: 'flex', borderBottom: '1px solid #eaedf4', paddingBottom: 12, marginBottom: 12 }}>
-            <Resumo label="Valor solicitado" valor={formatCurrency(preview.valorSolicitado)} />
-            <Resumo label="Taxa ao mês" valor={`${preview.taxaJuros}%`} divisor />
-            <Resumo
-              label={preview.parcelas === 1 ? 'Prazo' : 'Parcelas'}
-              valor={preview.parcelas === 1 ? 'até 30 dias' : `${preview.parcelas} meses`}
-              divisor
-            />
-          </div>
-
-          <div style={{ display: 'flex' }}>
-            {/* À vista, parcela e total são o mesmo valor — mostra só o total. */}
-            {preview.parcelas > 1 && (
-              <Destaque label="Valor da parcela" valor={formatCurrency(preview.valorParcela)} />
-            )}
-            <Destaque label="Valor total a pagar" valor={formatCurrency(preview.valorTotal)} />
-          </div>
         </div>
+      )}
+
+      {/* Avisos por modalidade */}
+      {modalidade === 'PARCELADO' && (
+        <Aviso titulo="Não aprovou no parcelado?" texto="Você ainda pode ser aprovado no à vista." />
+      )}
+      {modalidade === 'VISTA' && (
+        <Aviso
+          titulo="Tá sem o valor total?"
+          texto={preview
+            ? `Pague ${formatCurrency(preview.valorTotal - preview.valorSolicitado)} de juros e o total fica para o próximo vencimento.`
+            : 'Pague só os juros e o total fica para o próximo vencimento.'}
+        />
       )}
 
       {/* CTA */}
       <button onClick={handleCalc} disabled={!canCalc} style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-        width: '100%', padding: '17px', borderRadius: 14, border: 'none',
-        background: canCalc ? 'linear-gradient(135deg, #2546f0, #1a32c4)' : '#c3cbdd',
-        color: '#fff', fontWeight: 800, fontSize: 17,
-        cursor: canCalc ? 'pointer' : 'not-allowed',
-        boxShadow: canCalc ? '0 6px 18px rgba(37,70,240,0.3)' : 'none',
+        width: '100%', padding: '19px', borderRadius: 14, border: 'none',
+        background: `linear-gradient(180deg, #e8c885 0%, ${GOLD_DEEP} 100%)`,
+        color: '#111827', fontWeight: 800, fontSize: 19,
+        cursor: canCalc ? 'pointer' : 'not-allowed', opacity: canCalc ? 1 : 0.45,
       }}>
-        <span style={{ flex: 1, textAlign: 'center', paddingLeft: 22 }}>Solicitar agora</span>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M9 6l6 6-6 6"/>
+        Solicitar empréstimo
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M5 12h14M13 6l6 6-6 6"/>
         </svg>
       </button>
     </div>
@@ -248,7 +248,14 @@ export function Simulation() {
 }
 
 const cardStyle: React.CSSProperties = {
-  background: '#fff', border: '1px solid #e6e9f1', borderRadius: 14, padding: '12px 14px',
+  background: CARD, border: `1.5px solid ${LINE}`, borderRadius: 14, padding: '12px 16px 14px',
+};
+
+/** Opções das listas: fundo escuro e texto branco (a lista nativa abria branca, com texto claro). */
+const optionStyle: React.CSSProperties = { background: CARD, color: '#fff' };
+
+const fieldLabel: React.CSSProperties = {
+  fontSize: 14, color: MUTED, display: 'block', marginBottom: 4,
 };
 
 function ModalidadeCard({ ativo, onClick, titulo, selo }: {
@@ -257,57 +264,62 @@ function ModalidadeCard({ ativo, onClick, titulo, selo }: {
   return (
     <button onClick={onClick} style={{
       flex: 1, minWidth: 0, textAlign: 'left', cursor: 'pointer',
-      background: ativo ? '#f5f8ff' : '#fff',
-      border: `1.5px solid ${ativo ? '#2546f0' : '#e6e9f1'}`,
-      borderRadius: 16, padding: '13px 13px 14px',
+      display: 'flex', alignItems: 'center', gap: 12,
+      background: ativo ? 'rgba(224,185,111,0.07)' : CARD,
+      border: `1.5px solid ${ativo ? GOLD : LINE}`,
+      borderRadius: 14, padding: '18px 12px',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
-        <div style={{
-          width: 42, height: 42, borderRadius: '50%',
-          background: ativo ? '#2546f0' : '#f0f2f7',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke={ativo ? '#fff' : '#9aa3b2'} strokeWidth="1.8" strokeLinecap="round">
-            <rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 10h19"/>
-          </svg>
-        </div>
-        {ativo ? (
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="#2546f0">
-            <circle cx="12" cy="12" r="10"/>
-            <path d="M8 12.3l2.6 2.6 5.4-5.6" stroke="#fff" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        ) : (
-          <span style={{ width: 18, height: 18, borderRadius: '50%', border: '2px solid #d3d9e5' }} />
-        )}
-      </div>
-      <div style={{ fontSize: 15.5, fontWeight: 700, color: '#0d1836', marginBottom: 6 }}>{titulo}</div>
       <span style={{
-        display: 'inline-block', padding: '4px 9px', borderRadius: 7,
-        background: ativo ? '#e2eaff' : '#f0f2f7',
-        color: ativo ? '#2546f0' : '#6b7280',
-        fontSize: 10.5, fontWeight: 600, lineHeight: 1.35,
-      }}>{selo}</span>
+        width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
+        border: `2.5px solid ${ativo ? GOLD : '#3a4863'}`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        {ativo && <span style={{ width: 14, height: 14, borderRadius: '50%', background: GOLD }} />}
+      </span>
+      <span style={{ minWidth: 0 }}>
+        <span style={{ display: 'block', fontSize: 18, fontWeight: 700, color: '#fff' }}>{titulo}</span>
+        <span style={{ display: 'block', marginTop: 3, fontSize: 12.5, lineHeight: 1.3, color: MUTED }}>{selo}</span>
+      </span>
     </button>
   );
 }
 
-function Resumo({ label, valor, divisor }: { label: string; valor: string; divisor?: boolean }) {
+/**
+ * Caixa de aviso dourada: "!" + título na primeira linha e o texto embaixo, na largura
+ * toda, sempre em UMA linha. A fonte do texto acompanha a largura do aviso (cqw) para
+ * não quebrar nem estourar — o divisor 34 é a largura do texto em "em" (~32,5 com folga).
+ */
+function Aviso({ titulo, texto }: { titulo: string; texto: string }) {
   return (
-    <div style={{
-      flex: 1, minWidth: 0, textAlign: 'center',
-      borderLeft: divisor ? '1px solid #eaedf4' : undefined,
-    }}>
-      <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 3 }}>{label}</div>
-      <div style={{ fontSize: 14.5, fontWeight: 800, color: '#0d1836' }}>{valor}</div>
+    <div style={{ containerType: 'inline-size', marginBottom: 18 }}>
+      <div style={{
+        padding: '12px 14px 13px',
+        background: 'rgba(224,185,111,0.06)', border: '1.5px solid rgba(224,185,111,0.45)', borderRadius: 14,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{
+            width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
+            border: `2px solid ${GOLD}`, color: GOLD, fontWeight: 800, fontSize: 15,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>!</span>
+          <span style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>{titulo}</span>
+        </div>
+        <div style={{
+          marginTop: 7, whiteSpace: 'nowrap', color: '#d4dcea', lineHeight: 1.3,
+          fontSize: 'clamp(8px, calc((100cqw - 36px) / 34), 13px)',
+        }}>
+          {texto}
+        </div>
+      </div>
     </div>
   );
 }
 
-function Destaque({ label, valor }: { label: string; valor: string }) {
+function Linha({ label, valor }: { label: string; valor: string }) {
   return (
-    <div style={{ flex: 1, minWidth: 0, textAlign: 'center' }}>
-      <div style={{ fontSize: 11.5, color: '#6b7280', marginBottom: 3 }}>{label}</div>
-      <div style={{ fontSize: 20, fontWeight: 800, color: '#2546f0', letterSpacing: '-0.01em' }}>{valor}</div>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '5px 0' }}>
+      <span style={{ fontSize: 16, color: '#c4cee0' }}>{label}</span>
+      <span style={{ fontSize: 16, fontWeight: 500, color: '#fff' }}>{valor}</span>
     </div>
   );
 }
@@ -315,7 +327,7 @@ function Destaque({ label, valor }: { label: string; valor: string }) {
 function ChevronDown() {
   return (
     <svg style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
-      width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" strokeLinecap="round">
+      width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={MUTED} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
       <path d="M6 9l6 6 6-6"/>
     </svg>
   );

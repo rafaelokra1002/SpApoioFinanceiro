@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import {
-  ArrowLeft, BadgeCheck, Briefcase, Building2, Camera, CircleCheck, CircleHelp, Clock, FileText, House,
-  IdCard, Image as ImageIcon, Info, Landmark, MapPin, Pencil, Send, UserRound,
+  ArrowLeft, ArrowRight, BadgeCheck, Briefcase, Building2, Camera, Check, CircleCheck, Clock, FileText, House,
+  IdCard, Image as ImageIcon, Info, Instagram, Landmark, MapPin, MessageSquare, Phone, UserRound, Users,
 } from 'lucide-react';
 import { useLoan } from '../context/LoanContext';
 import { CATEGORIES, DOCUMENT_TYPES } from '../constants/categories';
@@ -11,153 +11,158 @@ import { UploadedFile } from '../types';
 
 type OrigemKey = 'PANFLETO' | 'INSTAGRAM' | 'INDICACAO';
 
+// Tema escuro com dourado (mesma paleta da Home, Simulação e Categorias) — etapa "Seus dados".
+const BG = '#060c15';
+const CARD = '#0b1422';
+const LINE = '#2a3850';
+const GOLD = '#e0b96f';
+const MUTED = '#9aa8bf';
+
 /**
- * Opções de "Como você conheceu a SP?".
+ * Opções de "Como conheceu a SP?".
  * `toIndicacao` monta o texto salvo no campo livre `indicacao` — o admin classifica
  * a origem por palavra-chave, então "Instagram"/"Panfleto" precisam aparecer no texto.
  */
 const ORIGENS: {
-  key: OrigemKey; label: string; description: string;
-  pedeNome: boolean; iconBg: string; icon: React.ReactNode;
+  key: OrigemKey; label: string; placeholder: string;
+  pedeNome: boolean; icon: React.ReactNode;
   toIndicacao: (nome: string) => string;
 }[] = [
   // Oculta a pedido do cliente. Reative descomentando.
-  /* {
-    key: 'PANFLETO', label: 'Panfleto',
-    description: 'Você conheceu a SP por meio de panfleto.',
-    pedeNome: false, iconBg: '#eef3fd',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2546f0" strokeWidth="1.8" strokeLinecap="round">
-        <rect x="5" y="3" width="14" height="18" rx="2" fill="#e8effc"/>
-        <path d="M9 8h6M9 12h6M9 16h3"/>
-      </svg>
-    ),
-    toIndicacao: () => 'Panfleto',
-  }, */
+  // {
+  //   key: 'PANFLETO', label: 'Panfleto', placeholder: '',
+  //   pedeNome: false, icon: <FileText size={28} color={GOLD} strokeWidth={1.7} />,
+  //   toIndicacao: () => 'Panfleto',
+  // },
   {
-    key: 'INSTAGRAM', label: 'Instagram, página ou blogueira',
-    description: 'Digite o nome do perfil, página ou blogueira.',
-    pedeNome: true, iconBg: '#fdeef5',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-        <defs>
-          <linearGradient id="igGradOrigem" x1="0%" y1="100%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#feda75"/><stop offset="25%" stopColor="#fa7e1e"/>
-            <stop offset="50%" stopColor="#d62976"/><stop offset="75%" stopColor="#962fbf"/>
-            <stop offset="100%" stopColor="#4f5bd5"/>
-          </linearGradient>
-        </defs>
-        <rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="url(#igGradOrigem)" strokeWidth="2" fill="none"/>
-        <circle cx="12" cy="12" r="4.5" stroke="url(#igGradOrigem)" strokeWidth="2" fill="none"/>
-        <circle cx="17.5" cy="6.5" r="1.4" fill="url(#igGradOrigem)"/>
-      </svg>
-    ),
+    key: 'INSTAGRAM', label: 'Instagram, página ou blogueira', placeholder: 'Digite o nome do perfil',
+    pedeNome: true, icon: <Instagram size={28} color={GOLD} strokeWidth={1.7} />,
     toIndicacao: nome => `Instagram: ${nome}`,
   },
   {
-    key: 'INDICACAO', label: 'Indicação de amigo',
-    description: 'Digite o nome da pessoa que indicou.',
-    pedeNome: true, iconBg: '#e6f6ec',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#128a4d" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="9" cy="8" r="3.2"/>
-        <path d="M2.5 20c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5"/>
-        <path d="M16 5.5a3.2 3.2 0 010 5.4M17.5 14c2.4.7 4 2.9 4 5.5"/>
-      </svg>
-    ),
+    key: 'INDICACAO', label: 'Indicação de amigo', placeholder: 'Digite o nome de quem indicou',
+    pedeNome: true, icon: <Users size={28} color={GOLD} strokeWidth={1.7} />,
     toIndicacao: nome => nome,
   },
 ];
 
-const backButtonStyle: React.CSSProperties = {
-  display: 'inline-flex', alignItems: 'center', gap: 8,
-  padding: '9px 16px', borderRadius: 10, cursor: 'pointer',
-  background: '#fff', border: '1.5px solid #2546f0',
-  color: '#2546f0', fontWeight: 700, fontSize: 14, marginBottom: 18,
-};
-
 const docCardStyle: React.CSSProperties = {
-  background: '#fff', borderRadius: 16, padding: '16px 16px 15px',
-  boxShadow: '0 2px 10px rgba(13,43,94,0.07)',
+  background: CARD, border: `1.5px solid ${LINE}`, borderRadius: 16, padding: '14px 14px 14px',
 };
 
+/** Botão de envio (Foto / Galeria / PDF): contorno escuro, ícone e texto brancos. */
 const docActionStyle: React.CSSProperties = {
-  display: 'inline-flex', alignItems: 'center', gap: 7,
-  padding: '8px 14px', borderRadius: 10, cursor: 'pointer',
-  background: '#fff', border: '1.5px solid', fontWeight: 600, fontSize: 13,
+  flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+  padding: '11px 8px', borderRadius: 10, cursor: 'pointer',
+  background: 'transparent', border: `1.5px solid ${LINE}`, color: '#fff', fontWeight: 500, fontSize: 14,
 };
 
-/** Campo complementar do passo 2: ícone à esquerda, rótulo e input à direita. */
-function ExtraField({ icon, iconBg, label, optional, placeholder, value, onChange }: {
-  icon: React.ReactNode; iconBg: string; label: string; optional?: boolean;
+/**
+ * Campo complementar da etapa de documentos: rótulo em cima e, embaixo, uma caixa escura
+ * com o ícone dourado à esquerda. O ícone vem sem cor/tamanho — o campo aplica o dourado.
+ */
+function ExtraField({ icon, label, optional, multiline, placeholder, value, onChange }: {
+  icon: React.ReactElement<{ color?: string; size?: number; strokeWidth?: number }>;
+  label: string; optional?: boolean; multiline?: boolean;
   placeholder: string; value: string; onChange: (v: string) => void;
 }) {
+  const ic = React.cloneElement(icon, { color: GOLD, size: 22, strokeWidth: 1.7 });
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+    <div>
+      <label style={{ display: 'block', fontSize: 16, color: '#fff', marginBottom: 8 }}>
+        {label}{optional && <span style={{ color: MUTED }}> (opcional)</span>}
+      </label>
       <div style={{
-        minWidth: 40, width: 40, height: 40, borderRadius: 12, background: iconBg,
-        display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 18,
-      }}>{icon}</div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: '#4b5563', marginBottom: 5 }}>
-          {label}{optional && <span style={{ color: '#9aa3b2', fontWeight: 500 }}> (opcional)</span>}
-        </label>
-        <input type="text" placeholder={placeholder} value={value}
-          onChange={e => onChange(e.target.value)}
-          style={{
-            width: '100%', padding: '11px 13px', borderRadius: 10,
-            border: '1.5px solid #e5e7eb', fontSize: 14, color: '#1f2937',
-            background: '#fff', boxSizing: 'border-box', outline: 'none',
-          }}
-          onFocus={e => (e.currentTarget.style.borderColor = '#2546f0')}
-          onBlur={e => (e.currentTarget.style.borderColor = '#e5e7eb')}
-        />
+        display: 'flex', alignItems: multiline ? 'flex-start' : 'center', gap: 12,
+        padding: multiline ? '15px 16px' : '0 16px', minHeight: 56,
+        borderRadius: 14, border: `1.5px solid ${LINE}`, background: CARD,
+      }}>
+        <span style={{ display: 'flex', flexShrink: 0, marginTop: multiline ? 1 : 0 }}>{ic}</span>
+        {multiline ? (
+          <textarea rows={2} className="dk-input" placeholder={placeholder} value={value}
+            onChange={e => onChange(e.target.value)}
+            style={{ ...darkInput, resize: 'none', lineHeight: 1.4, fontFamily: 'inherit', fontSize: 16 }}
+          />
+        ) : (
+          <input type="text" className="dk-input" placeholder={placeholder} value={value}
+            onChange={e => onChange(e.target.value)}
+            style={{ ...darkInput, fontSize: 16 }}
+          />
+        )}
       </div>
     </div>
   );
 }
 
-const fieldLabel: React.CSSProperties = {
-  display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6,
-};
-
-const fieldBox: React.CSSProperties = {
-  display: 'flex', alignItems: 'center', gap: 10,
-  padding: '13px 14px', borderRadius: 12,
-  border: '1.5px solid #e5e7eb', background: '#fff',
-};
-
-const fieldInput: React.CSSProperties = {
-  flex: 1, minWidth: 0, border: 'none', fontSize: 15,
-  color: '#1f2937', background: 'transparent', outline: 'none',
-};
-
-/** Aba do topo no formato de seta (a ativa "aponta" para a próxima). */
-function StepTab({ n, label, active, arrow }: {
-  n: number; label: string; active: boolean; arrow?: boolean;
-}) {
+/**
+ * Indicador de etapas: 1 Seus dados → 2 Documentos → 3 Confirmação.
+ * Sem `labels`: versão compacta (etapa atual preenchida). Com `labels`: círculos espalhados,
+ * etapas concluídas com ✔, a atual em anel dourado e o nome de cada etapa embaixo.
+ */
+function Stepper({ atual, labels }: { atual: 1 | 2 | 3; labels?: string[] }) {
+  const detalhado = !!labels;
   return (
     <div style={{
-      flex: 1, display: 'flex', alignItems: 'center', gap: 10,
-      padding: '16px 14px 16px 20px',
-      background: active ? '#2546f0' : '#f1f4f9',
-      clipPath: arrow ? 'polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%)' : undefined,
-      marginRight: arrow ? -8 : 0,
+      display: 'flex', alignItems: 'center',
+      ...(detalhado ? { width: '100%', maxWidth: 320, margin: '0 auto 36px' } : {}),
     }}>
-      <span style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        minWidth: 26, width: 26, height: 26, borderRadius: '50%',
-        background: active ? '#fff' : '#dfe4ee',
-        color: active ? '#2546f0' : '#8a93a5',
-        fontSize: 13, fontWeight: 800,
-      }}>{n}</span>
-      <span style={{
-        fontSize: 13.5, fontWeight: 700,
-        color: active ? '#fff' : '#8a93a5',
-      }}>{label}</span>
+      {[1, 2, 3].map((n, i) => {
+        const concluida = detalhado && n < atual;
+        const ativa = n === atual;
+        return (
+          <React.Fragment key={n}>
+            {i > 0 && (
+              <span style={{
+                ...(detalhado ? { flex: 1 } : { width: 34 }),
+                height: 2, background: n <= atual ? GOLD : LINE,
+              }} />
+            )}
+            <span style={{ position: 'relative', flexShrink: 0, width: 30, height: 30 }}>
+              <span style={{
+                width: 30, height: 30, borderRadius: '50%', boxSizing: 'border-box',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 14, fontWeight: 700,
+                background: concluida ? '#c9b27c' : (ativa && !detalhado ? GOLD : BG),
+                color: concluida || (ativa && !detalhado) ? '#111827' : (ativa ? '#fff' : MUTED),
+                border: `${ativa && detalhado ? 2 : 1.5}px solid ${n <= atual ? GOLD : LINE}`,
+              }}>
+                {concluida ? <Check size={16} strokeWidth={3} /> : n}
+              </span>
+              {detalhado && (
+                <span style={{
+                  position: 'absolute', top: 36, left: '50%', transform: 'translateX(-50%)',
+                  whiteSpace: 'nowrap', fontSize: 13, fontWeight: ativa ? 700 : 400,
+                  color: ativa ? '#fff' : MUTED,
+                }}>{labels![i]}</span>
+              )}
+            </span>
+          </React.Fragment>
+        );
+      })}
     </div>
   );
 }
+
+/** Caixa de campo escura: ícone dourado, divisória e o input à direita. */
+function DarkField({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 12, padding: '0 16px', height: 58,
+      borderRadius: 14, border: `1.5px solid ${LINE}`, background: CARD,
+    }}>
+      <span style={{ display: 'flex', flexShrink: 0 }}>{icon}</span>
+      <span style={{ width: 1, height: 26, background: LINE, flexShrink: 0 }} />
+      {children}
+    </div>
+  );
+}
+
+const darkLabel: React.CSSProperties = { display: 'block', fontSize: 17, color: '#fff', marginBottom: 8 };
+
+const darkInput: React.CSSProperties = {
+  flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent',
+  fontSize: 17, color: '#fff', padding: 0,
+};
 
 export function Documents() {
   const { state, dispatch } = useLoan();
@@ -190,8 +195,7 @@ export function Documents() {
   // no lugar da categoria.
   const vinculoLabel = state.vinculoServidor === 'EFETIVO' ? 'Cargo efetivo'
     : state.vinculoServidor === 'COMISSIONADO' ? 'Cargo comissionado' : '';
-  const badgeText = servidorPublico && vinculoLabel ? vinculoLabel
-    : categoriaLabel ? `Categoria: ${categoriaLabel}` : '';
+  const perfilTexto = servidorPublico && vinculoLabel ? vinculoLabel : categoriaLabel;
 
   const openFilePicker = (docKey: string) => {
     setCurrentDocKey(docKey);
@@ -301,23 +305,30 @@ export function Documents() {
     }
   };
 
-  // Ícones do Lucide, conforme a lista de equivalências.
+  // Ícones do Lucide (linha dourada), conforme a lista de equivalências.
   const docIcons: Record<string, React.ReactNode> = {
-    '🪪': <IdCard size={26} color="#4f46e5" strokeWidth={1.7} />,
-    '📷': <UserRound size={26} color="#4f46e5" strokeWidth={1.7} />,
-    '🏠': <House size={26} color="#4f46e5" strokeWidth={1.7} />,
-    '💼': <FileText size={26} color="#4f46e5" strokeWidth={1.7} />,
-    '📄': <FileText size={26} color="#4f46e5" strokeWidth={1.7} />,
+    '🪪': <IdCard size={26} color={GOLD} strokeWidth={1.7} />,
+    '📷': <UserRound size={26} color={GOLD} strokeWidth={1.7} />,
+    '🏠': <House size={26} color={GOLD} strokeWidth={1.7} />,
+    '💼': <FileText size={26} color={GOLD} strokeWidth={1.7} />,
+    '📄': <FileText size={26} color={GOLD} strokeWidth={1.7} />,
   };
 
   const voltar = () => { if (docStep === 2) setDocStep(1); else dispatch({ type: 'SET_STEP', step: 2 }); };
+
+  // Escolher outra origem limpa o nome digitado (não vaza de "Instagram" para "Indicação").
+  const selecionarOrigem = (key: OrigemKey) => {
+    if (origem === key) return;
+    setOrigem(key);
+    setOrigemNome('');
+  };
 
   return (
     <div style={{
       padding: 0,
       minHeight: '100vh',
       display: 'flex', flexDirection: 'column',
-      background: docStep === 1 ? '#fff' : '#f4f6fb',
+      background: BG,
     }}>
       <input ref={fileInputRef} type="file" accept="image/*" capture="environment"
         onChange={handleFileSelect} style={{ display: 'none' }} />
@@ -327,235 +338,212 @@ export function Documents() {
         onChange={handleFileSelect} style={{ display: 'none' }} />
 
       {docStep === 1 ? (
-        <div style={{
-          background: '#fff', minHeight: '100vh', padding: '28px 20px 24px',
-        }}>
-          {/* Step indicator (abas em seta) */}
-          <div style={{ display: 'flex', margin: '-28px -20px 20px', overflow: 'hidden' }}>
-            <StepTab n={1} label="Seus dados" active arrow />
-            <StepTab n={2} label="Enviar documentos" active={false} />
-          </div>
-
-          <button onClick={voltar} style={backButtonStyle}>
-            <ArrowLeft size={17} strokeWidth={2.4} />
-            Voltar
-          </button>
-
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: '#0d1836', letterSpacing: '-0.02em' }}>
-            Vamos começar! 🚀
-          </h1>
-          <p style={{ fontSize: 14, color: '#6b7280', marginTop: 6, marginBottom: 22 }}>
-            Preencha suas informações para continuarmos.
-          </p>
-
-            {/* Step 1: Personal Data */}
-            <div style={{ marginBottom: 14 }}>
-              <label style={fieldLabel}>Nome completo</label>
-              <div style={fieldBox}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2546f0" strokeWidth="1.8" strokeLinecap="round">
-                  <circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/>
-                </svg>
-                <input type="text" placeholder="Digite seu nome completo"
-                  value={state.nome}
-                  onChange={e => dispatch({ type: 'SET_FIELD', field: 'nome', value: e.target.value })}
-                  style={fieldInput}
-                />
-              </div>
-            </div>
-
-            <div style={{ marginBottom: 14 }}>
-              <label style={fieldLabel}>WhatsApp</label>
-              <div style={fieldBox}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="#25d366">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-                  <path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.96 9.96 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2z"/>
-                </svg>
-                <input type="text" inputMode="tel" placeholder="(11) 99999-9999"
-                  value={state.telefone}
-                  onChange={e => {
-                    const c = e.target.value.replace(/\D/g, '');
-                    let fmt = c;
-                    if (c.length > 2) fmt = `(${c.slice(0,2)}) ${c.slice(2)}`;
-                    if (c.length > 7) fmt = `(${c.slice(0,2)}) ${c.slice(2,7)}-${c.slice(7,11)}`;
-                    dispatch({ type: 'SET_FIELD', field: 'telefone', value: fmt });
-                  }}
-                  style={fieldInput}
-                />
-              </div>
-            </div>
-
-            <div style={{ marginBottom: 14 }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10 }}>
-                <label style={fieldLabel}>Instagram (opcional)</label>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11.5, fontWeight: 600, color: '#2546f0' }}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>
-                  </svg>
-                  Aumenta a chance de aprovação
-                </span>
-              </div>
-              <div style={fieldBox}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <defs>
-                    <linearGradient id="igGradDoc" x1="0%" y1="100%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#feda75"/><stop offset="25%" stopColor="#fa7e1e"/>
-                      <stop offset="50%" stopColor="#d62976"/><stop offset="75%" stopColor="#962fbf"/>
-                      <stop offset="100%" stopColor="#4f5bd5"/>
-                    </linearGradient>
-                  </defs>
-                  <rect x="2" y="2" width="20" height="20" rx="6" stroke="url(#igGradDoc)" strokeWidth="2" fill="none"/>
-                  <circle cx="12" cy="12" r="5" stroke="url(#igGradDoc)" strokeWidth="2" fill="none"/>
-                  <circle cx="17.5" cy="6.5" r="1.5" fill="url(#igGradDoc)"/>
-                </svg>
-                <input type="text" placeholder="Digite seu Instagram (opcional)"
-                  value={state.instagram}
-                  onChange={e => dispatch({ type: 'SET_FIELD', field: 'instagram', value: e.target.value })}
-                  style={fieldInput}
-                />
-              </div>
-            </div>
-
-            {/* Como conheceu a SP */}
-            <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0d1836', marginTop: 26 }}>
-              Como você conheceu a SP?
-            </h2>
-            <p style={{ fontSize: 13, color: '#6b7280', marginTop: 4, marginBottom: 12 }}>
-              Escolha uma opção e informe o nome, quando necessário.
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 8 }}>
-              {ORIGENS.map(op => {
-                const active = origem === op.key;
-                return (
-                  <div key={op.key}
-                    onClick={() => { setOrigem(op.key); if (!op.pedeNome) setOrigemNome(''); }}
-                    style={{
-                      display: 'flex', alignItems: 'flex-start', gap: 12,
-                      padding: '13px 14px', borderRadius: 14, cursor: 'pointer',
-                      background: active ? '#f6f8ff' : '#fff',
-                      border: `1.5px solid ${active ? '#2546f0' : '#eef0f4'}`,
-                      boxShadow: '0 1px 3px rgba(13,43,94,0.06)',
-                      transition: 'all 0.15s',
-                    }}>
-                    <span style={{
-                      marginTop: 2, minWidth: 18, width: 18, height: 18, borderRadius: '50%',
-                      border: `2px solid ${active ? '#2546f0' : '#c6ccd8'}`,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                      {active && <span style={{ width: 9, height: 9, borderRadius: '50%', background: '#2546f0' }} />}
-                    </span>
-                    <div style={{
-                      minWidth: 38, width: 38, height: 38, borderRadius: '50%', background: op.iconBg,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>{op.icon}</div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, fontSize: 14.5, color: '#0d1836' }}>{op.label}</div>
-                      <p style={{ fontSize: 12, color: '#6b7280', marginTop: 2, lineHeight: 1.4 }}>{op.description}</p>
-                      {op.pedeNome && active && (
-                        <input type="text" placeholder="Digite o nome"
-                          autoFocus
-                          value={origemNome}
-                          onClick={e => e.stopPropagation()}
-                          onChange={e => setOrigemNome(e.target.value)}
-                          style={{
-                            width: '100%', marginTop: 10, padding: '10px 12px', borderRadius: 10,
-                            border: '1.5px solid #e5e7eb', fontSize: 14, color: '#1f2937',
-                            background: '#fff', boxSizing: 'border-box', outline: 'none',
-                          }}
-                        />
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {error && (
-              <div style={{ background: '#fee2e2', borderRadius: 10, padding: '10px 14px', marginBottom: 12 }}>
-                <p style={{ fontSize: 13, color: '#dc2626', margin: 0 }}>{error}</p>
-              </div>
-            )}
-
-            <button onClick={() => {
-              if (!state.nome || !state.telefone) {
-                setError('Preencha nome e WhatsApp para continuar.');
-                return;
-              }
-              if (!origem) {
-                setError('Selecione como você conheceu a SP.');
-                return;
-              }
-              const op = ORIGENS.find(o => o.key === origem);
-              if (op?.pedeNome && !origemNome.trim()) {
-                setError('Informe o nome para a opção escolhida.');
-                return;
-              }
-              // `indicacao` é texto livre; o admin deriva a origem por palavra-chave.
-              dispatch({ type: 'SET_FIELD', field: 'indicacao', value: op ? op.toIndicacao(origemNome.trim()) : '' });
-              setError('');
-              setDocStep(2);
-            }} style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-              width: '100%', padding: '16px', borderRadius: 12, border: 'none',
-              background: 'linear-gradient(135deg, #2546f0, #1a32c4)',
-              color: '#fff', fontWeight: 800, fontSize: 17, cursor: 'pointer',
-              marginTop: 18, boxShadow: '0 4px 14px rgba(37,70,240,0.3)',
-            }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/>
-              </svg>
-              <span style={{ flex: 1 }}>Continuar</span>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M5 12h14M13 6l6 6-6 6"/>
-              </svg>
-            </button>
-        </div>
-      ) : (
-        <>
-          {/* Step 2: cabeçalho azul */}
-          <div style={{ background: '#1a45e0', padding: '16px 18px 20px' }}>
+        <div style={{ background: BG, minHeight: '100vh', padding: '18px 16px 26px', colorScheme: 'dark' }}>
+          {/* Topo: voltar + etapas */}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
             <button onClick={voltar} style={{
-              display: 'inline-flex', alignItems: 'center', gap: 7,
-              padding: '9px 15px', borderRadius: 10, cursor: 'pointer',
-              background: 'rgba(255,255,255,0.14)', border: '1.5px solid rgba(255,255,255,0.45)',
-              color: '#fff', fontWeight: 700, fontSize: 14,
+              display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 4px',
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: '#fff', fontWeight: 500, fontSize: 17,
             }}>
-              <ArrowLeft size={16} strokeWidth={2.4} />
+              <ArrowLeft size={22} strokeWidth={2.2} />
               Voltar
             </button>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginTop: 14 }}>
-              <h1 style={{
-                fontSize: 16, fontWeight: 600, color: '#fff', letterSpacing: '-0.01em',
-                whiteSpace: 'nowrap', flexShrink: 0,
+            <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+              <Stepper atual={1} />
+            </div>
+          </div>
+
+          <h1 style={{
+            margin: '22px 0 6px', fontSize: 'clamp(28px, 8vw, 38px)', fontWeight: 800,
+            lineHeight: 1.1, letterSpacing: '-0.02em', color: '#fff',
+          }}>
+            Seus dados
+          </h1>
+          <p style={{ margin: '0 0 22px', fontSize: 16, color: MUTED }}>
+            Preencha as informações para continuar.
+          </p>
+
+          <div style={{ marginBottom: 16 }}>
+            <label style={darkLabel}>Nome completo</label>
+            <DarkField icon={<UserRound size={24} color={GOLD} strokeWidth={1.7} />}>
+              <input type="text" className="dk-input" placeholder="Digite seu nome completo"
+                value={state.nome}
+                onChange={e => dispatch({ type: 'SET_FIELD', field: 'nome', value: e.target.value })}
+                style={darkInput}
+              />
+            </DarkField>
+          </div>
+
+          <div style={{ marginBottom: 16 }}>
+            <label style={darkLabel}>WhatsApp</label>
+            <DarkField icon={<Phone size={24} color={GOLD} strokeWidth={1.7} />}>
+              <input type="text" inputMode="tel" className="dk-input" placeholder="(11) 99999-9999"
+                value={state.telefone}
+                onChange={e => {
+                  const c = e.target.value.replace(/\D/g, '');
+                  let fmt = c;
+                  if (c.length > 2) fmt = `(${c.slice(0,2)}) ${c.slice(2)}`;
+                  if (c.length > 7) fmt = `(${c.slice(0,2)}) ${c.slice(2,7)}-${c.slice(7,11)}`;
+                  dispatch({ type: 'SET_FIELD', field: 'telefone', value: fmt });
+                }}
+                style={darkInput}
+              />
+            </DarkField>
+          </div>
+
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10 }}>
+              <label style={darkLabel}>
+                Instagram <span style={{ color: MUTED }}>(opcional)</span>
+              </label>
+              <span style={{ fontSize: 13, color: MUTED }}>Ajuda na análise</span>
+            </div>
+            <DarkField icon={<Instagram size={24} color={GOLD} strokeWidth={1.7} />}>
+              <input type="text" className="dk-input" placeholder="Digite seu Instagram"
+                value={state.instagram}
+                onChange={e => dispatch({ type: 'SET_FIELD', field: 'instagram', value: e.target.value })}
+                style={darkInput}
+              />
+            </DarkField>
+          </div>
+
+          {/* Como conheceu a SP */}
+          <h2 style={{ margin: '26px 0 4px', fontSize: 'clamp(24px, 7vw, 32px)', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>
+            Como conheceu a SP?
+          </h2>
+          <p style={{ margin: '0 0 16px', fontSize: 16, color: MUTED }}>
+            Escolha uma opção e informe os detalhes.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 20 }}>
+            {ORIGENS.map(op => {
+              const active = origem === op.key;
+              return (
+                <div key={op.key}
+                  onClick={() => selecionarOrigem(op.key)}
+                  style={{
+                    padding: '16px 18px 18px', borderRadius: 16, cursor: 'pointer',
+                    background: active ? 'rgba(224,185,111,0.07)' : CARD,
+                    border: `1.5px solid ${active ? GOLD : LINE}`,
+                    transition: 'border-color 0.15s, background 0.15s',
+                  }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <span style={{ display: 'flex', flexShrink: 0 }}>{op.icon}</span>
+                    <span style={{ width: 1, height: 26, background: LINE, flexShrink: 0 }} />
+                    <span style={{ flex: 1, minWidth: 0, fontSize: 17, color: '#fff' }}>{op.label}</span>
+                    <span style={{
+                      width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
+                      border: `2.5px solid ${active ? GOLD : '#3a4863'}`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      {active && <span style={{ width: 12, height: 12, borderRadius: '50%', background: GOLD }} />}
+                    </span>
+                  </div>
+                  {op.pedeNome && (
+                    <input type="text" className="dk-input" placeholder={op.placeholder}
+                      value={active ? origemNome : ''}
+                      onFocus={() => selecionarOrigem(op.key)}
+                      onChange={e => { selecionarOrigem(op.key); setOrigemNome(e.target.value); }}
+                      style={{
+                        width: '100%', boxSizing: 'border-box', marginTop: 14, height: 52,
+                        padding: '0 16px', borderRadius: 12, border: `1.5px solid ${LINE}`,
+                        background: '#0d1727', fontSize: 16, color: '#fff', outline: 'none',
+                      }}
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {error && (
+            <div style={{
+              background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.45)',
+              borderRadius: 12, padding: '10px 14px', marginBottom: 14,
+            }}>
+              <p style={{ fontSize: 13.5, color: '#fca5a5', margin: 0 }}>{error}</p>
+            </div>
+          )}
+
+          <button onClick={() => {
+            if (!state.nome || !state.telefone) {
+              setError('Preencha nome e WhatsApp para continuar.');
+              return;
+            }
+            if (!origem) {
+              setError('Selecione como você conheceu a SP.');
+              return;
+            }
+            const op = ORIGENS.find(o => o.key === origem);
+            if (op?.pedeNome && !origemNome.trim()) {
+              setError('Informe o nome para a opção escolhida.');
+              return;
+            }
+            // `indicacao` é texto livre; o admin deriva a origem por palavra-chave.
+            dispatch({ type: 'SET_FIELD', field: 'indicacao', value: op ? op.toIndicacao(origemNome.trim()) : '' });
+            setError('');
+            setDocStep(2);
+          }} style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: '100%', padding: '19px', borderRadius: 999, border: 'none', cursor: 'pointer',
+            background: 'linear-gradient(180deg, #e8c885 0%, #c9a05a 100%)',
+            color: '#111827', fontWeight: 800, fontSize: 19,
+          }}>
+            Continuar
+          </button>
+        </div>
+      ) : (
+        <div style={{ background: BG, minHeight: '100vh', display: 'flex', flexDirection: 'column', colorScheme: 'dark' }}>
+          {/* Topo: voltar + perfil */}
+          <div style={{ padding: '18px 16px 0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+              <button onClick={voltar} style={{
+                display: 'inline-flex', alignItems: 'center', gap: 10, flexShrink: 0, padding: 0,
+                background: 'none', border: 'none', cursor: 'pointer',
+                color: '#fff', fontWeight: 500, fontSize: 17,
               }}>
-                Envio de documentos
-              </h1>
-              {badgeText && (
                 <span style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 5, minWidth: 0, marginLeft: 'auto',
-                  padding: '6px 11px', borderRadius: 999, background: 'rgba(255,255,255,0.16)',
-                  border: '1px solid rgba(255,255,255,0.3)',
-                  fontSize: 11.5, fontWeight: 600, color: '#fff', whiteSpace: 'nowrap',
-                  overflow: 'hidden', textOverflow: 'ellipsis',
+                  width: 42, height: 42, borderRadius: 12, border: `1.5px solid ${LINE}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
-                  {servidorPublico
-                    ? <Briefcase size={13} strokeWidth={1.8} style={{ flexShrink: 0 }} />
-                    : <Building2 size={13} strokeWidth={1.8} style={{ flexShrink: 0 }} />}
-                  {badgeText}
+                  <ArrowLeft size={22} strokeWidth={2.2} />
+                </span>
+                Voltar
+              </button>
+              {perfilTexto && (
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0,
+                  padding: '7px 12px', borderRadius: 12,
+                  border: `1.5px solid ${GOLD}`, background: 'rgba(224,185,111,0.08)',
+                }}>
+                  <UserRound size={20} color={GOLD} strokeWidth={1.9} style={{ flexShrink: 0 }} />
+                  <span style={{ minWidth: 0, lineHeight: 1.2 }}>
+                    <span style={{ display: 'block', fontSize: 11, color: MUTED }}>Perfil:</span>
+                    <span style={{
+                      display: 'block', fontSize: 13.5, fontWeight: 600, color: '#fff',
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}>{perfilTexto}</span>
+                  </span>
                 </span>
               )}
             </div>
+
+            <div style={{ marginTop: 20 }}>
+              <Stepper atual={2} labels={['1. Cadastro', 'Documentos', 'Análise']} />
+            </div>
+
+            <h1 style={{
+              margin: '18px 0 4px', fontSize: 'clamp(28px, 8vw, 38px)', fontWeight: 800,
+              lineHeight: 1.1, letterSpacing: '-0.02em', color: '#fff',
+            }}>
+              Enviar documentos
+            </h1>
+            <p style={{ margin: '0 0 18px', fontSize: 16, color: MUTED }}>
+              Mande os arquivos para análise.
+            </p>
           </div>
 
-          {/* Instrução */}
-          <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-            padding: '13px 16px', color: '#6b7280',
-          }}>
-            <Info size={15} strokeWidth={2} style={{ flexShrink: 0 }} />
-            <span style={{ fontSize: 13 }}>Envie os documentos abaixo para continuarmos sua análise.</span>
-          </div>
-
-          <div style={{ flex: 1, padding: '0 14px 24px' }}>
+          <div style={{ flex: 1, padding: '0 16px 20px' }}>
             {/* Cards de documento */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {docs.map(doc => {
@@ -567,114 +555,113 @@ export function Documents() {
                 const temDica = doc.key === 'Comprovante de residência';
                 return (
                   <div key={doc.key} style={{ ...docCardStyle, position: 'relative' }}>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
                       <div style={{
-                        minWidth: 46, width: 46, height: 46, borderRadius: 14, background: '#eef3fd',
+                        minWidth: 50, width: 50, height: 50, borderRadius: 14, background: '#131d2e',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}>{docIcons[doc.icon] || docIcons['📄']}</div>
 
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                          <span style={{ fontWeight: 700, fontSize: 16, color: '#0d1836' }}>{doc.label}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
+                          <span style={{ fontWeight: 600, fontSize: 16.5, color: '#fff' }}>{doc.label}</span>
                           {temDica && (
                             <button onClick={() => setShowTip(showTip === doc.key ? null : doc.key)}
                               onMouseEnter={() => setShowTip(doc.key)}
                               onMouseLeave={() => setShowTip(null)}
                               title="Sobre o comprovante" style={{
-                                width: 19, height: 19, borderRadius: '50%', border: '1.5px solid #2546f0',
-                                background: '#fff', color: '#2546f0', fontSize: 11, fontWeight: 800,
+                                width: 20, height: 20, borderRadius: '50%', border: `1.5px solid ${GOLD}`,
+                                background: 'transparent', color: GOLD, fontSize: 11, fontWeight: 800,
                                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 padding: 0, flexShrink: 0,
                               }}>?</button>
                           )}
                         </div>
                         {doc.description !== doc.label && (
-                          <p style={{ fontSize: 13, color: '#6b7280', marginTop: 3 }}>{doc.description}</p>
+                          <p style={{ fontSize: 13.5, color: MUTED, marginTop: 2, lineHeight: 1.35 }}>{doc.description}</p>
                         )}
                       </div>
 
                       <span style={{
                         display: 'inline-flex', alignItems: 'center', gap: 5, flexShrink: 0,
-                        padding: '6px 11px', borderRadius: 999, fontSize: 12, fontWeight: 700,
-                        background: uploaded ? '#e6f7ec' : '#fff4e5',
-                        color: uploaded ? '#12804a' : '#b45309',
+                        padding: '5px 10px', borderRadius: 999, fontSize: 12.5, fontWeight: 600,
+                        background: uploaded ? 'rgba(34,197,94,0.14)' : '#131d2e',
+                        color: uploaded ? '#86efac' : '#c8d2e3',
                       }}>
-                        {uploaded ? 'Enviado' : 'Pendente'}
                         {uploaded
-                          ? <CircleCheck size={13} strokeWidth={2.5} />
-                          : <Clock size={13} strokeWidth={2.5} />}
+                          ? <CircleCheck size={14} strokeWidth={2.4} />
+                          : <Clock size={14} strokeWidth={2.2} />}
+                        {uploaded ? 'Enviado' : 'Pendente'}
                       </span>
                     </div>
 
                     {/* Balão flutuante: sobrepõe o card, sem empurrar o conteúdo. */}
                     {temDica && showTip === doc.key && (
                       <div style={{
-                        position: 'absolute', left: 14, right: 14, top: 64, zIndex: 20,
+                        position: 'absolute', left: 14, right: 14, top: 72, zIndex: 20,
                         display: 'flex', gap: 10, padding: '12px 14px',
-                        background: '#eef3fd', border: '1px solid #d5e0fb', borderRadius: 12,
-                        boxShadow: '0 10px 26px rgba(13,43,94,0.18)',
+                        background: '#131d2e', border: `1px solid ${LINE}`, borderRadius: 12,
+                        boxShadow: '0 10px 26px rgba(0,0,0,0.5)',
                       }}>
-                        <Info size={18} color="#2546f0" strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
-                        <p style={{ fontSize: 13, color: '#334063', lineHeight: 1.5, margin: 0 }}>
+                        <Info size={18} color={GOLD} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
+                        <p style={{ fontSize: 13, color: '#d4dcea', lineHeight: 1.5, margin: 0 }}>
                           O comprovante de residência não precisa estar em seu nome, mas você precisa morar na residência que enviar.
                         </p>
                       </div>
                     )}
 
-                    <div style={{ display: 'flex', gap: 10, marginTop: 14, flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
                       {uploaded ? (
                         // Limpa o arquivo: o card volta a "Pendente" com os botões de envio.
                         <button onClick={() => dispatch({ type: 'SET_DOCUMENT', key: doc.key, file: null })}
-                          style={{ ...docActionStyle, borderColor: '#2546f0', color: '#2546f0' }}>
+                          style={{ ...docActionStyle, borderColor: GOLD, color: GOLD }}>
                           Enviar novamente
                         </button>
                       ) : isPdfOnly ? (
-                        <button onClick={() => openPdfPicker(doc.key)} style={{ ...docActionStyle, borderColor: '#f0c8c2', color: '#c0392b' }}>
-                          <FileText size={15} strokeWidth={1.9} />
+                        <button onClick={() => openPdfPicker(doc.key)} style={{ ...docActionStyle, maxWidth: 130 }}>
+                          <FileText size={17} strokeWidth={1.9} />
                           PDF
                         </button>
                       ) : (
                         <>
-                          <button onClick={() => openFilePicker(doc.key)} style={{ ...docActionStyle, borderColor: '#c9d4f5', color: '#2546f0' }}>
-                            <Camera size={15} strokeWidth={1.9} />
+                          <button onClick={() => openFilePicker(doc.key)} style={{ ...docActionStyle, maxWidth: isSelfie ? 130 : undefined }}>
+                            <Camera size={17} strokeWidth={1.9} />
                             Foto
                           </button>
                           {/* Selfie só pela câmera (foto na hora, sem galeria). */}
                           {!isSelfie && (
-                            <button onClick={() => openGallery(doc.key)} style={{ ...docActionStyle, borderColor: '#c9d4f5', color: '#2546f0' }}>
-                              <ImageIcon size={15} strokeWidth={1.9} />
+                            <button onClick={() => openGallery(doc.key)} style={docActionStyle}>
+                              <ImageIcon size={17} strokeWidth={1.9} />
                               Galeria
                             </button>
                           )}
                           {podePdf && (
-                            <button onClick={() => openPdfPicker(doc.key)} style={{ ...docActionStyle, borderColor: '#f0c8c2', color: '#c0392b' }}>
-                              <FileText size={15} strokeWidth={1.9} />
+                            <button onClick={() => openPdfPicker(doc.key)} style={docActionStyle}>
+                              <FileText size={17} strokeWidth={1.9} />
                               PDF
                             </button>
                           )}
                         </>
                       )}
                     </div>
-
                   </div>
                 );
               })}
             </div>
 
             {/* Campos complementares */}
-            <div style={{ ...docCardStyle, marginTop: 12, display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div style={{ marginTop: 22, display: 'flex', flexDirection: 'column', gap: 16 }}>
               {beneficiario ? (
                 <>
                   <ExtraField
-                    icon={<Landmark size={20} color="#2546f0" strokeWidth={1.8} />}
-                    iconBg="#eef3fd" label="Banco onde recebe o benefício"
+                    icon={<Landmark />}
+                    label="Banco onde recebe o benefício"
                     placeholder="Ex.: Caixa Econômica, Banco do Brasil, Bradesco"
                     value={state.nomeEmpresa}
                     onChange={v => dispatch({ type: 'SET_FIELD', field: 'nomeEmpresa', value: v })}
                   />
                   <ExtraField
-                    icon={<BadgeCheck size={20} color="#2546f0" strokeWidth={1.8} />}
-                    iconBg="#eef3fd" label="Tipo de benefício"
+                    icon={<BadgeCheck />}
+                    label="Tipo de benefício"
                     placeholder="Ex.: Aposentadoria, Pensão, BPC/LOAS, Auxílio-doença"
                     value={state.bairroTrabalho}
                     onChange={v => dispatch({ type: 'SET_FIELD', field: 'bairroTrabalho', value: v })}
@@ -683,15 +670,15 @@ export function Documents() {
               ) : garantia ? null : autonomo ? (
                 <>
                   <ExtraField
-                    icon={<Briefcase size={20} color="#2546f0" strokeWidth={1.8} />}
-                    iconBg="#eef3fd" label="Profissão ou atividade"
+                    icon={<Briefcase />}
+                    label="Profissão ou atividade"
                     placeholder="Ex: manicure, motorista, vendedor"
                     value={state.nomeEmpresa}
                     onChange={v => dispatch({ type: 'SET_FIELD', field: 'nomeEmpresa', value: v })}
                   />
                   <ExtraField
-                    icon={<MapPin size={20} color="#2546f0" strokeWidth={1.8} />}
-                    iconBg="#eef3fd" label="Onde atende ou trabalha"
+                    icon={<MapPin />}
+                    label="Onde atende ou trabalha"
                     placeholder="Ex: Centro, Camaçari"
                     value={state.bairroTrabalho}
                     onChange={v => dispatch({ type: 'SET_FIELD', field: 'bairroTrabalho', value: v })}
@@ -699,8 +686,8 @@ export function Documents() {
                 </>
               ) : semComprovacao ? (
                 <ExtraField
-                  icon={<Briefcase size={20} color="#2546f0" strokeWidth={1.8} />}
-                  iconBg="#eef3fd" label="Dados de renda"
+                  icon={<Briefcase />}
+                  label="Dados de renda"
                   placeholder="Você trabalha com o quê?"
                   value={state.nomeEmpresa}
                   onChange={v => dispatch({ type: 'SET_FIELD', field: 'nomeEmpresa', value: v })}
@@ -708,25 +695,22 @@ export function Documents() {
               ) : servidorPublico ? (
                 <>
                   <ExtraField
-                    icon={<Building2 size={20} color="#2546f0" strokeWidth={1.8} />}
-                    iconBg="#eef3fd" label="Órgão onde trabalha"
+                    icon={<Building2 />}
+                    label="Órgão onde trabalha"
                     placeholder="Ex.: Prefeitura Municipal"
                     value={state.nomeEmpresa}
                     onChange={v => dispatch({ type: 'SET_FIELD', field: 'nomeEmpresa', value: v })}
                   />
                   <ExtraField
-                    icon={comissionado
-                      ? <Briefcase size={20} color="#2546f0" strokeWidth={1.8} />
-                      : <IdCard size={20} color="#2546f0" strokeWidth={1.8} />}
-                    iconBg="#eef3fd"
+                    icon={comissionado ? <Briefcase /> : <IdCard />}
                     label={comissionado ? 'Cargo que ocupa' : 'Matrícula funcional'}
                     placeholder={comissionado ? 'Ex.: Assessor' : 'Ex.: 123456'}
                     value={state.matriculaCargo}
                     onChange={v => dispatch({ type: 'SET_FIELD', field: 'matriculaCargo', value: v })}
                   />
                   <ExtraField
-                    icon={<MapPin size={20} color="#2546f0" strokeWidth={1.8} />}
-                    iconBg="#eef3fd" label="Bairro, local de trabalho e cidade"
+                    icon={<MapPin />}
+                    label="Bairro, local de trabalho e cidade"
                     placeholder="Ex.: Centro, Prefeitura Municipal, Camaçari"
                     value={state.bairroTrabalho}
                     onChange={v => dispatch({ type: 'SET_FIELD', field: 'bairroTrabalho', value: v })}
@@ -735,15 +719,15 @@ export function Documents() {
               ) : (
                 <>
                   <ExtraField
-                    icon={<Building2 size={20} color="#2546f0" strokeWidth={1.8} />}
-                    iconBg="#eef3fd" label="Nome da empresa como aparece na fachada"
+                    icon={<Building2 />}
+                    label="Nome da empresa como aparece na fachada"
                     placeholder="Ex: Planeta Calçados"
                     value={state.nomeEmpresa}
                     onChange={v => dispatch({ type: 'SET_FIELD', field: 'nomeEmpresa', value: v })}
                   />
                   <ExtraField
-                    icon={<MapPin size={20} color="#2546f0" strokeWidth={1.8} />}
-                    iconBg="#eef3fd" label="Bairro, local de trabalho e cidade"
+                    icon={<MapPin />}
+                    label="Bairro, local de trabalho e cidade"
                     placeholder="Ex: Centro, Camaçari"
                     value={state.bairroTrabalho}
                     onChange={v => dispatch({ type: 'SET_FIELD', field: 'bairroTrabalho', value: v })}
@@ -752,34 +736,37 @@ export function Documents() {
               )}
 
               <ExtraField
-                icon={<Pencil size={20} color="#2546f0" strokeWidth={1.8} />}
-                iconBg="#eef3fd" label="Algo a acrescentar?" optional
-                placeholder="Se quiser, escreva uma observação para ajudar na análise."
+                icon={<MessageSquare />} multiline
+                label="Observação" optional
+                placeholder="Escreva algo se quiser ajudar na análise"
                 value={state.observacao}
                 onChange={v => dispatch({ type: 'SET_FIELD', field: 'observacao', value: v })}
               />
             </div>
 
             {error && (
-              <div style={{ background: '#fee2e2', borderRadius: 12, padding: '12px 14px', marginTop: 12 }}>
-                <p style={{ fontSize: 13, color: '#dc2626', margin: 0 }}>{error}</p>
+              <div style={{
+                background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.45)',
+                borderRadius: 12, padding: '10px 14px', marginTop: 14,
+              }}>
+                <p style={{ fontSize: 13.5, color: '#fca5a5', margin: 0 }}>{error}</p>
               </div>
             )}
           </div>
 
           {/* CTA fixo no rodapé */}
           <div style={{
-            position: 'sticky', bottom: 0, padding: '12px 14px 16px',
-            background: 'linear-gradient(to top, #f4f6fb 70%, rgba(244,246,251,0))',
+            position: 'sticky', bottom: 0, padding: '14px 16px 14px',
+            background: `linear-gradient(to top, ${BG} 72%, rgba(6,12,21,0))`,
           }}>
             {submitting ? (
               <div style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-                padding: '17px', borderRadius: 14, background: '#1a45e0', color: '#fff',
-                fontWeight: 800, fontSize: 16,
+                padding: '18px', borderRadius: 999, color: '#111827', fontWeight: 800, fontSize: 18,
+                background: 'linear-gradient(180deg, #e8c885 0%, #c9a05a 100%)', opacity: 0.85,
               }}>
                 <div style={{
-                  width: 20, height: 20, border: '2.5px solid rgba(255,255,255,0.35)', borderTopColor: '#fff',
+                  width: 20, height: 20, border: '2.5px solid rgba(17,24,39,0.3)', borderTopColor: '#111827',
                   borderRadius: '50%', animation: 'spin 0.8s linear infinite',
                 }} />
                 Enviando...
@@ -787,17 +774,17 @@ export function Documents() {
               </div>
             ) : (
               <button onClick={handleSubmit} style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
-                width: '100%', padding: '17px', borderRadius: 14, border: 'none',
-                background: 'linear-gradient(90deg, #7c3aed, #1a45e0)', color: '#fff', fontWeight: 600, fontSize: 15,
-                cursor: 'pointer', boxShadow: '0 6px 18px rgba(26,69,224,0.35)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                width: '100%', padding: '18px', borderRadius: 999, border: 'none', cursor: 'pointer',
+                background: 'linear-gradient(180deg, #e8c885 0%, #c9a05a 100%)',
+                color: '#111827', fontWeight: 800, fontSize: 18,
               }}>
-                <span style={{ flex: 1, textAlign: 'center', paddingLeft: 22 }}>Solicitar empréstimo</span>
-                <Send size={21} strokeWidth={2} />
+                Enviar para análise
+                <ArrowRight size={22} strokeWidth={2.4} />
               </button>
             )}
           </div>
-        </>
+        </div>
       )}
     </div>
   );

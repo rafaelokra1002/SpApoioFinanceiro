@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLoan } from '../context/LoanContext';
 import { requestLocation, watchLocationPermission } from '../utils/geo';
+import { ComoFunciona } from './ComoFunciona';
 
 // Número (DDI+DDD, só dígitos) e mensagem do botão de WhatsApp.
 // TODO: trocar pelo número real de atendimento.
@@ -154,6 +155,16 @@ export function Home() {
           </button>
         </div>
       </div>
+
+      {state.showComoFunciona && (
+        <ComoFunciona
+          onClose={() => dispatch({ type: 'SHOW_MODAL', modal: 'comoFunciona', show: false })}
+          onSolicitar={() => {
+            dispatch({ type: 'SHOW_MODAL', modal: 'comoFunciona', show: false });
+            solicitarAgora();
+          }}
+        />
+      )}
 
       {gateOpen && (
         <LocationGate
