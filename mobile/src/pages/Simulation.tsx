@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useLoan } from '../context/LoanContext';
 import { simular } from '../hooks/useSimulation';
 import { useCities } from '../hooks/useCities';
@@ -22,7 +22,6 @@ export function Simulation() {
   const [rendaInput, setRendaInput] = useState('');
   // `parcelas` no contexto começa com um valor padrão; à vista é sempre 1 parcela.
   const [modalidade, setModalidade] = useState<'VISTA' | 'PARCELADO'>('VISTA');
-  const valorRef = useRef<HTMLInputElement>(null);
 
   const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.replace(/\D/g, '');
@@ -92,7 +91,6 @@ export function Simulation() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 30, fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>R$</span>
           <input
-            ref={valorRef}
             type="text" inputMode="numeric" placeholder="0,00"
             value={displayValue}
             onChange={handleValueChange}
@@ -101,13 +99,6 @@ export function Simulation() {
               fontSize: 30, fontWeight: 800, color: '#fff', letterSpacing: '-0.02em', padding: 0,
             }}
           />
-          <button onClick={() => valorRef.current?.focus()} title="Editar valor" style={{
-            background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex',
-          }}>
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 20l4.5-1 10-10a2.1 2.1 0 00-3-3l-10 10z"/><path d="M14.5 6.5l3 3"/>
-            </svg>
-          </button>
         </div>
       </div>
 
