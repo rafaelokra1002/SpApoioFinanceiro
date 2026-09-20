@@ -7,8 +7,27 @@ import { requestLocation, watchLocationPermission } from '../utils/geo';
 const WHATSAPP_ATENDIMENTO = '5571983067447';
 const WHATSAPP_MSG = 'Olá! Tenho uma dúvida sobre o empréstimo.';
 
-const BLUE = '#1a45e0';
-const NAVY = '#0d1836';
+const BG = '#060c15';
+const GOLD = '#c9a05a';
+
+/** Botão secundário escuro com borda: ícone + rótulo centralizados e seta à direita. */
+const outlineBtn: React.CSSProperties = {
+  position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14,
+  width: '100%', padding: '16px 46px', borderRadius: 12, cursor: 'pointer',
+  background: 'rgba(255,255,255,0.03)', border: '1.5px solid #2a3850',
+};
+
+const outlineLabel: React.CSSProperties = { fontSize: 17, fontWeight: 600, color: '#fff' };
+
+function Chevron() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7d8aa0" strokeWidth="2.4"
+      strokeLinecap="round" strokeLinejoin="round"
+      style={{ position: 'absolute', right: 18, top: '50%', transform: 'translateY(-50%)' }}>
+      <path d="M9 6l6 6-6 6"/>
+    </svg>
+  );
+}
 
 export function Home() {
   const { state, dispatch } = useLoan();
@@ -52,182 +71,87 @@ export function Home() {
 
   return (
     <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#e7ecf3',
-      backgroundImage: 'repeating-linear-gradient(135deg, rgba(26,69,224,0.04) 0px, rgba(26,69,224,0.04) 1px, transparent 1px, transparent 12px)',
+      minHeight: '100vh', background: BG, position: 'relative',
       display: 'flex', flexDirection: 'column', overflow: 'hidden',
     }}>
-      {/* HERO: foto de fundo com cabeçalho, título e diferenciais por cima */}
-      <div style={{
-        position: 'relative', width: '100%',
-        height: 'clamp(440px, 62vh, 580px)', overflow: 'hidden',
-      }}>
-        <img src="/hero-pix.jpg" alt="" style={{
-          position: 'absolute', inset: 0, width: '100%', height: '100%',
-          objectFit: 'cover', objectPosition: 'center 24%',
-          // Zoom leve ancorado à esquerda: corta o ombro direito e mantém o lado do texto.
-          transform: 'scale(1.12)', transformOrigin: 'left center',
-        }} />
-        {/* Clareia a esquerda pra os textos escuros destacarem */}
+      {/* Foto do personagem com o logo SP (já na arte). Proporção que reproduz o recorte
+          da referência: a foto escala pela largura, alinhada ao topo, e esmaece na base. */}
+      <div style={{ position: 'relative', width: '100%', aspectRatio: '100 / 92', flexShrink: 0, overflow: 'hidden' }}>
+        <img
+          src="/hero-sp-dark.jpg" alt=""
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }}
+        />
         <div style={{
           position: 'absolute', inset: 0,
-          background: 'linear-gradient(90deg, rgba(231,236,243,0.92) 0%, rgba(231,236,243,0.5) 34%, rgba(231,236,243,0.08) 62%, transparent 80%)',
+          background: `linear-gradient(to bottom, rgba(6,12,21,0) 58%, ${BG} 100%)`,
         }} />
-        {/* Clareia o topo pro cabeçalho */}
+        {/* "CRED FINANCEIRA" sob o logo da foto (posição em % da própria foto) */}
         <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0, height: 120,
-          background: 'linear-gradient(to bottom, rgba(231,236,243,0.9) 0%, rgba(231,236,243,0) 100%)',
-        }} />
-        {/* Funde a base da foto com o fundo da página */}
-        <div style={{
-          position: 'absolute', left: 0, right: 0, bottom: 0, height: 110,
-          background: 'linear-gradient(to top, #e7ecf3 0%, rgba(231,236,243,0) 100%)',
-        }} />
-
-        {/* Conteúdo sobre a foto */}
-        <div style={{
-          position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
-          padding: '16px 18px 16px',
+          position: 'absolute', left: '6.5%', top: '51.5%', width: '40%',
+          paddingBottom: 6, textAlign: 'center', color: '#fff',
+          fontSize: 'clamp(9px, 2.9vw, 14px)', fontWeight: 500, letterSpacing: '0.3em',
+          textTransform: 'uppercase', whiteSpace: 'nowrap',
+          borderBottom: '1px solid rgba(255,255,255,0.55)',
         }}>
-          {/* Topo: marca + atendimento */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, lineHeight: 1 }}>
-                <span style={{ fontSize: 34, fontWeight: 900, color: BLUE, letterSpacing: '-0.04em' }}>SP</span>
-                <span style={{ fontSize: 25, fontWeight: 800, color: NAVY, letterSpacing: '-0.02em' }}>EMPRÉSTIMO</span>
-              </div>
-              <div style={{
-                marginTop: 5, fontSize: 10.5, fontWeight: 700, color: NAVY,
-                letterSpacing: '0.06em', textTransform: 'uppercase',
-              }}>
-                — Crédito à vista e parcelado —
-              </div>
-            </div>
-
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0,
-              padding: '8px 12px', borderRadius: 12,
-              background: '#fff', border: `1.5px solid ${BLUE}`,
-            }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth="2" style={{ flexShrink: 0 }}>
-                <path d="M12 21c4-4.5 6-7.7 6-10.5a6 6 0 10-12 0C6 13.3 8 16.5 12 21z"/>
-                <circle cx="12" cy="10.5" r="2.2"/>
-              </svg>
-              <span style={{ fontSize: 10, fontWeight: 800, color: NAVY, lineHeight: 1.25, letterSpacing: '0.02em' }}>
-                ATENDIMENTO<br/>NA SUA CIDADE
-              </span>
-            </div>
-          </div>
-
-          {/* Título + diferenciais agrupados na base do hero */}
-          <div style={{ marginTop: 'auto' }}>
-            <h1 className="hero-title" style={{
-              margin: 0,
-              fontSize: 'clamp(30px, 10vw, 46px)', lineHeight: 0.95,
-              letterSpacing: '0', textTransform: 'uppercase',
-              textShadow: '0 2px 12px rgba(231,236,243,0.75)',
-            }}>
-              <span style={{ color: NAVY, fontSize: '0.6em' }}>Empréstimo</span><br/>
-              <span style={{ color: BLUE }}>no Pix</span>
-            </h1>
-
-            <div style={{ width: 120, height: 4, borderRadius: 2, background: BLUE, marginTop: 18 }} />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 9, marginTop: 12 }}>
-              {['Liberação rápida', 'Liberamos para negativados'].map(txt => (
-                <div key={txt} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
-                    <circle cx="12" cy="12" r="10" stroke={BLUE} strokeWidth="1.8" fill="none"/>
-                    <path d="M8 12.5l2.5 2.5L16 9" stroke={BLUE} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                  <span style={{
-                    fontSize: 15, fontWeight: 800, color: NAVY, textTransform: 'uppercase',
-                    letterSpacing: '0.01em', textShadow: '0 1px 8px rgba(231,236,243,0.95)',
-                  }}>
-                    {txt}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
+          Cred Financeira
         </div>
       </div>
 
-      {/* Ações */}
-      <div style={{ flex: 1, padding: '16px 18px 20px', display: 'flex', flexDirection: 'column', gap: 11 }}>
-        {/* Solicitar empréstimo */}
-        <button onClick={solicitarAgora} style={{
-          display: 'flex', alignItems: 'center', gap: 14, width: '100%',
-          padding: '15px 16px', borderRadius: 14, border: 'none', cursor: 'pointer',
-          background: BLUE, boxShadow: '0 8px 22px rgba(26,69,224,0.35)',
-        }}>
-          <span style={{
-            width: 40, height: 40, borderRadius: '50%', background: NAVY,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+      <div style={{
+        position: 'relative', zIndex: 1, flex: 1, display: 'flex', flexDirection: 'column',
+        padding: '0 20px 34px',
+      }}>
+        {/* Chamada */}
+        <div style={{ marginTop: -22, textAlign: 'center' }}>
+          <h1 style={{
+            margin: 0, fontSize: 'clamp(30px, 9.4vw, 44px)', fontWeight: 800,
+            lineHeight: 1.1, letterSpacing: '-0.02em', color: '#fff',
           }}>
-            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9.5 3h5l-1.2 3h-2.6z"/>
-              <path d="M12 6c4 0 7 4.2 7 8.2 0 3.6-3 5.8-7 5.8s-7-2.2-7-5.8C5 10.2 8 6 12 6z"/>
-              <path d="M13.6 11.6c-.4-.5-1-.8-1.7-.8-.9 0-1.6.5-1.6 1.2 0 1.7 3.4.9 3.4 2.6 0 .8-.7 1.3-1.7 1.3-.7 0-1.4-.3-1.8-.9M12 9.8v7"/>
-            </svg>
-          </span>
-          <span style={{ flex: 1, textAlign: 'center', fontSize: 17, fontWeight: 800, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-            Solicitar empréstimo
-          </span>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M5 12h14M13 6l6 6-6 6"/>
-          </svg>
-        </button>
+            Empréstimo no Pix
+          </h1>
+          <p style={{
+            margin: '4px 0 0', fontSize: 'clamp(22px, 6.6vw, 30px)', fontWeight: 700,
+            lineHeight: 1.2, color: '#e6ebf3',
+          }}>
+            À vista e parcelado
+          </p>
+          <p style={{
+            margin: '2px 0 0', fontSize: 'clamp(16px, 4.8vw, 21px)', fontWeight: 500,
+            lineHeight: 1.3, color: '#9db0c9',
+          }}>
+            Negativado? A gente analisa.
+          </p>
+        </div>
 
-        {/* Tem alguma dúvida? (WhatsApp) */}
-        <button onClick={abrirWhatsApp} style={{
-          display: 'flex', alignItems: 'center', gap: 14, width: '100%',
-          padding: '13px 16px', borderRadius: 14, cursor: 'pointer',
-          background: '#fff', border: '1.5px solid #d9e0ee',
-        }}>
-          <span style={{
-            width: 38, height: 38, borderRadius: '50%', background: BLUE,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+        {/* Ações */}
+        <div style={{ marginTop: 26, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <button onClick={solicitarAgora} style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+            width: '100%', padding: '18px 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
+            background: GOLD, color: '#111827', fontSize: 18, fontWeight: 700,
           }}>
-            <svg width="21" height="21" viewBox="0 0 24 24" fill="#fff">
+            Solicitar empréstimo
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 6l6 6-6 6"/>
+            </svg>
+          </button>
+
+          <button onClick={() => dispatch({ type: 'SHOW_MODAL', modal: 'comoFunciona', show: true })} style={outlineBtn}>
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 3h9l4 4v14H6z"/>
+              <path d="M15 3v4h4M9 12h6M9 16h6"/>
+            </svg>
+            <span style={outlineLabel}>Como funciona</span>
+            <Chevron />
+          </button>
+
+          <button onClick={abrirWhatsApp} style={outlineBtn}>
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="#25d366">
               <path d="M12 2a10 10 0 00-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1012 2zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-2.9.8.8-2.8-.2-.3A8.2 8.2 0 1112 20.2zm4.5-6.1c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.8.9-.1.2-.3.2-.5.1-1.3-.7-2.2-1.2-3.1-2.7-.2-.4.2-.4.6-1.2.1-.1 0-.3 0-.4l-.7-1.7c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.6.3-.2.2-.8.8-.8 1.9s.8 2.2.9 2.4c.1.2 1.6 2.5 4 3.5 1.5.6 2 .7 2.7.6.4-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1 0-.1-.2-.2-.4-.3z"/>
             </svg>
-          </span>
-          <span style={{ flex: 1, textAlign: 'center', fontSize: 16, fontWeight: 800, color: NAVY, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-            Tem alguma dúvida?
-          </span>
-          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M5 12h14M13 6l6 6-6 6"/>
-          </svg>
-        </button>
-
-        {/* Como funciona? */}
-        <button onClick={() => dispatch({ type: 'SHOW_MODAL', modal: 'comoFunciona', show: true })} style={{
-          display: 'flex', alignItems: 'center', gap: 14, width: '100%',
-          padding: '13px 16px', borderRadius: 14, cursor: 'pointer',
-          background: '#fff', border: '1.5px solid #d9e0ee',
-        }}>
-          <span style={{
-            width: 38, height: 38, borderRadius: '50%', background: BLUE,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-            fontSize: 18, fontWeight: 900, color: '#fff',
-          }}>?</span>
-          <span style={{ flex: 1, textAlign: 'center', fontSize: 16, fontWeight: 800, color: NAVY, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-            Como funciona?
-          </span>
-          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M5 12h14M13 6l6 6-6 6"/>
-          </svg>
-        </button>
-
-        {/* Sigilo */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, marginTop: 'auto', paddingTop: 8 }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 3l7 3v5c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6z"/>
-            <path d="M9 12l2 2 4-4"/>
-          </svg>
-          <span style={{ fontSize: 12, color: '#5b647a' }}>
-            <span style={{ fontWeight: 800, color: BLUE }}>SIGILO TOTAL.</span> Seus dados protegidos.
-          </span>
+            <span style={outlineLabel}>Tirar dúvidas</span>
+            <Chevron />
+          </button>
         </div>
       </div>
 

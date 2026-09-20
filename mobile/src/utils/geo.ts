@@ -82,6 +82,8 @@ export function requestLocation(dispatch: SetField) {
       const denied = err.code === err.PERMISSION_DENIED;
       dispatch({ type: 'SET_FIELD', field: 'geo', value: denied ? 'denied' : 'pending' });
     },
-    { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+    // maximumAge de 24h: ao permitir, aceita a última localização conhecida (cache)
+    // em vez de exigir leitura nova do GPS — evita timeout mesmo com permissão dada.
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 24 * 60 * 60 * 1000 },
   );
 }
