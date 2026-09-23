@@ -39,6 +39,7 @@ export type CategoryType =
   | 'BENEFICIARIO'
   | 'ESTAGIARIO'
   | 'SERVIDOR_PUBLICO'
+  | 'RECEBE_SEGURO'
   | 'SEM_COMPROVACAO'
   | 'COM_GARANTIA';
 

@@ -64,12 +64,13 @@ const VIDEO_EXT = /\.(mp4|mov|webm|m4v|avi|3gp|mkv)$/i;
 const PERFIL_LABELS: Record<string, string> = {
   CARTEIRA_ASSINADA: 'CLT Registrado',
   CLT_SEM_REGISTRO: 'Trabalho Informal',
-  AUTONOMO: 'Trabalho por conta própria',
+  AUTONOMO: 'Autônomo / conta própria',
   BENEFICIARIO: 'Beneficiário',
   ESTAGIARIO: 'Estagiário',
   SERVIDOR_PUBLICO: 'Servidor público',
+  RECEBE_SEGURO: 'Recebe seguro',
   COM_GARANTIA: 'Bem como garantia',
-  SEM_COMPROVACAO: 'Renda sem comprovação',
+  SEM_COMPROVACAO: 'Sem comprovação de renda',
 };
 function perfilLabel(perfil: string): string {
   return PERFIL_LABELS[perfil] ?? perfil;

@@ -1,3 +1,4 @@
+import multer from 'multer';
 import { Request, Response, NextFunction } from 'express';
 import { ApiResponse } from '../types';
 
@@ -23,6 +24,24 @@ export function errorHandler(
     res.status(err.statusCode).json({
       success: false,
       error: err.message,
+    });
+    return;
+  }
+
+  // Limites do upload (tamanho/quantidade): mensagem clara em vez do texto interno do multer.
+  if (err instanceof multer.MulterError) {
+    const msg = err.code === 'LIMIT_FILE_SIZE'
+      ? 'Um dos arquivos é muito grande. Envie fotos menores ou PDFs mais leves.'
+      : 'Quantidade de arquivos acima do permitido. Envie apenas os documentos pedidos.';
+    res.status(400).json({ success: false, error: msg });
+    return;
+  }
+
+  // Erros do banco (Prisma) trazem consulta e caminhos de arquivo: nunca vão para o cliente.
+  if (err.name.startsWith('PrismaClient')) {
+    res.status(500).json({
+      success: false,
+      error: 'Não foi possível salvar sua solicitação agora. Tente novamente em instantes.',
     });
     return;
   }

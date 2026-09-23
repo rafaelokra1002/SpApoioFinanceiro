@@ -56,27 +56,17 @@ export function Simulation() {
 
   return (
     <div style={{ padding: '18px 16px 26px', minHeight: '100vh', background: BG, colorScheme: 'dark' }}>
-      {/* Topo: voltar + progresso */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <button onClick={() => dispatch({ type: 'SET_STEP', step: 0 })} style={{
-          display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 4px',
-          background: 'none', border: 'none', cursor: 'pointer',
-          color: '#fff', fontWeight: 500, fontSize: 17,
-        }}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M19 12H5M12 19l-7-7 7-7"/>
-          </svg>
-          Voltar
-        </button>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 14, color: MUTED }}>1 de 3</span>
-          <span style={{ display: 'flex', gap: 5 }}>
-            <span style={{ width: 28, height: 5, borderRadius: 3, background: GOLD }} />
-            <span style={{ width: 28, height: 5, borderRadius: 3, background: LINE }} />
-            <span style={{ width: 28, height: 5, borderRadius: 3, background: LINE }} />
-          </span>
-        </div>
-      </div>
+      {/* Topo: voltar */}
+      <button onClick={() => dispatch({ type: 'SET_STEP', step: 0 })} style={{
+        display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 4px',
+        background: 'none', border: 'none', cursor: 'pointer',
+        color: '#fff', fontWeight: 500, fontSize: 17,
+      }}>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Voltar
+      </button>
 
       <h1 style={{
         margin: '22px 0 20px', fontSize: 'clamp(26px, 7.6vw, 38px)', fontWeight: 800,
@@ -208,10 +198,7 @@ export function Simulation() {
         </div>
       )}
 
-      {/* Avisos por modalidade */}
-      {modalidade === 'PARCELADO' && (
-        <Aviso titulo="Não aprovou no parcelado?" texto="Você ainda pode ser aprovado no à vista." />
-      )}
+      {/* Aviso do à vista */}
       {modalidade === 'VISTA' && (
         <Aviso
           titulo="Tá sem o valor total?"

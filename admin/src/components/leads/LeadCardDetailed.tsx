@@ -70,6 +70,7 @@ const CARD_BORDER: Record<string, string> = {
 const PERFIL_LABELS: Record<string, string> = {
   CARTEIRA_ASSINADA: 'CLT', CLT_SEM_REGISTRO: 'Trabalho Informal', AUTONOMO: 'Conta própria',
   BENEFICIARIO: 'Beneficiário', ESTAGIARIO: 'Estagiário', SERVIDOR_PUBLICO: 'Servidor público',
+  RECEBE_SEGURO: 'Recebe seguro',
   COM_GARANTIA: 'Com garantia',
   SEM_COMPROVACAO: 'Sem comprovação',
 };

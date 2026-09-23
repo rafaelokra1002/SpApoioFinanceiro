@@ -1,4 +1,5 @@
 import multer from 'multer';
+import { Request } from 'express';
 import path from 'path';
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
@@ -20,8 +21,13 @@ const storage = multer.diskStorage({
   },
 });
 
+/** Nomes (como chegaram) dos arquivos descartados por formato não aceito nesta requisição. */
+export function rejectedFilesOf(req: Request): string[] {
+  return ((req as any).rejectedFiles as string[] | undefined) ?? [];
+}
+
 const fileFilter = (
-  _req: any,
+  req: any,
   file: Express.Multer.File,
   cb: multer.FileFilterCallback
 ) => {
@@ -45,7 +51,11 @@ const fileFilter = (
   if (allowedMimeTypes.includes(file.mimetype) || file.mimetype.startsWith('video/') || allowedExtensions.includes(ext)) {
     cb(null, true);
   } else {
-    cb(new Error('Tipo de arquivo não permitido. Use JPEG, PNG, WebP, PDF ou vídeo.'));
+    // Não recusa com erro: responder no meio do envio faz o servidor derrubar a conexão e o
+    // cliente vê "Failed to fetch" em vez da mensagem. Descarta só este arquivo, deixa o envio
+    // terminar e o controller responde com um erro claro (ver `rejectedFilesOf`).
+    (req.rejectedFiles ||= []).push(file.originalname);
+    cb(null, false);
   }
 };
 

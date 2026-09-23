@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Landmark } from 'lucide-react';
 import { useLoan } from '../context/LoanContext';
 import { requestLocation, watchLocationPermission } from '../utils/geo';
 import { ComoFunciona } from './ComoFunciona';
@@ -96,6 +97,40 @@ export function Home() {
         }}>
           Cred Financeira
         </div>
+
+        {/* "Não somos banco" — selo compacto, lado esquerdo, abaixo de "Cred Financeira" */}
+        <div style={{
+          position: 'absolute', top: '73%', left: '6.5%', width: 'fit-content', maxWidth: '85%',
+          display: 'flex', alignItems: 'center', gap: 9, padding: '9px 12px',
+          borderRadius: 10, border: '1.3px solid rgba(201,160,90,0.55)',
+          background: 'rgba(6,12,21,0.55)', backdropFilter: 'blur(2px)',
+        }}>
+          <span style={{
+            position: 'relative', width: 34, height: 34, flexShrink: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <Landmark size={18} color={GOLD} strokeWidth={1.8} />
+            {/* Círculo com barra diagonal por cima do ícone, indicando "não é banco". */}
+            <svg width="34" height="34" viewBox="0 0 24 24" style={{ position: 'absolute', inset: 0 }}>
+              <circle cx="12" cy="12" r="10" stroke={GOLD} strokeWidth="1.7" fill="none" />
+              <line x1="5.5" y1="18.5" x2="18.5" y2="5.5" stroke={GOLD} strokeWidth="1.7" strokeLinecap="round" />
+            </svg>
+          </span>
+          <div style={{ minWidth: 0 }}>
+            <div style={{
+              fontSize: 'clamp(12.5px, 3.8vw, 15px)', fontWeight: 700, color: '#fff',
+              lineHeight: 1.2, whiteSpace: 'nowrap',
+            }}>
+              Não somos banco
+            </div>
+            <div style={{
+              fontSize: 'clamp(10px, 3vw, 12px)', color: GOLD, marginTop: 1,
+              lineHeight: 1.25, whiteSpace: 'nowrap',
+            }}>
+              Crédito direto, sem enrolação.
+            </div>
+          </div>
+        </div>
       </div>
 
       <div style={{
@@ -103,21 +138,21 @@ export function Home() {
         padding: '0 20px 34px',
       }}>
         {/* Chamada */}
-        <div style={{ marginTop: -22, textAlign: 'center' }}>
+        <div style={{ marginTop: 10, textAlign: 'center' }}>
           <h1 style={{
-            margin: 0, fontSize: 'clamp(30px, 9.4vw, 44px)', fontWeight: 800,
+            margin: 0, fontSize: 'clamp(25px, 8vw, 37px)', fontWeight: 800,
             lineHeight: 1.1, letterSpacing: '-0.02em', color: '#fff',
           }}>
             Empréstimo no Pix
           </h1>
           <p style={{
-            margin: '4px 0 0', fontSize: 'clamp(22px, 6.6vw, 30px)', fontWeight: 700,
+            margin: '4px 0 0', fontSize: 'clamp(18px, 5.6vw, 25px)', fontWeight: 700,
             lineHeight: 1.2, color: '#e6ebf3',
           }}>
             À vista e parcelado
           </p>
           <p style={{
-            margin: '2px 0 0', fontSize: 'clamp(16px, 4.8vw, 21px)', fontWeight: 500,
+            margin: '2px 0 0', fontSize: 'clamp(13.5px, 4.1vw, 18px)', fontWeight: 500,
             lineHeight: 1.3, color: '#9db0c9',
           }}>
             Negativado? A gente analisa.

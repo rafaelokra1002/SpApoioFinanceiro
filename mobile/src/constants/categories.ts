@@ -1,26 +1,24 @@
 import { CategoryOption, DocumentType, ParcelaOption, RendaOption } from '../types';
 
 export const CATEGORIES: CategoryOption[] = [
-  { value: 'CARTEIRA_ASSINADA', label: 'CLT Registrado', icon: '👔',
-    description: 'Para quem trabalha com carteira assinada.' },
-  { value: 'CLT_SEM_REGISTRO', label: 'Trabalho Informal', icon: '📝',
-    description: 'Para quem trabalha em empresa sem carteira assinada.' },
-  { value: 'AUTONOMO', label: 'Trabalho por conta própria', icon: '🔧',
-    description: 'Para autônomos e prestadores de serviços.' },
+  { value: 'CARTEIRA_ASSINADA', label: 'CLT registrado', icon: '👔',
+    description: 'Carteira assinada.' },
+  { value: 'CLT_SEM_REGISTRO', label: 'Trabalho informal', icon: '📝',
+    description: 'Sem carteira assinada.' },
+  { value: 'AUTONOMO', label: 'Autônomo / conta própria', icon: '🔧',
+    description: 'Prestador de serviço ou trabalho independente.' },
   { value: 'BENEFICIARIO', label: 'Beneficiário', icon: '📋',
-    description: 'Para quem recebe benefício do INSS.' },
+    description: 'Recebe benefício.' },
   { value: 'ESTAGIARIO', label: 'Estagiário', icon: '🎓',
-    description: 'Para quem é estudante e estagia.' },
+    description: 'Estuda e trabalha.' },
   { value: 'SERVIDOR_PUBLICO', label: 'Servidor público', icon: '🏛️',
-    description: 'Para quem é servidor público (efetivo ou comissionado).' },
+    description: 'Efetivo ou comissionado.' },
+  { value: 'RECEBE_SEGURO', label: 'Recebe seguro', icon: '🛡️' },
+  { value: 'SEM_COMPROVACAO', label: 'Sem comprovação de renda', icon: '❌' },
   // Oculta a pedido do cliente (não vai usar por enquanto). Reative descomentando.
   // { value: 'COM_GARANTIA', label: 'Tenho um bem como garantia', icon: '🔒',
   //   description: 'Você oferece um bem como garantia para o empréstimo.',
   //   badge: 'Novo', highlight: 'verde' },
-  // Oculta a pedido do cliente (não vai usar por enquanto). Reative descomentando.
-  // { value: 'SEM_COMPROVACAO', label: 'Tenho renda, mas não consigo comprovar', icon: '❌',
-  //   description: 'Para quem recebe renda, mas não tem ou não quer apresentar comprovante.',
-  //   badge: 'Simples', highlight: 'azul' },
 ];
 
 export const PARCELAS: ParcelaOption[] = [
@@ -84,6 +82,15 @@ export const DOCUMENT_TYPES: Record<string, DocumentType[]> = {
     { key: 'RG ou CNH (frente)', label: 'RG ou CNH (frente)', description: 'Documento de identificação', icon: '🪪' },
     { key: 'RG ou CNH (verso)', label: 'RG ou CNH (verso)', description: 'Documento de identificação', icon: '🪪' },
     { key: 'Selfie (rosto)', label: 'Selfie (rosto nítido)', description: 'Sem filtro, rosto bem visível', icon: '📷' },
+    { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz – últimos 2 meses', icon: '🏠' },
+  ],
+  // TODO: documentos definitivos de quem recebe seguro (o cliente vai enviar a lista).
+  // Provisório: documentos-base para não quebrar o fluxo.
+  RECEBE_SEGURO: [
+    { key: 'RG ou CNH (frente)', label: 'RG ou CNH (frente)', description: 'Documento de identificação', icon: '🪪' },
+    { key: 'RG ou CNH (verso)', label: 'RG ou CNH (verso)', description: 'Documento de identificação', icon: '🪪' },
+    { key: 'Selfie (rosto)', label: 'Selfie (rosto nítido)', description: 'Sem filtro, rosto bem visível', icon: '📷' },
+    { key: 'Comprovante do seguro', label: 'Comprovante do seguro', description: 'Extrato ou comprovante do recebimento', icon: '📄' },
     { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz – últimos 2 meses', icon: '🏠' },
   ],
   // Servidor público — a lista depende do vínculo (efetivo x comissionado).

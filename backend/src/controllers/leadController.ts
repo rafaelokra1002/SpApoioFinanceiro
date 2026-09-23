@@ -1,7 +1,9 @@
+import fs from 'fs';
 import { Request, Response, NextFunction } from 'express';
 import * as leadService from '../services/leadService';
 import { getUploadUrl, shouldUseCloudinary, uploadToCloudinary } from '../services/uploadService';
 import { AppError } from '../middleware/errorHandler';
+import { rejectedFilesOf } from '../middleware/upload';
 import { ApiResponse } from '../types';
 
 function getBaseUrl(req: Request): string {
@@ -24,6 +26,20 @@ function decodeFilename(name: string): string {
   } catch {
     return name;
   }
+}
+
+/** Recusa a requisição se algum arquivo foi descartado por formato não aceito (ver middleware/upload). */
+function assertFormatosAceitos(req: Request): void {
+  const rejeitados = rejectedFilesOf(req);
+  if (rejeitados.length > 0) {
+    const nomes = rejeitados.map(decodeFilename).join(', ');
+    throw new AppError(`Formato de arquivo não aceito: ${nomes}. Envie JPEG, PNG, WebP ou PDF.`, 400);
+  }
+}
+
+/** Apaga os temporários de um upload que não virou solicitação (falha ao enviar/salvar). Ignora erros. */
+async function discardFiles(files: Express.Multer.File[]): Promise<void> {
+  await Promise.all(files.map((f) => fs.promises.unlink(f.path).catch(() => undefined)));
 }
 
 async function persistDocument(file: Express.Multer.File, baseUrl: string) {
@@ -60,11 +76,13 @@ export async function handleUploadDocuments(
   res: Response<ApiResponse>,
   next: NextFunction
 ): Promise<void> {
+  const files = (req.files as Express.Multer.File[]) || [];
+  let salvo = false;
   try {
+    assertFormatosAceitos(req);
     const { leadId } = req.params;
-    const files = req.files as Express.Multer.File[];
 
-    if (!files || files.length === 0) {
+    if (files.length === 0) {
       throw new AppError('Nenhum arquivo enviado', 400);
     }
 
@@ -80,6 +98,7 @@ export async function handleUploadDocuments(
     }
 
     await leadService.addDocuments(leadId as string, documents);
+    salvo = true;
 
     res.status(200).json({
       success: true,
@@ -87,6 +106,7 @@ export async function handleUploadDocuments(
       message: 'Documentos enviados com sucesso',
     });
   } catch (error) {
+    if (!salvo) await discardFiles(files);
     next(error);
   }
 }
@@ -96,8 +116,10 @@ export async function handleCreateLeadWithDocs(
   res: Response<ApiResponse>,
   next: NextFunction
 ): Promise<void> {
+  const files = (req.files as Express.Multer.File[]) || [];
+  let leadCriado = false;
   try {
-    const files = req.files as Express.Multer.File[];
+    assertFormatosAceitos(req);
     const body = req.body;
 
     const leadData = {
@@ -126,16 +148,20 @@ export async function handleCreateLeadWithDocs(
       longitude: body.longitude ? parseFloat(body.longitude) : undefined,
     };
 
-    const lead = await leadService.createLead(leadData);
+    // Envia os documentos ANTES de criar a solicitação: se um envio falhar (arquivo grande demais,
+    // rede), nada é criado e o cliente pode tentar de novo sem gerar solicitação duplicada ou
+    // sem documentos (antes o lead nascia primeiro e ficava órfão quando um envio falhava).
+    const baseUrl = getBaseUrl(req);
+    const documents = [];
+    for (const file of files) {
+      documents.push(await persistDocument(file, baseUrl));
+    }
 
-    if (files && files.length > 0) {
-      const baseUrl = getBaseUrl(req);
-      const documents = [];
-      for (const file of files) {
-        documents.push(await persistDocument(file, baseUrl));
-      }
+    const lead = await leadService.createLead(leadData);
+    if (documents.length > 0) {
       await leadService.addDocuments(lead.id, documents);
     }
+    leadCriado = true;
 
     const leadCompleto = await leadService.getLeadById(lead.id);
 
@@ -145,6 +171,8 @@ export async function handleCreateLeadWithDocs(
       message: 'Solicitação enviada com sucesso! Análise em até 24h.',
     });
   } catch (error) {
+    // Sem solicitação criada, os arquivos não pertencem a ninguém: apaga os temporários.
+    if (!leadCriado) await discardFiles(files);
     next(error);
   }
 }

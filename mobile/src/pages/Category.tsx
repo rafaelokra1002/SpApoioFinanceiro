@@ -1,6 +1,6 @@
 import {
   ArrowLeft, Briefcase, ChevronRight, FileText, GraduationCap, HandCoins, Landmark,
-  ShieldCheck, Store, User, type LucideIcon,
+  Shield, ShieldCheck, Store, User, type LucideIcon,
 } from 'lucide-react';
 import { useLoan } from '../context/LoanContext';
 import { CATEGORIES } from '../constants/categories';
@@ -21,6 +21,7 @@ const categoryIcons: Record<string, LucideIcon> = {
   BENEFICIARIO: HandCoins,
   ESTAGIARIO: GraduationCap,
   SERVIDOR_PUBLICO: Landmark,
+  RECEBE_SEGURO: Shield,
   COM_GARANTIA: ShieldCheck,
   SEM_COMPROVACAO: FileText,
 };
@@ -30,35 +31,22 @@ export function Category() {
 
   return (
     <div style={{ minHeight: '100vh', background: BG, padding: '18px 16px 26px', colorScheme: 'dark' }}>
-      {/* Topo: voltar + progresso (2ª etapa) */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <button onClick={() => dispatch({ type: 'SET_STEP', step: 1 })} style={{
-          display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 4px',
-          background: 'none', border: 'none', cursor: 'pointer',
-          color: '#fff', fontWeight: 500, fontSize: 17,
-        }}>
-          <ArrowLeft size={22} strokeWidth={2.2} />
-          Voltar
-        </button>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 14, color: MUTED }}>2 de 3</span>
-          <span style={{ display: 'flex', gap: 5 }}>
-            <span style={{ width: 28, height: 5, borderRadius: 3, background: GOLD }} />
-            <span style={{ width: 28, height: 5, borderRadius: 3, background: GOLD }} />
-            <span style={{ width: 28, height: 5, borderRadius: 3, background: LINE }} />
-          </span>
-        </div>
-      </div>
+      {/* Topo: voltar */}
+      <button onClick={() => dispatch({ type: 'SET_STEP', step: 1 })} style={{
+        display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 4px',
+        background: 'none', border: 'none', cursor: 'pointer',
+        color: '#fff', fontWeight: 500, fontSize: 17,
+      }}>
+        <ArrowLeft size={22} strokeWidth={2.2} />
+        Voltar
+      </button>
 
       <h1 style={{
-        margin: '22px 0 8px', fontSize: 'clamp(24px, 6.6vw, 36px)', fontWeight: 800,
+        margin: '22px 0 22px', fontSize: 'clamp(24px, 6.6vw, 36px)', fontWeight: 800,
         lineHeight: 1.15, letterSpacing: '-0.02em', color: '#fff',
       }}>
         Qual é seu tipo de renda?
       </h1>
-      <p style={{ margin: '0 0 22px', fontSize: 15.5, lineHeight: 1.4, color: MUTED }}>
-        Selecione a categoria que melhor se encaixa no seu perfil.
-      </p>
 
       {/* Category List */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

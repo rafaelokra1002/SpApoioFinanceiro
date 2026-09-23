@@ -120,6 +120,7 @@ export function camposEmprego(perfil: string): { empresa: string; local: string 
     case 'AUTONOMO': return { empresa: 'Profissão / atividade', local: 'Onde atende / trabalha' };
     case 'SEM_COMPROVACAO': return { empresa: 'Dados de renda', local: 'Local de trabalho' };
     case 'SERVIDOR_PUBLICO': return { empresa: 'Órgão onde trabalha', local: 'Local de trabalho' };
+    case 'RECEBE_SEGURO': return { empresa: 'Seguradora', local: 'Tipo de seguro' };
     case 'COM_GARANTIA': return { empresa: 'Empresa', local: 'Local de trabalho' };
     default: return { empresa: 'Empresa', local: 'Local de trabalho' };
   }

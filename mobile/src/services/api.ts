@@ -35,13 +35,32 @@ export async function submitLeadWithDocuments(
       formData.append('documentos', doc.file, `${doc.tipo}.${ext}`);
     });
 
-    const res = await fetch(`${API_BASE}/lead/complete`, {
-      method: 'POST',
-      body: formData,
-    });
-    const result = await res.json();
-    if (!res.ok) throw new Error(result.error || 'Erro ao enviar dados');
-    return result;
+    let res: Response;
+    try {
+      res = await fetch(`${API_BASE}/lead/complete`, { method: 'POST', body: formData });
+    } catch {
+      // "Failed to fetch": a conexão caiu ou foi cortada antes de haver resposta.
+      return {
+        success: false,
+        error: 'Não conseguimos concluir o envio. Verifique sua internet e tente de novo. '
+          + 'Se as fotos são da galeria, tente pelo botão "Foto" ou envie em PDF.',
+      };
+    }
+
+    // A resposta pode não ser JSON (ex.: página de erro do servidor/proxy).
+    let result: ApiResponse | null = null;
+    try { result = await res.json(); } catch { /* não-JSON */ }
+
+    if (!res.ok) {
+      return {
+        success: false,
+        error: result?.error
+          || (res.status === 413
+            ? 'Os arquivos são muito grandes. Envie fotos menores ou PDFs mais leves.'
+            : `O servidor não conseguiu processar o envio (código ${res.status}). Tente novamente em instantes.`),
+      };
+    }
+    return result ?? { success: false, error: 'Resposta inesperada do servidor. Tente novamente.' };
   } catch (error: any) {
     return { success: false, error: error.message || 'Erro ao enviar solicitação' };
   }

@@ -6,7 +6,7 @@ import {
 import { useLoan } from '../context/LoanContext';
 import { CATEGORIES, DOCUMENT_TYPES } from '../constants/categories';
 import { submitLeadWithDocuments } from '../services/api';
-import { compressImage } from '../utils/image';
+import { compressImage, formatoAceito, pareceImagem } from '../utils/image';
 import { UploadedFile } from '../types';
 
 type OrigemKey = 'PANFLETO' | 'INSTAGRAM' | 'INDICACAO';
@@ -190,6 +190,7 @@ export function Documents() {
   const garantia = state.categoria === 'COM_GARANTIA';
   const autonomo = state.categoria === 'AUTONOMO';
   const semComprovacao = state.categoria === 'SEM_COMPROVACAO';
+  const recebeSeguro = state.categoria === 'RECEBE_SEGURO';
 
   // No cabeçalho, o servidor público mostra o vínculo (Cargo efetivo/comissionado)
   // no lugar da categoria.
@@ -222,7 +223,7 @@ export function Documents() {
 
     // Bloqueia tipo trocado: foto onde se pede PDF (e vice-versa).
     const isPdf = raw.type === 'application/pdf' || raw.name.toLowerCase().endsWith('.pdf');
-    const isImage = raw.type.startsWith('image/') || /\.(jpe?g|png|webp|gif|bmp|heic)$/i.test(raw.name);
+    const isImage = pareceImagem(raw);
     if (expectedKind === 'image' && !isImage) {
       setError('Aqui é para foto/imagem. Para enviar um PDF, use o botão "PDF".');
       return;
@@ -235,6 +236,14 @@ export function Documents() {
 
     // Comprime fotos antes de guardar (evita "File too large" e agiliza o upload).
     const file = await compressImage(raw);
+
+    // O servidor só aceita JPEG/PNG/WebP e PDF. Se a imagem não pôde ser convertida (ex.: HEIC no
+    // Android), avisa agora — antes o erro só aparecia no envio final, e sem dizer qual arquivo.
+    if (!formatoAceito(file)) {
+      const formato = raw.name.includes('.') ? raw.name.split('.').pop()!.toUpperCase() : (raw.type || 'desconhecido');
+      setError(`Este formato de imagem (${formato}) não é aceito. Use o botão "Foto" para tirar a foto agora, ou envie em PDF.`);
+      return;
+    }
     const preview = file.type === 'application/pdf' ? '' : URL.createObjectURL(file);
     dispatch({ type: 'SET_DOCUMENT', key: currentDocKey, file: { file, preview } });
   };
@@ -355,10 +364,10 @@ export function Documents() {
           </div>
 
           <h1 style={{
-            margin: '22px 0 6px', fontSize: 'clamp(28px, 8vw, 38px)', fontWeight: 800,
-            lineHeight: 1.1, letterSpacing: '-0.02em', color: '#fff',
+            margin: '22px 0 6px', fontSize: 'clamp(22px, 6.4vw, 30px)', fontWeight: 800,
+            lineHeight: 1.15, letterSpacing: '-0.02em', color: '#fff',
           }}>
-            Seus dados
+            Informe seus dados
           </h1>
           <p style={{ margin: '0 0 22px', fontSize: 16, color: MUTED }}>
             Preencha as informações para continuar.
@@ -439,11 +448,11 @@ export function Documents() {
                       {active && <span style={{ width: 12, height: 12, borderRadius: '50%', background: GOLD }} />}
                     </span>
                   </div>
-                  {op.pedeNome && (
-                    <input type="text" className="dk-input" placeholder={op.placeholder}
-                      value={active ? origemNome : ''}
-                      onFocus={() => selecionarOrigem(op.key)}
-                      onChange={e => { selecionarOrigem(op.key); setOrigemNome(e.target.value); }}
+                  {op.pedeNome && active && (
+                    <input type="text" className="dk-input" placeholder={op.placeholder} autoFocus
+                      value={origemNome}
+                      onClick={e => e.stopPropagation()}
+                      onChange={e => setOrigemNome(e.target.value)}
                       style={{
                         width: '100%', boxSizing: 'border-box', marginTop: 14, height: 52,
                         padding: '0 16px', borderRadius: 12, border: `1.5px solid ${LINE}`,
@@ -692,6 +701,23 @@ export function Documents() {
                   value={state.nomeEmpresa}
                   onChange={v => dispatch({ type: 'SET_FIELD', field: 'nomeEmpresa', value: v })}
                 />
+              ) : recebeSeguro ? (
+                <>
+                  <ExtraField
+                    icon={<Landmark />}
+                    label="Seguradora"
+                    placeholder="Ex.: Porto Seguro, Bradesco Seguros, SulAmérica"
+                    value={state.nomeEmpresa}
+                    onChange={v => dispatch({ type: 'SET_FIELD', field: 'nomeEmpresa', value: v })}
+                  />
+                  <ExtraField
+                    icon={<BadgeCheck />}
+                    label="Tipo de seguro"
+                    placeholder="Ex.: Seguro de vida, DPVAT, Acidentes pessoais"
+                    value={state.bairroTrabalho}
+                    onChange={v => dispatch({ type: 'SET_FIELD', field: 'bairroTrabalho', value: v })}
+                  />
+                </>
               ) : servidorPublico ? (
                 <>
                   <ExtraField
