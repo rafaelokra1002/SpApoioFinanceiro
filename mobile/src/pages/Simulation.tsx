@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { RefreshCw } from 'lucide-react';
 import { useLoan } from '../context/LoanContext';
 import { simular } from '../hooks/useSimulation';
 import { useCities } from '../hooks/useCities';
@@ -22,6 +23,7 @@ export function Simulation() {
   const [rendaInput, setRendaInput] = useState('');
   // `parcelas` no contexto começa com um valor padrão; à vista é sempre 1 parcela.
   const [modalidade, setModalidade] = useState<'VISTA' | 'PARCELADO'>('VISTA');
+  const [modalidadeAberta, setModalidadeAberta] = useState(false);
 
   const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.replace(/\D/g, '');
@@ -53,6 +55,12 @@ export function Simulation() {
   };
 
   const canCalc = state.valor > 0 && !!state.cidade && !!state.renda;
+
+  const MODALIDADES = [
+    { value: 'VISTA' as const, titulo: 'À vista', sub: 'Mais chance de aprovação' },
+    { value: 'PARCELADO' as const, titulo: 'Parcelado', sub: `Até ${MAX_PARCELAS}x` },
+  ];
+  const modalidadeAtual = MODALIDADES.find(m => m.value === modalidade)!;
 
   return (
     <div style={{ padding: '18px 16px 26px', minHeight: '100vh', background: BG, colorScheme: 'dark' }}>
@@ -92,17 +100,51 @@ export function Simulation() {
         </div>
       </div>
 
-      {/* Modalidade */}
+      {/* Modalidade: seletor único (estilo dropdown) — toque abre a outra opção */}
       <h2 style={{ fontSize: 20, fontWeight: 700, color: '#fff', margin: '0 0 12px' }}>Como deseja pagar?</h2>
-      <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
-        <ModalidadeCard
-          ativo={modalidade === 'VISTA'} onClick={() => setModalidade('VISTA')}
-          titulo="À vista" selo="Mais chance de aprovação"
-        />
-        <ModalidadeCard
-          ativo={modalidade === 'PARCELADO'} onClick={() => setModalidade('PARCELADO')}
-          titulo="Parcelado" selo={`Até ${MAX_PARCELAS}x`}
-        />
+      <div style={{ marginBottom: 16 }}>
+        <button onClick={() => setModalidadeAberta(v => !v)} style={{
+          width: '100%', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', cursor: 'pointer',
+          padding: '14px 16px', borderRadius: 14,
+          background: 'rgba(224,185,111,0.07)', border: `1.5px solid ${GOLD}`,
+        }}>
+          <span style={{
+            width: 32, height: 32, borderRadius: '50%', flexShrink: 0, background: GOLD,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 16, fontWeight: 800, color: '#111827',
+          }}>$</span>
+          <span style={{ flex: 1, minWidth: 0 }}>
+            <span style={{ display: 'block', fontSize: 18, fontWeight: 700, color: '#fff' }}>{modalidadeAtual.titulo}</span>
+            <span style={{ display: 'block', marginTop: 2, fontSize: 12.5, lineHeight: 1.3, color: MUTED }}>{modalidadeAtual.sub}</span>
+          </span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"
+            style={{ flexShrink: 0, transition: 'transform 0.15s', transform: modalidadeAberta ? 'rotate(180deg)' : 'none' }}>
+            <path d="M6 9l6 6 6-6"/>
+          </svg>
+        </button>
+
+        {modalidadeAberta && (
+          <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {MODALIDADES.filter(m => m.value !== modalidade).map(m => (
+              <button key={m.value}
+                onClick={() => { setModalidade(m.value); setModalidadeAberta(false); }}
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', cursor: 'pointer',
+                  padding: '14px 16px', borderRadius: 14, background: CARD, border: `1.5px solid ${LINE}`,
+                }}>
+                <span style={{
+                  width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
+                  border: '2px solid #3a4863', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 16, fontWeight: 800, color: MUTED,
+                }}>$</span>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ display: 'block', fontSize: 18, fontWeight: 700, color: '#fff' }}>{m.titulo}</span>
+                  <span style={{ display: 'block', marginTop: 2, fontSize: 12.5, lineHeight: 1.3, color: MUTED }}>{m.sub}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Cidade + renda */}
@@ -175,13 +217,13 @@ export function Simulation() {
           background: CARD, border: `1.5px solid ${LINE}`, borderRadius: 16,
           padding: '18px 18px 16px', marginBottom: 14,
         }}>
-          <h3 style={{ margin: '0 0 14px', fontSize: 20, fontWeight: 700, color: '#fff' }}>Resumo do empréstimo</h3>
+          <h3 style={{ margin: '0 0 14px', fontSize: 20, fontWeight: 700, color: '#fff' }}>Resumo</h3>
 
           <Linha label="Valor solicitado" valor={formatCurrency(preview.valorSolicitado)} />
-          <Linha label="Taxa ao mês" valor={`${preview.taxaJuros}%`} />
+          <Linha label="Taxa" valor={`${preview.taxaJuros}%`} />
           <Linha
             label={preview.parcelas === 1 ? 'Prazo' : 'Parcelas'}
-            valor={preview.parcelas === 1 ? 'até 30 dias' : `${preview.parcelas}x`}
+            valor={preview.parcelas === 1 ? '30 dias' : `${preview.parcelas}x`}
           />
           {/* À vista, parcela e total são o mesmo valor — só mostra a parcela no parcelado. */}
           {preview.parcelas > 1 && (
@@ -201,10 +243,8 @@ export function Simulation() {
       {/* Aviso do à vista */}
       {modalidade === 'VISTA' && (
         <Aviso
-          titulo="Tá sem o valor total?"
-          texto={preview
-            ? `Pague ${formatCurrency(preview.valorTotal - preview.valorSolicitado)} de juros e o total fica para o próximo vencimento.`
-            : 'Pague só os juros e o total fica para o próximo vencimento.'}
+          titulo="Sem o valor total no vencimento?"
+          texto="Pague os juros e renove por mais 30 dias."
         />
       )}
 
@@ -236,32 +276,6 @@ const fieldLabel: React.CSSProperties = {
   fontSize: 14, color: MUTED, display: 'block', marginBottom: 4,
 };
 
-function ModalidadeCard({ ativo, onClick, titulo, selo }: {
-  ativo: boolean; onClick: () => void; titulo: string; selo: string;
-}) {
-  return (
-    <button onClick={onClick} style={{
-      flex: 1, minWidth: 0, textAlign: 'left', cursor: 'pointer',
-      display: 'flex', alignItems: 'center', gap: 12,
-      background: ativo ? 'rgba(224,185,111,0.07)' : CARD,
-      border: `1.5px solid ${ativo ? GOLD : LINE}`,
-      borderRadius: 14, padding: '18px 12px',
-    }}>
-      <span style={{
-        width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
-        border: `2.5px solid ${ativo ? GOLD : '#3a4863'}`,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
-        {ativo && <span style={{ width: 14, height: 14, borderRadius: '50%', background: GOLD }} />}
-      </span>
-      <span style={{ minWidth: 0 }}>
-        <span style={{ display: 'block', fontSize: 18, fontWeight: 700, color: '#fff' }}>{titulo}</span>
-        <span style={{ display: 'block', marginTop: 3, fontSize: 12.5, lineHeight: 1.3, color: MUTED }}>{selo}</span>
-      </span>
-    </button>
-  );
-}
-
 /**
  * Caixa de aviso dourada: "!" + título na primeira linha e o texto embaixo, na largura
  * toda, sempre em UMA linha. A fonte do texto acompanha a largura do aviso (cqw) para
@@ -277,9 +291,11 @@ function Aviso({ titulo, texto }: { titulo: string; texto: string }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{
             width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
-            border: `2px solid ${GOLD}`, color: GOLD, fontWeight: 800, fontSize: 15,
+            border: `2px solid ${GOLD}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>!</span>
+          }}>
+            <RefreshCw size={13} color={GOLD} strokeWidth={2.2} />
+          </span>
           <span style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>{titulo}</span>
         </div>
         <div style={{
