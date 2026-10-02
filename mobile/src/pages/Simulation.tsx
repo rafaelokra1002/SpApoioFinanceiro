@@ -185,11 +185,17 @@ export function Simulation() {
         </div>
       )}
 
-      {/* Aviso do à vista */}
+      {/* Avisos por modalidade */}
       {modalidade === 'VISTA' && (
         <Aviso
           titulo="Sem o valor total no vencimento?"
           texto="Pague os juros e renove por mais 30 dias."
+        />
+      )}
+      {modalidade === 'PARCELADO' && (
+        <Aviso
+          titulo="Não aprovou no parcelado?"
+          texto="Você ainda pode ser aprovado no à vista."
         />
       )}
 
