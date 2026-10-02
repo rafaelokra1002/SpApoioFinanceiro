@@ -26,7 +26,11 @@ async function ensureTable(): Promise<void> {
   tableReady = true;
 }
 
-async function getSetting(key: string): Promise<string | null> {
+/**
+ * Leitura/escrita genéricas na tabela `app_settings` — além da senha do painel,
+ * é aqui que vivem outras configurações simples (ex.: forma de pagamento).
+ */
+export async function getSetting(key: string): Promise<string | null> {
   await ensureTable();
   const rows = await prisma.$queryRawUnsafe<{ value: string }[]>(
     'SELECT value FROM app_settings WHERE key = $1',
@@ -35,7 +39,7 @@ async function getSetting(key: string): Promise<string | null> {
   return rows[0]?.value ?? null;
 }
 
-async function setSetting(key: string, value: string): Promise<void> {
+export async function setSetting(key: string, value: string): Promise<void> {
   await ensureTable();
   await prisma.$executeRawUnsafe(
     'INSERT INTO app_settings (key, value) VALUES ($1, $2) ' +

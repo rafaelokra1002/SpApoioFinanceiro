@@ -87,18 +87,18 @@ export function Home() {
           position: 'absolute', inset: 0,
           background: `linear-gradient(to bottom, rgba(6,12,21,0) 58%, ${BG} 100%)`,
         }} />
-        {/* "CRED FINANCEIRA" sob o logo da foto (posição em % da própria foto) */}
+        {/* "EMPRÉSTIMOS" sob o logo da foto (posição em % da própria foto) */}
         <div style={{
           position: 'absolute', left: '6.5%', top: '51.5%', width: '40%',
           paddingBottom: 6, textAlign: 'center', color: '#fff',
-          fontSize: 'clamp(9px, 2.9vw, 14px)', fontWeight: 500, letterSpacing: '0.3em',
+          fontSize: 'clamp(15px, 4.8vw, 24px)', fontWeight: 600, letterSpacing: '0.28em',
           textTransform: 'uppercase', whiteSpace: 'nowrap',
           borderBottom: '1px solid rgba(255,255,255,0.55)',
         }}>
-          Cred Financeira
+          Empréstimos
         </div>
 
-        {/* "Não somos banco" — selo compacto, lado esquerdo, abaixo de "Cred Financeira" */}
+        {/* "Não somos banco" — selo compacto, lado esquerdo, abaixo de "Empréstimos" */}
         <div style={{
           position: 'absolute', top: '73%', left: '6.5%', width: 'fit-content', maxWidth: '85%',
           display: 'flex', alignItems: 'center', gap: 9, padding: '9px 12px',

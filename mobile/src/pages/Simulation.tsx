@@ -3,10 +3,9 @@ import { RefreshCw } from 'lucide-react';
 import { useLoan } from '../context/LoanContext';
 import { simular } from '../hooks/useSimulation';
 import { useCities } from '../hooks/useCities';
+import { useModalidadePagamento } from '../hooks/useModalidadePagamento';
 import { PARCELAS } from '../constants/categories';
 import { formatCurrency } from '../utils/formatCurrency';
-
-const MAX_PARCELAS = PARCELAS[PARCELAS.length - 1].value;
 
 // Tema escuro com dourado (mesma paleta da Home).
 const BG = '#060c15';
@@ -21,9 +20,8 @@ export function Simulation() {
   const cities = useCities();
   const [inputValue, setInputValue] = useState('');
   const [rendaInput, setRendaInput] = useState('');
-  // `parcelas` no contexto começa com um valor padrão; à vista é sempre 1 parcela.
-  const [modalidade, setModalidade] = useState<'VISTA' | 'PARCELADO'>('VISTA');
-  const [modalidadeAberta, setModalidadeAberta] = useState(false);
+  // Forma de pagamento: decidida pelo admin (painel), não pelo cliente — ver useModalidadePagamento.
+  const modalidade = useModalidadePagamento();
 
   const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.replace(/\D/g, '');
@@ -55,12 +53,6 @@ export function Simulation() {
   };
 
   const canCalc = state.valor > 0 && !!state.cidade && !!state.renda;
-
-  const MODALIDADES = [
-    { value: 'VISTA' as const, titulo: 'À vista', sub: 'Mais chance de aprovação' },
-    { value: 'PARCELADO' as const, titulo: 'Parcelado', sub: `Até ${MAX_PARCELAS}x` },
-  ];
-  const modalidadeAtual = MODALIDADES.find(m => m.value === modalidade)!;
 
   return (
     <div style={{ padding: '18px 16px 26px', minHeight: '100vh', background: BG, colorScheme: 'dark' }}>
@@ -98,53 +90,6 @@ export function Simulation() {
             }}
           />
         </div>
-      </div>
-
-      {/* Modalidade: seletor único (estilo dropdown) — toque abre a outra opção */}
-      <h2 style={{ fontSize: 20, fontWeight: 700, color: '#fff', margin: '0 0 12px' }}>Como deseja pagar?</h2>
-      <div style={{ marginBottom: 16 }}>
-        <button onClick={() => setModalidadeAberta(v => !v)} style={{
-          width: '100%', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', cursor: 'pointer',
-          padding: '14px 16px', borderRadius: 14,
-          background: 'rgba(224,185,111,0.07)', border: `1.5px solid ${GOLD}`,
-        }}>
-          <span style={{
-            width: 32, height: 32, borderRadius: '50%', flexShrink: 0, background: GOLD,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 16, fontWeight: 800, color: '#111827',
-          }}>$</span>
-          <span style={{ flex: 1, minWidth: 0 }}>
-            <span style={{ display: 'block', fontSize: 18, fontWeight: 700, color: '#fff' }}>{modalidadeAtual.titulo}</span>
-            <span style={{ display: 'block', marginTop: 2, fontSize: 12.5, lineHeight: 1.3, color: MUTED }}>{modalidadeAtual.sub}</span>
-          </span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"
-            style={{ flexShrink: 0, transition: 'transform 0.15s', transform: modalidadeAberta ? 'rotate(180deg)' : 'none' }}>
-            <path d="M6 9l6 6 6-6"/>
-          </svg>
-        </button>
-
-        {modalidadeAberta && (
-          <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {MODALIDADES.filter(m => m.value !== modalidade).map(m => (
-              <button key={m.value}
-                onClick={() => { setModalidade(m.value); setModalidadeAberta(false); }}
-                style={{
-                  width: '100%', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', cursor: 'pointer',
-                  padding: '14px 16px', borderRadius: 14, background: CARD, border: `1.5px solid ${LINE}`,
-                }}>
-                <span style={{
-                  width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
-                  border: '2px solid #3a4863', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 16, fontWeight: 800, color: MUTED,
-                }}>$</span>
-                <span style={{ flex: 1, minWidth: 0 }}>
-                  <span style={{ display: 'block', fontSize: 18, fontWeight: 700, color: '#fff' }}>{m.titulo}</span>
-                  <span style={{ display: 'block', marginTop: 2, fontSize: 12.5, lineHeight: 1.3, color: MUTED }}>{m.sub}</span>
-                </span>
-              </button>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* Cidade + renda */}

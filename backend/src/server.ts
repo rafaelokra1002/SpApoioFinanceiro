@@ -7,6 +7,7 @@ import leadRoutes from './routes/lead';
 import adminRoutes from './routes/admin';
 import categoryRoutes from './routes/category';
 import cityRoutes from './routes/city';
+import settingsRoutes from './routes/settings';
 import { errorHandler } from './middleware/errorHandler';
 import { ensureAuthReady } from './services/authService';
 
@@ -32,6 +33,7 @@ app.use('/api/lead', leadRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/cities', cityRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // Health check
 app.get('/api/health', (_req, res) => {

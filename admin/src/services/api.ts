@@ -194,3 +194,14 @@ export async function seedMessageTemplates() {
 export async function upsertMessageTemplate(status: string, content: string) {
   return req(`/admin/whatsapp/templates/${status}`, { method: 'PUT', body: JSON.stringify({ content }) });
 }
+
+/* ------------------------------------------------------------- settings */
+
+/** Forma de pagamento oferecida no app (o cliente não escolhe — decide o admin). */
+export async function fetchModalidadePagamento() {
+  return req('/settings/modalidade-pagamento');
+}
+
+export async function updateModalidadePagamento(modalidade: 'VISTA' | 'PARCELADO') {
+  return req('/admin/settings/modalidade-pagamento', { method: 'PUT', body: JSON.stringify({ modalidade }) });
+}

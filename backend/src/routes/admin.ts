@@ -38,6 +38,7 @@ import {
 } from '../controllers/whatsappController';
 import { validate, statusSchema } from '../middleware/validation';
 import { handleLogin, handleChangePassword } from '../controllers/authController';
+import { handleUpdateModalidadePagamento } from '../controllers/settingsController';
 import { requireAuth } from '../middleware/requireAuth';
 
 const router = Router();
@@ -48,6 +49,8 @@ router.post('/auth/login', handleLogin);
 router.use(requireAuth);
 
 router.post('/auth/change-password', handleChangePassword);
+
+router.put('/settings/modalidade-pagamento', handleUpdateModalidadePagamento);
 
 router.get('/stats', handleGetStats);
 router.get('/leads', handleGetLeads);

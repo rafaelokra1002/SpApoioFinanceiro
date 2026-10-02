@@ -21,6 +21,17 @@ export async function fetchCities(): Promise<City[]> {
   return result.data;
 }
 
+/**
+ * Forma de pagamento oferecida (à vista ou parcelado): decidida pelo admin, o
+ * cliente não escolhe. Lança em caso de erro (o hook usa 'VISTA' como reserva).
+ */
+export async function fetchModalidadePagamento(): Promise<'VISTA' | 'PARCELADO'> {
+  const res = await fetch(`${API_BASE}/settings/modalidade-pagamento`);
+  const result: ApiResponse<{ modalidade: 'VISTA' | 'PARCELADO' }> = await res.json();
+  if (!res.ok || !result.success || !result.data) throw new Error(result.error || 'Erro ao carregar configuração');
+  return result.data.modalidade;
+}
+
 export async function submitLeadWithDocuments(
   data: LeadData,
   documents: { tipo: string; file: File }[]
