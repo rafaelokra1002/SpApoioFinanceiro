@@ -12,8 +12,8 @@ interface SettingsProps {
 type Modalidade = 'VISTA' | 'PARCELADO';
 
 const MODALIDADES: { value: Modalidade; label: string; desc: string; icon: typeof Wallet }[] = [
-  { value: 'VISTA', label: 'À vista', desc: 'O cliente simula só o pagamento à vista.', icon: Banknote },
-  { value: 'PARCELADO', label: 'Parcelado', desc: 'O cliente simula só o pagamento parcelado.', icon: CreditCard },
+  { value: 'VISTA', label: 'Só à vista', desc: 'O campo "Como deseja pagar?" fica oculto; tudo roda em à vista.', icon: Banknote },
+  { value: 'PARCELADO', label: 'À vista e parcelado', desc: 'O campo volta a aparecer; o cliente escolhe entre os dois.', icon: CreditCard },
 ];
 
 export default function Settings({ colorId, onColorChange }: SettingsProps) {
@@ -142,7 +142,7 @@ function PaymentModeSection() {
       )}
 
       <p className="mt-4 text-[11.5px] text-subtle">
-        O campo "Como deseja pagar?" fica oculto para o cliente — o app usa direto a opção escolhida aqui.
+        Com "Só à vista", o campo some do app. Com "À vista e parcelado", ele volta e o cliente escolhe.
       </p>
     </section>
   );
