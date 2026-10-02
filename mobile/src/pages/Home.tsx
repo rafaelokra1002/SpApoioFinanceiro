@@ -91,7 +91,7 @@ export function Home() {
         <div style={{
           position: 'absolute', left: '6.5%', top: '51.5%', width: '40%',
           paddingBottom: 6, textAlign: 'center', color: '#fff',
-          fontSize: 'clamp(15px, 4.8vw, 24px)', fontWeight: 600, letterSpacing: '0.28em',
+          fontSize: 'clamp(12px, 3.8vw, 19px)', fontWeight: 600, letterSpacing: '0.3em',
           textTransform: 'uppercase', whiteSpace: 'nowrap',
           borderBottom: '1px solid rgba(255,255,255,0.55)',
         }}>
@@ -146,13 +146,7 @@ export function Home() {
             Empréstimo no Pix
           </h1>
           <p style={{
-            margin: '4px 0 0', fontSize: 'clamp(18px, 5.6vw, 25px)', fontWeight: 700,
-            lineHeight: 1.2, color: '#e6ebf3',
-          }}>
-            À vista e parcelado
-          </p>
-          <p style={{
-            margin: '2px 0 0', fontSize: 'clamp(13.5px, 4.1vw, 18px)', fontWeight: 500,
+            margin: '6px 0 0', fontSize: 'clamp(13.5px, 4.1vw, 18px)', fontWeight: 500,
             lineHeight: 1.3, color: '#9db0c9',
           }}>
             Negativado? A gente analisa.

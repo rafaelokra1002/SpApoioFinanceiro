@@ -91,7 +91,6 @@ export function Simulation() {
 
       {/* Valor desejado */}
       <div style={{ ...cardStyle, padding: '14px 18px 16px', marginBottom: 22 }}>
-        <label style={{ fontSize: 14, color: MUTED, display: 'block', marginBottom: 2 }}>Valor desejado</label>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 30, fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>R$</span>
           <input
