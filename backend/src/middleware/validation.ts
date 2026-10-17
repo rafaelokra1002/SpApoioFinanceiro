@@ -36,6 +36,8 @@ export const leadSchema = z.object({
   enderecoTrabalho: z.string().optional().or(z.literal('')),
   vinculoServidor: z.string().optional().or(z.literal('')),
   matriculaCargo: z.string().optional().or(z.literal('')),
+  veiculoProprio: z.string().optional().or(z.literal('')),
+  placaVeiculo: z.string().optional().or(z.literal('')),
   observacao: z.string().optional().or(z.literal('')),
   latitude: z.number().optional(),
   longitude: z.number().optional(),

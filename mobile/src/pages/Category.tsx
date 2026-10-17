@@ -1,33 +1,36 @@
-import {
-  ArrowLeft, Briefcase, ChevronRight, FileText, GraduationCap, HandCoins, Landmark,
-  Shield, ShieldCheck, Store, User, type LucideIcon,
-} from 'lucide-react';
+import { useState } from 'react';
+import { ArrowLeft, Check, ChevronDown } from 'lucide-react';
 import { useLoan } from '../context/LoanContext';
 import { CATEGORIES } from '../constants/categories';
 import { simular } from '../hooks/useSimulation';
+import { CategoryType } from '../types';
 
 // Tema escuro com dourado (mesma paleta da Home e da Simulação).
 const BG = '#060c15';
 const CARD = '#0b1422';
 const LINE = '#2a3850';
-const GOLD = '#e0b96f';
+const GOLD = '#f6c700';
 const MUTED = '#9aa8bf';
-
-/** Ícone de cada categoria (linha dourada). Inclui as categorias hoje ocultas, p/ quando forem reativadas. */
-const categoryIcons: Record<string, LucideIcon> = {
-  CARTEIRA_ASSINADA: Briefcase,
-  CLT_SEM_REGISTRO: Store,
-  AUTONOMO: User,
-  BENEFICIARIO: HandCoins,
-  ESTAGIARIO: GraduationCap,
-  SERVIDOR_PUBLICO: Landmark,
-  RECEBE_SEGURO: Shield,
-  COM_GARANTIA: ShieldCheck,
-  SEM_COMPROVACAO: FileText,
-};
 
 export function Category() {
   const { state, dispatch } = useLoan();
+  const [aberto, setAberto] = useState(false);
+
+  const atual = CATEGORIES.find(c => c.value === state.categoria);
+
+  const escolher = (valor: CategoryType) => {
+    dispatch({ type: 'SET_FIELD', field: 'categoria', value: valor });
+    // Recalcula a simulação com a categoria.
+    const sim = simular(state.valor, state.parcelas, valor);
+    if (sim) dispatch({ type: 'SET_SIMULATION', payload: sim });
+    // Algumas categorias têm uma etapa extra antes dos documentos:
+    // garantia (tipo de bem) e servidor público (vínculo).
+    const proximoStep = valor === 'COM_GARANTIA' ? 6
+      : valor === 'SERVIDOR_PUBLICO' ? 11
+      : 4;
+    setAberto(false);
+    dispatch({ type: 'SET_STEP', step: proximoStep });
+  };
 
   return (
     <div style={{ minHeight: '100vh', background: BG, padding: '18px 16px 26px', colorScheme: 'dark' }}>
@@ -48,68 +51,55 @@ export function Category() {
         Qual é seu tipo de renda?
       </h1>
 
-      {/* Category List */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {CATEGORIES.map(cat => {
-          const Icon = categoryIcons[cat.value] ?? Briefcase;
-          return (
-            <button key={cat.value}
-              onClick={() => {
-                dispatch({ type: 'SET_FIELD', field: 'categoria', value: cat.value });
-                // Recalcula a simulação com a categoria.
-                const sim = simular(state.valor, state.parcelas, cat.value);
-                if (sim) dispatch({ type: 'SET_SIMULATION', payload: sim });
-                // Algumas categorias têm uma etapa extra antes dos documentos:
-                // garantia (tipo de bem) e servidor público (vínculo).
-                const proximoStep = cat.value === 'COM_GARANTIA' ? 6
-                  : cat.value === 'SERVIDOR_PUBLICO' ? 11
-                  : 4;
-                dispatch({ type: 'SET_STEP', step: proximoStep });
-              }}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 14,
-                padding: '13px 16px', borderRadius: 14, cursor: 'pointer',
-                background: CARD, border: `1.5px solid ${LINE}`, textAlign: 'left',
-                transition: 'border-color 0.15s, background 0.15s',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.borderColor = GOLD;
-                e.currentTarget.style.background = 'rgba(224,185,111,0.08)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.borderColor = LINE;
-                e.currentTarget.style.background = CARD;
-              }}
-            >
-              <span style={{
-                minWidth: 46, width: 46, height: 46, borderRadius: '50%', background: '#131d2e',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <Icon size={23} color={GOLD} strokeWidth={1.7} />
-              </span>
+      {/* Seletor: mostra a categoria atual, toque abre a lista completa abaixo */}
+      <button onClick={() => setAberto(v => !v)} style={{
+        width: '100%', textAlign: 'left', cursor: 'pointer',
+        display: 'flex', alignItems: 'center', gap: 12,
+        padding: '12px 16px', borderRadius: 14,
+        background: CARD, border: `1.5px solid ${aberto ? GOLD : LINE}`,
+      }}>
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ display: 'block', fontSize: 13, color: MUTED }}>Tipo de renda</span>
+          <span style={{ display: 'block', marginTop: 2, fontSize: 18, fontWeight: 700, color: '#fff' }}>
+            {atual ? atual.label : 'Selecione'}
+          </span>
+        </span>
+        <ChevronDown size={22} color={GOLD} strokeWidth={2.4}
+          style={{ flexShrink: 0, transition: 'transform 0.15s', transform: aberto ? 'rotate(180deg)' : 'none' }} />
+      </button>
 
-              <span style={{ flex: 1, minWidth: 0 }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                  <span style={{ fontWeight: 600, fontSize: 16.5, color: '#fff' }}>{cat.label}</span>
-                  {cat.badge && (
-                    <span style={{
-                      fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999,
-                      background: 'rgba(224,185,111,0.16)', color: GOLD,
-                    }}>{cat.badge}</span>
+      {/* Lista completa, com a categoria atual destacada e marcada */}
+      {aberto && (
+        <div style={{
+          marginTop: 10, borderRadius: 14, border: `1.5px solid ${LINE}`,
+          background: CARD, overflow: 'hidden',
+        }}>
+          {CATEGORIES.map((cat, i) => {
+            const selecionado = cat.value === state.categoria;
+            return (
+              <button key={cat.value} onClick={() => escolher(cat.value)} style={{
+                width: '100%', textAlign: 'left', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: 12,
+                padding: '14px 16px', border: 'none',
+                borderTop: i > 0 ? `1px solid ${LINE}` : 'none',
+                background: selecionado ? 'rgba(246,199,0,0.1)' : 'transparent',
+              }}>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ fontSize: 16.5, fontWeight: selecionado ? 700 : 500, color: '#fff' }}>
+                    {cat.label}
+                  </span>
+                  {cat.description && (
+                    <span style={{ display: 'block', marginTop: 2, fontSize: 12.5, lineHeight: 1.35, color: MUTED }}>
+                      {cat.description}
+                    </span>
                   )}
                 </span>
-                {cat.description && (
-                  <span style={{ display: 'block', marginTop: 2, fontSize: 13, lineHeight: 1.35, color: MUTED }}>
-                    {cat.description}
-                  </span>
-                )}
-              </span>
-
-              <ChevronRight size={20} color="#7d8aa0" strokeWidth={2.4} style={{ flexShrink: 0 }} />
-            </button>
-          );
-        })}
-      </div>
+                {selecionado && <Check size={20} color={GOLD} strokeWidth={3} style={{ flexShrink: 0 }} />}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

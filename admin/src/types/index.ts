@@ -25,6 +25,10 @@ export interface Lead {
   vinculoServidor: string | null;
   /** Servidor público: matrícula funcional (efetivo) ou cargo ocupado (comissionado). */
   matriculaCargo: string | null;
+  /** Motorista de aplicativo: veículo próprio ou alugado. */
+  veiculoProprio: string | null;
+  /** Motorista de aplicativo: placa do veículo. */
+  placaVeiculo: string | null;
   observacao: string | null;
   latitude: number | null;
   longitude: number | null;

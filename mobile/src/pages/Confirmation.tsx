@@ -19,8 +19,8 @@ export function Confirmation() {
         {/* Ícone: documento em análise, com anel dourado */}
         <div style={{
           width: 120, height: 120, borderRadius: '50%',
-          border: '2px solid rgba(224,185,111,0.35)', background: 'rgba(224,185,111,0.05)',
-          boxShadow: '0 0 40px rgba(224,185,111,0.14)',
+          border: '2px solid rgba(246,199,0,0.35)', background: 'rgba(246,199,0,0.05)',
+          boxShadow: '0 0 40px rgba(246,199,0,0.14)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           margin: '0 auto 30px', animation: 'pop 0.5s ease',
         }}>
@@ -89,7 +89,7 @@ export function Confirmation() {
         <button onClick={() => dispatch({ type: 'RESET' })} style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
           width: '100%', padding: '19px', borderRadius: 14, border: 'none', cursor: 'pointer',
-          background: 'linear-gradient(180deg, #e8c885 0%, #c9a05a 100%)',
+          background: '#f6c700',
           color: '#111827', fontWeight: 800, fontSize: 20,
         }}>
           Entendi

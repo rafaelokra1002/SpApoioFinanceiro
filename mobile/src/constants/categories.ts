@@ -7,6 +7,9 @@ export const CATEGORIES: CategoryOption[] = [
     description: 'Sem carteira assinada.' },
   { value: 'AUTONOMO', label: 'Autônomo / conta própria', icon: '🔧',
     description: 'Prestador de serviço ou trabalho independente.' },
+  { value: 'MOTORISTA_APP', label: 'Motorista de aplicativo', icon: '🚗',
+    description: 'Uber, 99 ou similares.' },
+  { value: 'TRABALHO_JOB', label: 'Trabalho com job (GP)', icon: '💼' },
   { value: 'BENEFICIARIO', label: 'Beneficiário', icon: '📋',
     description: 'Recebe benefício.' },
   { value: 'ESTAGIARIO', label: 'Estagiário', icon: '🎓',
@@ -46,9 +49,9 @@ export const DOCUMENT_TYPES: Record<string, DocumentType[]> = {
   CARTEIRA_ASSINADA: [
     { key: 'RG ou CNH (frente)', label: 'RG ou CNH (frente)', description: 'Foto da parte da frente', icon: '🪪' },
     { key: 'RG ou CNH (verso)', label: 'RG ou CNH (verso)', description: 'Foto da parte de trás', icon: '🪪' },
-    { key: 'Selfie (rosto)', label: 'Selfie', description: 'Rosto nítido, sem filtro', icon: '📷' },
-    { key: 'Carteira de Trabalho Digital (PDF)', label: 'Carteira de Trabalho Digital (PDF)', description: 'Envie o PDF da Carteira de Trabalho Digital (app ou gov.br)', icon: '💼' },
-    { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz – últimos 2 meses', icon: '🏠' },
+    { key: 'Selfie (rosto)', label: 'Foto do rosto', description: 'Foto nítida, sem filtro.', icon: '📷' },
+    { key: 'Carteira de Trabalho Digital (PDF)', label: 'Carteira de Trabalho Digital', description: 'Arquivo em PDF.', icon: '💼' },
+    { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz dos últimos 2 meses.', icon: '🏠' },
   ],
   CLT_SEM_REGISTRO: [
     { key: 'RG ou CNH (frente)', label: 'RG ou CNH (frente)', description: 'Documento de identificação', icon: '🪪' },
@@ -64,19 +67,33 @@ export const DOCUMENT_TYPES: Record<string, DocumentType[]> = {
     { key: 'Extrato bancário', label: 'Extrato bancário (últimos 30 dias)', description: 'Extrato completo do último mês', icon: '📄' },
     { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz – últimos 2 meses', icon: '🏠' },
   ],
+  MOTORISTA_APP: [
+    { key: 'RG ou CNH (frente)', label: 'RG ou CNH (frente)', description: 'Documento de identificação', icon: '🪪' },
+    { key: 'RG ou CNH (verso)', label: 'RG ou CNH (verso)', description: 'Documento de identificação', icon: '🪪' },
+    { key: 'Selfie (rosto)', label: 'Foto do rosto', description: 'Foto nítida, sem filtro.', icon: '📷' },
+    { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz dos últimos 2 meses.', icon: '🏠' },
+    { key: 'Comprovante de ganhos', label: 'Comprovante de ganhos', description: 'Extratos ou prints dos últimos 30 dias da Uber ou 99. Se trabalha nos dois, envie dos dois.', icon: '📊' },
+  ],
+  TRABALHO_JOB: [
+    { key: 'RG ou CNH (frente)', label: 'RG ou CNH (frente)', description: 'Documento de identificação', icon: '🪪' },
+    { key: 'RG ou CNH (verso)', label: 'RG ou CNH (verso)', description: 'Documento de identificação', icon: '🪪' },
+    { key: 'Selfie (rosto)', label: 'Foto do rosto', description: 'Foto nítida, sem filtro.', icon: '📷' },
+    { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz dos últimos 2 meses.', icon: '🏠' },
+    { key: 'Extrato bancário', label: 'Extrato bancário', description: 'Últimos 30 dias.', icon: '📄' },
+  ],
   BENEFICIARIO: [
     { key: 'RG ou CNH (frente)', label: 'RG ou CNH (frente)', description: 'Documento de identificação', icon: '🪪' },
     { key: 'RG ou CNH (verso)', label: 'RG ou CNH (verso)', description: 'Documento de identificação', icon: '🪪' },
-    { key: 'Selfie (rosto)', label: 'Selfie (rosto nítido)', description: 'Sem filtro, rosto bem visível', icon: '📷' },
-    { key: 'Extrato do benefício', label: 'Extrato do benefício (último mês)', description: 'Extrato do INSS ou aplicativo Meu INSS com nome e valor do benefício visível', icon: '📄' },
-    { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz – últimos 2 meses', icon: '🏠' },
+    { key: 'Selfie (rosto)', label: 'Foto do rosto', description: 'Foto nítida, sem filtro.', icon: '📷' },
+    { key: 'Extrato do benefício', label: 'Extrato do benefício', description: 'Envie o extrato do último mês com seu nome e o valor do benefício visíveis.', icon: '📄' },
+    { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz dos últimos 2 meses.', icon: '🏠' },
   ],
   ESTAGIARIO: [
     { key: 'RG ou CNH (frente)', label: 'RG ou CNH (frente)', description: 'Documento de identificação', icon: '🪪' },
     { key: 'RG ou CNH (verso)', label: 'RG ou CNH (verso)', description: 'Documento de identificação', icon: '🪪' },
-    { key: 'Selfie (rosto)', label: 'Selfie (rosto nítido)', description: 'Sem filtro, rosto bem visível', icon: '📷' },
-    { key: 'Contrato de estágio ou comprovante do último pagamento', label: 'Contrato de estágio ou comprovante do último pagamento', description: 'Envie uma das duas opções', icon: '📄' },
-    { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz – últimos 2 meses', icon: '🏠' },
+    { key: 'Selfie (rosto)', label: 'Foto do rosto', description: 'Foto nítida, sem filtro.', icon: '📷' },
+    { key: 'Contrato de estágio ou comprovante do último pagamento', label: 'Comprovante de estágio', description: 'Contrato de estágio ou comprovante do último pagamento. Envie uma das opções.', icon: '📄' },
+    { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz dos últimos 2 meses.', icon: '🏠' },
   ],
   SEM_COMPROVACAO: [
     { key: 'RG ou CNH (frente)', label: 'RG ou CNH (frente)', description: 'Documento de identificação', icon: '🪪' },
@@ -84,14 +101,12 @@ export const DOCUMENT_TYPES: Record<string, DocumentType[]> = {
     { key: 'Selfie (rosto)', label: 'Selfie (rosto nítido)', description: 'Sem filtro, rosto bem visível', icon: '📷' },
     { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz – últimos 2 meses', icon: '🏠' },
   ],
-  // TODO: documentos definitivos de quem recebe seguro (o cliente vai enviar a lista).
-  // Provisório: documentos-base para não quebrar o fluxo.
   RECEBE_SEGURO: [
     { key: 'RG ou CNH (frente)', label: 'RG ou CNH (frente)', description: 'Documento de identificação', icon: '🪪' },
     { key: 'RG ou CNH (verso)', label: 'RG ou CNH (verso)', description: 'Documento de identificação', icon: '🪪' },
-    { key: 'Selfie (rosto)', label: 'Selfie (rosto nítido)', description: 'Sem filtro, rosto bem visível', icon: '📷' },
-    { key: 'Comprovante do seguro', label: 'Comprovante do seguro', description: 'Extrato ou comprovante do recebimento', icon: '📄' },
-    { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz – últimos 2 meses', icon: '🏠' },
+    { key: 'Selfie (rosto)', label: 'Foto do rosto', description: 'Foto nítida, sem filtro.', icon: '📷' },
+    { key: 'Comprovante do seguro', label: 'Comprovante do seguro', description: 'Envie o extrato ou comprovante do recebimento.', icon: '📄' },
+    { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz dos últimos 2 meses.', icon: '🏠' },
   ],
   // Servidor público — a lista depende do vínculo (efetivo x comissionado).
   SERVIDOR_PUBLICO_EFETIVO: [

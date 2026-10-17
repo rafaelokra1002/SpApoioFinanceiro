@@ -31,6 +31,8 @@ model Lead {
   enderecoTrabalho String?
   vinculoServidor String?
   matriculaCargo  String?
+  veiculoProprio  String?
+  placaVeiculo    String?
   observacao      String?
   latitude        Float?
   longitude       Float?

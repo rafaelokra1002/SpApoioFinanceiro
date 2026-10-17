@@ -118,6 +118,8 @@ export function camposEmprego(perfil: string): { empresa: string; local: string 
   switch (perfil) {
     case 'BENEFICIARIO': return { empresa: 'Banco do benefício', local: 'Tipo de benefício' };
     case 'AUTONOMO': return { empresa: 'Profissão / atividade', local: 'Onde atende / trabalha' };
+    case 'MOTORISTA_APP': return { empresa: 'Aplicativo que trabalha', local: 'Onde atende / trabalha' };
+    case 'TRABALHO_JOB': return { empresa: 'Site onde trabalha', local: 'Nome fantasia no site' };
     case 'SEM_COMPROVACAO': return { empresa: 'Dados de renda', local: 'Local de trabalho' };
     case 'SERVIDOR_PUBLICO': return { empresa: 'Órgão onde trabalha', local: 'Local de trabalho' };
     case 'RECEBE_SEGURO': return { empresa: 'Seguradora', local: 'Tipo de seguro' };

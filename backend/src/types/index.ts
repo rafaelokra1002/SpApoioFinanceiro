@@ -35,6 +35,10 @@ export interface LeadInput {
   vinculoServidor?: string;
   /** Servidor público: matrícula funcional (efetivo) ou cargo ocupado (comissionado). */
   matriculaCargo?: string;
+  /** Motorista de aplicativo: veículo próprio ou alugado. */
+  veiculoProprio?: string;
+  /** Motorista de aplicativo: placa do veículo. */
+  placaVeiculo?: string;
   observacao?: string;
   latitude?: number;
   longitude?: number;

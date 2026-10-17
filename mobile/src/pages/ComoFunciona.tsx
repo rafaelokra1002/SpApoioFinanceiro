@@ -7,7 +7,7 @@ import {
 const BG = '#060c15';
 const CARD = '#0b1422';
 const LINE = '#2a3850';
-const GOLD = '#e0b96f';
+const GOLD = '#f6c700';
 const MUTED = '#b3bdd0';
 
 const FAQ: { icon: LucideIcon; q: string; a: string }[] = [
@@ -84,7 +84,7 @@ export function ComoFunciona({ onClose, onSolicitar }: { onClose: () => void; on
           <button onClick={onSolicitar} style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
             width: '100%', padding: '19px', borderRadius: 12, border: 'none', cursor: 'pointer',
-            background: 'linear-gradient(180deg, #e8c885 0%, #c9a05a 100%)',
+            background: '#f6c700',
             color: '#111827', fontWeight: 800, fontSize: 19,
           }}>
             Solicitar empréstimo

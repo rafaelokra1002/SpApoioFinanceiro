@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
 import {
-  ArrowLeft, ArrowRight, BadgeCheck, Briefcase, Building2, Camera, Check, CircleCheck, Clock, FileText, House,
-  IdCard, Image as ImageIcon, Info, Instagram, Landmark, MapPin, MessageSquare, Phone, UserRound, Users,
+  ArrowRight, BadgeCheck, Briefcase, Building2, Camera, Car, ChartNoAxesColumn, Check, CircleCheck,
+  ChevronDown, ChevronLeft, Clock, Upload,
+  FileText, House, IdCard, Image as ImageIcon, Info, Landmark, MapPin, MessageSquare, UserRound,
 } from 'lucide-react';
 import { useLoan } from '../context/LoanContext';
 import { CATEGORIES, DOCUMENT_TYPES } from '../constants/categories';
@@ -9,42 +10,29 @@ import { submitLeadWithDocuments } from '../services/api';
 import { compressImage, formatoAceito, pareceImagem } from '../utils/image';
 import { UploadedFile } from '../types';
 
-type OrigemKey = 'PANFLETO' | 'INSTAGRAM' | 'INDICACAO';
-
 // Tema escuro com dourado (mesma paleta da Home, Simulação e Categorias) — etapa "Seus dados".
 const BG = '#060c15';
 const CARD = '#0b1422';
 const LINE = '#2a3850';
-const GOLD = '#e0b96f';
+const GOLD = '#f6c700';
 const MUTED = '#9aa8bf';
 
-/**
- * Opções de "Como conheceu a SP?".
- * `toIndicacao` monta o texto salvo no campo livre `indicacao` — o admin classifica
- * a origem por palavra-chave, então "Instagram"/"Panfleto" precisam aparecer no texto.
- */
-const ORIGENS: {
-  key: OrigemKey; label: string; placeholder: string;
-  pedeNome: boolean; icon: React.ReactNode;
-  toIndicacao: (nome: string) => string;
-}[] = [
-  // Oculta a pedido do cliente. Reative descomentando.
-  // {
-  //   key: 'PANFLETO', label: 'Panfleto', placeholder: '',
-  //   pedeNome: false, icon: <FileText size={28} color={GOLD} strokeWidth={1.7} />,
-  //   toIndicacao: () => 'Panfleto',
-  // },
-  {
-    key: 'INSTAGRAM', label: 'Instagram, página ou blogueira', placeholder: 'Digite o nome do perfil',
-    pedeNome: true, icon: <Instagram size={28} color={GOLD} strokeWidth={1.7} />,
-    toIndicacao: nome => `Instagram: ${nome}`,
-  },
-  {
-    key: 'INDICACAO', label: 'Indicação de amigo', placeholder: 'Digite o nome de quem indicou',
-    pedeNome: true, icon: <Users size={28} color={GOLD} strokeWidth={1.7} />,
-    toIndicacao: nome => nome,
-  },
-];
+/** Logo do topo: "SP" em amarelo + "EMPRÉSTIMOS" em branco. */
+function Logo() {
+  return (
+    <div style={{ display: 'flex', alignItems: 'baseline', gap: 7 }}>
+      <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: 26, color: GOLD, letterSpacing: '-0.02em' }}>SP</span>
+      <span style={{ fontSize: 15, fontWeight: 800, color: '#fff', letterSpacing: '0.02em' }}>EMPRÉSTIMOS</span>
+    </div>
+  );
+}
+
+/** Campo simples da etapa "Seus dados": caixa escura com borda, sem ícone. */
+const plainInput: React.CSSProperties = {
+  width: '100%', boxSizing: 'border-box', height: 56, padding: '0 18px',
+  borderRadius: 12, border: `1.5px solid ${LINE}`, background: CARD,
+  fontSize: 16.5, color: '#fff', outline: 'none', fontFamily: 'inherit',
+};
 
 const docCardStyle: React.CSSProperties = {
   background: CARD, border: `1.5px solid ${LINE}`, borderRadius: 16, padding: '14px 14px 14px',
@@ -94,70 +82,57 @@ function ExtraField({ icon, label, optional, multiline, placeholder, value, onCh
   );
 }
 
-/**
- * Indicador de etapas: 1 Seus dados → 2 Documentos → 3 Confirmação.
- * Sem `labels`: versão compacta (etapa atual preenchida). Com `labels`: círculos espalhados,
- * etapas concluídas com ✔, a atual em anel dourado e o nome de cada etapa embaixo.
- */
-function Stepper({ atual, labels }: { atual: 1 | 2 | 3; labels?: string[] }) {
-  const detalhado = !!labels;
+/** Barra de progresso linear da etapa 2 (documentos): "Etapa X de Y" + barra dourada. */
+function EtapaBar({ atual, total }: { atual: number; total: number }) {
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center',
-      ...(detalhado ? { width: '100%', maxWidth: 320, margin: '0 auto 36px' } : {}),
-    }}>
-      {[1, 2, 3].map((n, i) => {
-        const concluida = detalhado && n < atual;
-        const ativa = n === atual;
-        return (
-          <React.Fragment key={n}>
-            {i > 0 && (
-              <span style={{
-                ...(detalhado ? { flex: 1 } : { width: 34 }),
-                height: 2, background: n <= atual ? GOLD : LINE,
-              }} />
-            )}
-            <span style={{ position: 'relative', flexShrink: 0, width: 30, height: 30 }}>
-              <span style={{
-                width: 30, height: 30, borderRadius: '50%', boxSizing: 'border-box',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 14, fontWeight: 700,
-                background: concluida ? '#c9b27c' : (ativa && !detalhado ? GOLD : BG),
-                color: concluida || (ativa && !detalhado) ? '#111827' : (ativa ? '#fff' : MUTED),
-                border: `${ativa && detalhado ? 2 : 1.5}px solid ${n <= atual ? GOLD : LINE}`,
-              }}>
-                {concluida ? <Check size={16} strokeWidth={3} /> : n}
-              </span>
-              {detalhado && (
-                <span style={{
-                  position: 'absolute', top: 36, left: '50%', transform: 'translateX(-50%)',
-                  whiteSpace: 'nowrap', fontSize: 13, fontWeight: ativa ? 700 : 400,
-                  color: ativa ? '#fff' : MUTED,
-                }}>{labels![i]}</span>
-              )}
-            </span>
-          </React.Fragment>
-        );
-      })}
+    <div>
+      <p style={{ margin: '0 0 8px', fontSize: 14, fontWeight: 600, color: MUTED }}>
+        Etapa {atual} de {total}
+      </p>
+      <div style={{ height: 6, borderRadius: 999, background: LINE, overflow: 'hidden' }}>
+        <div style={{ height: '100%', width: `${(atual / total) * 100}%`, borderRadius: 999, background: GOLD }} />
+      </div>
     </div>
   );
 }
 
-/** Caixa de campo escura: ícone dourado, divisória e o input à direita. */
-function DarkField({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
+/** Um dos lados da CNH (frente/verso): botão simples; depois de enviado, mostra check dourado. */
+function CnhLadoButton({ lado, uploaded, onAdd, onClear }: {
+  lado: string; uploaded: boolean; onAdd: () => void; onClear: () => void;
+}) {
+  if (uploaded) {
+    return (
+      <button onClick={onClear} style={{
+        flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        padding: '11px 8px', borderRadius: 10, cursor: 'pointer',
+        background: 'rgba(246,199,0,0.08)', border: `1.5px solid ${GOLD}`, color: GOLD, fontWeight: 600, fontSize: 14,
+      }}>
+        <Check size={16} strokeWidth={2.6} />
+        {lado} enviada
+      </button>
+    );
+  }
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 12, padding: '0 16px', height: 58,
-      borderRadius: 14, border: `1.5px solid ${LINE}`, background: CARD,
-    }}>
-      <span style={{ display: 'flex', flexShrink: 0 }}>{icon}</span>
-      <span style={{ width: 1, height: 26, background: LINE, flexShrink: 0 }} />
-      {children}
-    </div>
+    <button onClick={onAdd} style={docActionStyle}>
+      <Upload size={18} strokeWidth={2} />
+      Adicionar {lado.toLowerCase()}
+    </button>
   );
 }
 
-const darkLabel: React.CSSProperties = { display: 'block', fontSize: 17, color: '#fff', marginBottom: 8 };
+/** Seção de dados complementares da etapa 2 ("Seu trabalho", "Seu seguro"...). */
+const sectionTitle: React.CSSProperties = {
+  margin: '6px 0 12px', fontSize: 'clamp(24px, 7vw, 30px)', fontWeight: 800,
+  letterSpacing: '-0.02em', color: '#fff',
+};
+const sectionLabel: React.CSSProperties = { display: 'block', fontSize: 16, fontWeight: 600, color: '#fff', marginBottom: 8 };
+const sectionInput: React.CSSProperties = {
+  width: '100%', boxSizing: 'border-box', height: 52, padding: '0 16px',
+  borderRadius: 12, border: `1.5px solid ${LINE}`, background: CARD,
+  fontSize: 16, color: '#fff', outline: 'none',
+};
+
+const stepLabel: React.CSSProperties ={ display: 'block', fontSize: 16.5, fontWeight: 700, color: '#fff', marginBottom: 10 };
 
 const darkInput: React.CSSProperties = {
   flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent',
@@ -175,20 +150,29 @@ export function Documents() {
   const [currentDocKey, setCurrentDocKey] = useState('');
   const [showTip, setShowTip] = useState<string | null>(null);
   // Tipo esperado do arquivo conforme o botão clicado (foto x PDF).
-  const [expectedKind, setExpectedKind] = useState<'image' | 'pdf'>('image');
-  const [origem, setOrigem] = useState<OrigemKey | ''>('');
-  const [origemNome, setOrigemNome] = useState('');
+  const [expectedKind, setExpectedKind] = useState<'image' | 'pdf' | 'any'>('image');
+  const anyInputRef = useRef<HTMLInputElement>(null);
+  // "+ Adicionar informação (opcional)": começa fechado, a não ser que já tenha texto.
+  const [obsOpen, setObsOpen] = useState(false);
+  // Documento com o menu "Adicionar documento" aberto (Tirar foto / Galeria / PDF).
+  const [menuDoc, setMenuDoc] = useState<string | null>(null);
 
   const servidorPublico = state.categoria === 'SERVIDOR_PUBLICO';
   const comissionado = state.vinculoServidor === 'COMISSIONADO';
   // Servidor público usa a lista de documentos do vínculo escolhido (efetivo x comissionado).
   const docKey = servidorPublico ? `SERVIDOR_PUBLICO_${state.vinculoServidor || 'EFETIVO'}` : state.categoria;
   const docs = DOCUMENT_TYPES[docKey] || DOCUMENT_TYPES['CARTEIRA_ASSINADA'];
+  // RG/CNH frente e verso aparecem juntos num único card "CNH" (quando a categoria os pede separados).
+  const CNH_FRENTE_KEY = 'RG ou CNH (frente)';
+  const CNH_VERSO_KEY = 'RG ou CNH (verso)';
+  const temCnhSeparada = docs.some(d => d.key === CNH_FRENTE_KEY) && docs.some(d => d.key === CNH_VERSO_KEY);
+  const docsLista = temCnhSeparada ? docs.filter(d => d.key !== CNH_FRENTE_KEY && d.key !== CNH_VERSO_KEY) : docs;
   const categoriaLabel = CATEGORIES.find(c => c.value === state.categoria)?.label || '';
   const beneficiario = state.categoria === 'BENEFICIARIO';
   // Garantia não pede dados de emprego/renda — o bem é a garantia.
   const garantia = state.categoria === 'COM_GARANTIA';
   const autonomo = state.categoria === 'AUTONOMO';
+  const motoristaApp = state.categoria === 'MOTORISTA_APP';
   const semComprovacao = state.categoria === 'SEM_COMPROVACAO';
   const recebeSeguro = state.categoria === 'RECEBE_SEGURO';
 
@@ -196,7 +180,12 @@ export function Documents() {
   // no lugar da categoria.
   const vinculoLabel = state.vinculoServidor === 'EFETIVO' ? 'Cargo efetivo'
     : state.vinculoServidor === 'COMISSIONADO' ? 'Cargo comissionado' : '';
-  const perfilTexto = servidorPublico && vinculoLabel ? vinculoLabel : categoriaLabel;
+  const carteiraAssinada = state.categoria === 'CARTEIRA_ASSINADA';
+  const estagiario = state.categoria === 'ESTAGIARIO';
+  const trabalhoJob = state.categoria === 'TRABALHO_JOB';
+  const perfilTexto = servidorPublico && vinculoLabel ? vinculoLabel
+    : carteiraAssinada ? 'Carteira assinada (CLT)'
+    : categoriaLabel;
 
   const openFilePicker = (docKey: string) => {
     setCurrentDocKey(docKey);
@@ -208,6 +197,13 @@ export function Documents() {
     setCurrentDocKey(docKey);
     setExpectedKind('image');
     galleryInputRef.current?.click();
+  };
+
+  // RG/CNH: aceita foto ou PDF (o sistema mostra câmera, galeria e arquivos).
+  const openAnyPicker = (docKey: string) => {
+    setCurrentDocKey(docKey);
+    setExpectedKind('any');
+    anyInputRef.current?.click();
   };
 
   const openPdfPicker = (docKey: string) => {
@@ -225,11 +221,15 @@ export function Documents() {
     const isPdf = raw.type === 'application/pdf' || raw.name.toLowerCase().endsWith('.pdf');
     const isImage = pareceImagem(raw);
     if (expectedKind === 'image' && !isImage) {
-      setError('Aqui é para foto/imagem. Para enviar um PDF, use o botão "PDF".');
+      setError('Aqui é para foto/imagem. Para enviar um PDF, use "Selecionar PDF".');
       return;
     }
     if (expectedKind === 'pdf' && !isPdf) {
-      setError('Aqui é para arquivo PDF. Para enviar uma foto, use "Câmera" ou "Galeria".');
+      setError('Aqui é para arquivo PDF. Para enviar uma foto, use "Tirar foto" ou "Escolher da galeria".');
+      return;
+    }
+    if (expectedKind === 'any' && !isImage && !isPdf) {
+      setError('Envie uma foto ou um arquivo PDF.');
       return;
     }
     setError('');
@@ -241,7 +241,7 @@ export function Documents() {
     // Android), avisa agora — antes o erro só aparecia no envio final, e sem dizer qual arquivo.
     if (!formatoAceito(file)) {
       const formato = raw.name.includes('.') ? raw.name.split('.').pop()!.toUpperCase() : (raw.type || 'desconhecido');
-      setError(`Este formato de imagem (${formato}) não é aceito. Use o botão "Foto" para tirar a foto agora, ou envie em PDF.`);
+      setError(`Este formato de imagem (${formato}) não é aceito. Use "Tirar foto" para fotografar agora, ou envie em PDF.`);
       return;
     }
     const preview = file.type === 'application/pdf' ? '' : URL.createObjectURL(file);
@@ -253,7 +253,12 @@ export function Documents() {
       setError('Preencha nome e telefone.');
       return;
     }
-    const missing = docs.filter(d => !state.documents[d.key]);
+    // RG/CNH frente e verso: basta um dos lados (arquivo com os dois lados é enviado uma vez só).
+    const temCnh = !!(state.documents[CNH_FRENTE_KEY] || state.documents[CNH_VERSO_KEY]);
+    const missing = docs.filter(d => {
+      if (temCnhSeparada && (d.key === CNH_FRENTE_KEY || d.key === CNH_VERSO_KEY)) return !temCnh;
+      return !state.documents[d.key];
+    });
     if (missing.length > 0) {
       setError('Envie todos os documentos obrigatórios.');
       return;
@@ -288,14 +293,15 @@ export function Documents() {
       nomeEmpresa: state.nomeEmpresa || undefined,
       bairroTrabalho: state.bairroTrabalho || undefined,
       indicacao: state.indicacao || undefined,
-      // Origem real escolhida no passo "Como você conheceu a SP?" (campo próprio no banco).
-      origem: origem || undefined,
       endereco: state.endereco || undefined,
       cep: state.cep || undefined,
       enderecoTrabalho: state.enderecoTrabalho || undefined,
       // Servidor público: vínculo e matrícula/cargo em campos próprios (aparecem no admin).
       vinculoServidor: servidorPublico ? (state.vinculoServidor || undefined) : undefined,
       matriculaCargo: servidorPublico ? (state.matriculaCargo || undefined) : undefined,
+      // Motorista de aplicativo: veículo próprio/alugado e placa em campos próprios.
+      veiculoProprio: motoristaApp ? (state.veiculoProprio || undefined) : undefined,
+      placaVeiculo: motoristaApp ? (state.placaVeiculo || undefined) : undefined,
       observacao,
       latitude: state.latitude ?? undefined,
       longitude: state.longitude ?? undefined,
@@ -321,16 +327,10 @@ export function Documents() {
     '🏠': <House size={26} color={GOLD} strokeWidth={1.7} />,
     '💼': <FileText size={26} color={GOLD} strokeWidth={1.7} />,
     '📄': <FileText size={26} color={GOLD} strokeWidth={1.7} />,
+    '📊': <ChartNoAxesColumn size={26} color={GOLD} strokeWidth={1.9} />,
   };
 
   const voltar = () => { if (docStep === 2) setDocStep(1); else dispatch({ type: 'SET_STEP', step: 2 }); };
-
-  // Escolher outra origem limpa o nome digitado (não vaza de "Instagram" para "Indicação").
-  const selecionarOrigem = (key: OrigemKey) => {
-    if (origem === key) return;
-    setOrigem(key);
-    setOrigemNome('');
-  };
 
   return (
     <div style={{
@@ -345,225 +345,203 @@ export function Documents() {
         onChange={handleFileSelect} style={{ display: 'none' }} />
       <input ref={pdfInputRef} type="file" accept=".pdf,application/pdf"
         onChange={handleFileSelect} style={{ display: 'none' }} />
+      <input ref={anyInputRef} type="file" accept="image/*,.pdf,application/pdf"
+        onChange={handleFileSelect} style={{ display: 'none' }} />
 
       {docStep === 1 ? (
-        <div style={{ background: BG, minHeight: '100vh', padding: '18px 16px 26px', colorScheme: 'dark' }}>
-          {/* Topo: voltar + etapas */}
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <button onClick={voltar} style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 4px',
-              background: 'none', border: 'none', cursor: 'pointer',
-              color: '#fff', fontWeight: 500, fontSize: 17,
-            }}>
-              <ArrowLeft size={22} strokeWidth={2.2} />
-              Voltar
-            </button>
-            <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-              <Stepper atual={1} />
-            </div>
+        <div style={{ background: BG, minHeight: '100vh', padding: '18px 20px 26px', colorScheme: 'dark' }}>
+          {/* Topo: logo, voltar e barra de etapa */}
+          <Logo />
+          <button onClick={voltar} style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 22, padding: 0,
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: '#d4dcea', fontWeight: 500, fontSize: 16,
+          }}>
+            <ChevronLeft size={18} strokeWidth={2.2} />
+            Voltar
+          </button>
+          <div style={{ marginTop: 22 }}>
+            <EtapaBar atual={1} total={3} />
           </div>
 
           <h1 style={{
-            margin: '22px 0 6px', fontSize: 'clamp(22px, 6.4vw, 30px)', fontWeight: 800,
-            lineHeight: 1.15, letterSpacing: '-0.02em', color: '#fff',
+            margin: '26px 0 8px', fontSize: 'clamp(32px, 9vw, 42px)', fontWeight: 800,
+            lineHeight: 1.1, letterSpacing: '-0.02em', color: '#fff',
           }}>
-            Informe seus dados
+            Seus dados
           </h1>
-          <p style={{ margin: '0 0 22px', fontSize: 16, color: MUTED }}>
-            Preencha as informações para continuar.
+          <p style={{ margin: '0 0 26px', fontSize: 17, color: MUTED }}>
+            Preencha abaixo para solicitar seu empréstimo.
           </p>
 
-          <div style={{ marginBottom: 16 }}>
-            <label style={darkLabel}>Nome completo</label>
-            <DarkField icon={<UserRound size={24} color={GOLD} strokeWidth={1.7} />}>
-              <input type="text" className="dk-input" placeholder="Digite seu nome completo"
-                value={state.nome}
-                onChange={e => dispatch({ type: 'SET_FIELD', field: 'nome', value: e.target.value })}
-                style={darkInput}
-              />
-            </DarkField>
+          <div style={{ marginBottom: 20 }}>
+            <label style={stepLabel}>Nome completo</label>
+            <input type="text" className="dk-input" placeholder="Digite seu nome completo"
+              value={state.nome}
+              onChange={e => dispatch({ type: 'SET_FIELD', field: 'nome', value: e.target.value })}
+              style={plainInput}
+            />
           </div>
 
-          <div style={{ marginBottom: 16 }}>
-            <label style={darkLabel}>WhatsApp</label>
-            <DarkField icon={<Phone size={24} color={GOLD} strokeWidth={1.7} />}>
-              <input type="text" inputMode="tel" className="dk-input" placeholder="(11) 99999-9999"
-                value={state.telefone}
-                onChange={e => {
-                  const c = e.target.value.replace(/\D/g, '');
-                  let fmt = c;
-                  if (c.length > 2) fmt = `(${c.slice(0,2)}) ${c.slice(2)}`;
-                  if (c.length > 7) fmt = `(${c.slice(0,2)}) ${c.slice(2,7)}-${c.slice(7,11)}`;
-                  dispatch({ type: 'SET_FIELD', field: 'telefone', value: fmt });
-                }}
-                style={darkInput}
-              />
-            </DarkField>
+          <div style={{ marginBottom: 20 }}>
+            <label style={stepLabel}>WhatsApp</label>
+            <input type="text" inputMode="tel" className="dk-input" placeholder="Seu número com DDD"
+              value={state.telefone}
+              onChange={e => {
+                const c = e.target.value.replace(/\D/g, '');
+                let fmt = c;
+                if (c.length > 2) fmt = `(${c.slice(0,2)}) ${c.slice(2)}`;
+                if (c.length > 7) fmt = `(${c.slice(0,2)}) ${c.slice(2,7)}-${c.slice(7,11)}`;
+                dispatch({ type: 'SET_FIELD', field: 'telefone', value: fmt });
+              }}
+              style={plainInput}
+            />
           </div>
 
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10 }}>
-              <label style={darkLabel}>
-                Instagram <span style={{ color: MUTED }}>(opcional)</span>
-              </label>
-              <span style={{ fontSize: 13, color: MUTED }}>Ajuda na análise</span>
-            </div>
-            <DarkField icon={<Instagram size={24} color={GOLD} strokeWidth={1.7} />}>
-              <input type="text" className="dk-input" placeholder="Digite seu Instagram"
-                value={state.instagram}
-                onChange={e => dispatch({ type: 'SET_FIELD', field: 'instagram', value: e.target.value })}
-                style={darkInput}
-              />
-            </DarkField>
+          <div style={{ marginBottom: 20 }}>
+            <label style={stepLabel}>
+              Instagram <span style={{ color: MUTED, fontWeight: 400 }}>(opcional)</span>
+            </label>
+            <input type="text" className="dk-input" placeholder="@seuinstagram"
+              value={state.instagram}
+              onChange={e => dispatch({ type: 'SET_FIELD', field: 'instagram', value: e.target.value })}
+              style={plainInput}
+            />
           </div>
 
-          {/* Como conheceu a SP */}
-          <h2 style={{ margin: '26px 0 4px', fontSize: 'clamp(24px, 7vw, 32px)', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>
-            Como conheceu a SP?
+          {/* Como chegou até a SP — texto livre; o admin deriva a origem por palavra-chave. */}
+          <h2 style={{ margin: '34px 0 6px', fontSize: 'clamp(24px, 7vw, 30px)', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>
+            Como chegou até a SP?
           </h2>
-          <p style={{ margin: '0 0 16px', fontSize: 16, color: MUTED }}>
-            Escolha uma opção e informe os detalhes.
+          <p style={{ margin: '0 0 14px', fontSize: 16, color: MUTED }}>
+            Informe quem indicou ou onde viu a SP.
           </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 20 }}>
-            {ORIGENS.map(op => {
-              const active = origem === op.key;
-              return (
-                <div key={op.key}
-                  onClick={() => selecionarOrigem(op.key)}
-                  style={{
-                    padding: '16px 18px 18px', borderRadius: 16, cursor: 'pointer',
-                    background: active ? 'rgba(224,185,111,0.07)' : CARD,
-                    border: `1.5px solid ${active ? GOLD : LINE}`,
-                    transition: 'border-color 0.15s, background 0.15s',
-                  }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <span style={{ display: 'flex', flexShrink: 0 }}>{op.icon}</span>
-                    <span style={{ width: 1, height: 26, background: LINE, flexShrink: 0 }} />
-                    <span style={{ flex: 1, minWidth: 0, fontSize: 17, color: '#fff' }}>{op.label}</span>
-                    <span style={{
-                      width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
-                      border: `2.5px solid ${active ? GOLD : '#3a4863'}`,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                      {active && <span style={{ width: 12, height: 12, borderRadius: '50%', background: GOLD }} />}
-                    </span>
-                  </div>
-                  {op.pedeNome && active && (
-                    <input type="text" className="dk-input" placeholder={op.placeholder} autoFocus
-                      value={origemNome}
-                      onClick={e => e.stopPropagation()}
-                      onChange={e => setOrigemNome(e.target.value)}
-                      style={{
-                        width: '100%', boxSizing: 'border-box', marginTop: 14, height: 52,
-                        padding: '0 16px', borderRadius: 12, border: `1.5px solid ${LINE}`,
-                        background: '#0d1727', fontSize: 16, color: '#fff', outline: 'none',
-                      }}
-                    />
-                  )}
-                </div>
-              );
-            })}
-          </div>
+          <textarea rows={2} className="dk-input" placeholder="Nome do amigo, página ou blogueira"
+            value={state.indicacao}
+            onChange={e => dispatch({ type: 'SET_FIELD', field: 'indicacao', value: e.target.value })}
+            style={{ ...plainInput, height: 'auto', minHeight: 86, padding: '16px 18px', resize: 'none', lineHeight: 1.4 }}
+          />
 
           {error && (
             <div style={{
               background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.45)',
-              borderRadius: 12, padding: '10px 14px', marginBottom: 14,
+              borderRadius: 12, padding: '10px 14px', marginTop: 16,
             }}>
               <p style={{ fontSize: 13.5, color: '#fca5a5', margin: 0 }}>{error}</p>
             </div>
           )}
 
           <button onClick={() => {
-            if (!state.nome || !state.telefone) {
+            if (!state.nome.trim() || !state.telefone) {
               setError('Preencha nome e WhatsApp para continuar.');
               return;
             }
-            if (!origem) {
-              setError('Selecione como você conheceu a SP.');
+            if (!state.indicacao.trim()) {
+              setError('Informe quem indicou ou onde viu a SP.');
               return;
             }
-            const op = ORIGENS.find(o => o.key === origem);
-            if (op?.pedeNome && !origemNome.trim()) {
-              setError('Informe o nome para a opção escolhida.');
-              return;
-            }
-            // `indicacao` é texto livre; o admin deriva a origem por palavra-chave.
-            dispatch({ type: 'SET_FIELD', field: 'indicacao', value: op ? op.toIndicacao(origemNome.trim()) : '' });
             setError('');
             setDocStep(2);
           }} style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            width: '100%', padding: '19px', borderRadius: 999, border: 'none', cursor: 'pointer',
-            background: 'linear-gradient(180deg, #e8c885 0%, #c9a05a 100%)',
-            color: '#111827', fontWeight: 800, fontSize: 19,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+            width: '100%', marginTop: 26, padding: '18px', borderRadius: 12, border: 'none', cursor: 'pointer',
+            background: GOLD, color: '#111827', fontWeight: 800, fontSize: 18,
           }}>
             Continuar
+            <ArrowRight size={20} strokeWidth={2.4} />
           </button>
         </div>
       ) : (
         <div style={{ background: BG, minHeight: '100vh', display: 'flex', flexDirection: 'column', colorScheme: 'dark' }}>
-          {/* Topo: voltar + perfil */}
+          {/* Topo: logo + voltar + perfil */}
           <div style={{ padding: '18px 16px 0' }}>
+            <div style={{ marginBottom: 14 }}>
+              <Logo />
+            </div>
+
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
               <button onClick={voltar} style={{
-                display: 'inline-flex', alignItems: 'center', gap: 10, flexShrink: 0, padding: 0,
+                display: 'inline-flex', alignItems: 'center', gap: 8, flexShrink: 0, padding: 0,
                 background: 'none', border: 'none', cursor: 'pointer',
-                color: '#fff', fontWeight: 500, fontSize: 17,
+                color: '#fff', fontWeight: 500, fontSize: 16,
               }}>
-                <span style={{
-                  width: 42, height: 42, borderRadius: 12, border: `1.5px solid ${LINE}`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <ArrowLeft size={22} strokeWidth={2.2} />
-                </span>
+                <ChevronLeft size={18} strokeWidth={2.2} />
                 Voltar
               </button>
               {perfilTexto && (
                 <span style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0,
+                  display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0, flexShrink: 1,
                   padding: '7px 12px', borderRadius: 12,
-                  border: `1.5px solid ${GOLD}`, background: 'rgba(224,185,111,0.08)',
+                  border: `1.5px solid ${GOLD}`, background: 'rgba(246,199,0,0.08)',
                 }}>
-                  <UserRound size={20} color={GOLD} strokeWidth={1.9} style={{ flexShrink: 0 }} />
-                  <span style={{ minWidth: 0, lineHeight: 1.2 }}>
-                    <span style={{ display: 'block', fontSize: 11, color: MUTED }}>Perfil:</span>
-                    <span style={{
-                      display: 'block', fontSize: 13.5, fontWeight: 600, color: '#fff',
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    }}>{perfilTexto}</span>
-                  </span>
+                  {motoristaApp
+                    ? <Car size={18} color={GOLD} strokeWidth={1.9} style={{ flexShrink: 0 }} />
+                    : carteiraAssinada
+                      ? <Briefcase size={18} color={GOLD} strokeWidth={1.9} style={{ flexShrink: 0 }} />
+                      : <UserRound size={18} color={GOLD} strokeWidth={1.9} style={{ flexShrink: 0 }} />}
+                  <span style={{
+                    maxWidth: 180, fontSize: 13.5, fontWeight: 600, color: '#fff',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>{perfilTexto}</span>
                 </span>
               )}
             </div>
 
             <div style={{ marginTop: 20 }}>
-              <Stepper atual={2} labels={['1. Cadastro', 'Documentos', 'Análise']} />
+              <EtapaBar atual={2} total={3} />
             </div>
 
             <h1 style={{
               margin: '18px 0 4px', fontSize: 'clamp(28px, 8vw, 38px)', fontWeight: 800,
               lineHeight: 1.1, letterSpacing: '-0.02em', color: '#fff',
             }}>
-              Enviar documentos
+              Seus documentos
             </h1>
             <p style={{ margin: '0 0 18px', fontSize: 16, color: MUTED }}>
-              Mande os arquivos para análise.
+              Envie fotos nítidas ou arquivos em PDF.
             </p>
           </div>
 
           <div style={{ flex: 1, padding: '0 16px 20px' }}>
+            {/* CNH (frente + verso), quando a categoria pede os dois lados separados */}
+            {temCnhSeparada && (
+              <div style={{ ...docCardStyle, marginBottom: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                  <div style={{
+                    minWidth: 50, width: 50, height: 50, borderRadius: 14, background: '#131d2e',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}><IdCard size={26} color={GOLD} strokeWidth={1.7} /></div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ fontWeight: 600, fontSize: 16.5, color: '#fff' }}>
+                      {motoristaApp ? 'CNH' : 'RG ou CNH'}
+                    </span>
+                    <p style={{ fontSize: 13.5, color: MUTED, marginTop: 2, lineHeight: 1.35 }}>
+                      {motoristaApp
+                        ? 'Se a CNH Digital tiver os dois lados, envie uma vez.'
+                        : 'Se o PDF tiver os dois lados, envie uma vez.'}
+                    </p>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+                  <CnhLadoButton lado="Frente" uploaded={!!state.documents[CNH_FRENTE_KEY]}
+                    onAdd={() => openAnyPicker(CNH_FRENTE_KEY)}
+                    onClear={() => dispatch({ type: 'SET_DOCUMENT', key: CNH_FRENTE_KEY, file: null })} />
+                  <CnhLadoButton lado="Verso" uploaded={!!state.documents[CNH_VERSO_KEY]}
+                    onAdd={() => openAnyPicker(CNH_VERSO_KEY)}
+                    onClear={() => dispatch({ type: 'SET_DOCUMENT', key: CNH_VERSO_KEY, file: null })} />
+                </div>
+              </div>
+            )}
+
             {/* Cards de documento */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {docs.map(doc => {
+              {docsLista.map(doc => {
                 const uploaded = state.documents[doc.key];
                 const isPdfOnly = doc.key.toLowerCase().includes('carteira de trabalho');
                 const isSelfie = doc.key.toLowerCase().includes('selfie');
-                // Só a selfie não aceita PDF (precisa ser foto na hora).
-                const podePdf = !isSelfie;
                 const temDica = doc.key === 'Comprovante de residência';
                 return (
-                  <div key={doc.key} style={{ ...docCardStyle, position: 'relative' }}>
+                  <div key={doc.key} style={{ ...docCardStyle, position: 'relative', zIndex: menuDoc === doc.key ? 30 : undefined }}>
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
                       <div style={{
                         minWidth: 50, width: 50, height: 50, borderRadius: 14, background: '#131d2e',
@@ -618,7 +596,7 @@ export function Documents() {
                       </div>
                     )}
 
-                    <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+                    <div style={{ position: 'relative', display: 'flex', gap: 8, marginTop: 14 }}>
                       {uploaded ? (
                         // Limpa o arquivo: o card volta a "Pendente" com os botões de envio.
                         <button onClick={() => dispatch({ type: 'SET_DOCUMENT', key: doc.key, file: null })}
@@ -626,28 +604,50 @@ export function Documents() {
                           Enviar novamente
                         </button>
                       ) : isPdfOnly ? (
-                        <button onClick={() => openPdfPicker(doc.key)} style={{ ...docActionStyle, maxWidth: 130 }}>
-                          <FileText size={17} strokeWidth={1.9} />
-                          PDF
+                        <button onClick={() => openPdfPicker(doc.key)} style={docActionStyle}>
+                          <Upload size={18} strokeWidth={2} />
+                          Adicionar PDF
+                        </button>
+                      ) : isSelfie ? (
+                        // Selfie só pela câmera (foto na hora, sem galeria nem PDF).
+                        <button onClick={() => openFilePicker(doc.key)} style={docActionStyle}>
+                          <Camera size={18} strokeWidth={1.9} />
+                          Tirar foto
                         </button>
                       ) : (
                         <>
-                          <button onClick={() => openFilePicker(doc.key)} style={{ ...docActionStyle, maxWidth: isSelfie ? 130 : undefined }}>
-                            <Camera size={17} strokeWidth={1.9} />
-                            Foto
+                          <button onClick={() => setMenuDoc(menuDoc === doc.key ? null : doc.key)}
+                            style={{ ...docActionStyle, borderColor: menuDoc === doc.key ? GOLD : LINE }}>
+                            <Upload size={18} strokeWidth={2} />
+                            {doc.key === 'Comprovante de ganhos' ? 'Adicionar documentos' : 'Adicionar documento'}
+                            <ChevronDown size={18} strokeWidth={2.2}
+                              style={{ transition: 'transform 0.15s', transform: menuDoc === doc.key ? 'rotate(180deg)' : 'none' }} />
                           </button>
-                          {/* Selfie só pela câmera (foto na hora, sem galeria). */}
-                          {!isSelfie && (
-                            <button onClick={() => openGallery(doc.key)} style={docActionStyle}>
-                              <ImageIcon size={17} strokeWidth={1.9} />
-                              Galeria
-                            </button>
-                          )}
-                          {podePdf && (
-                            <button onClick={() => openPdfPicker(doc.key)} style={docActionStyle}>
-                              <FileText size={17} strokeWidth={1.9} />
-                              PDF
-                            </button>
+                          {menuDoc === doc.key && (
+                            <>
+                              {/* Toque fora fecha o menu. */}
+                              <div onClick={() => setMenuDoc(null)} style={{ position: 'fixed', inset: 0, zIndex: 1 }} />
+                              <div style={{
+                                position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: 'min(100%, 300px)', zIndex: 2,
+                                background: '#131d2e', border: `1px solid ${LINE}`, borderRadius: 14, overflow: 'hidden',
+                                boxShadow: '0 14px 32px rgba(0,0,0,0.55)',
+                              }}>
+                                {[
+                                  { label: 'Tirar foto', icon: <Camera size={22} strokeWidth={1.8} />, abrir: openFilePicker },
+                                  { label: 'Escolher da galeria', icon: <ImageIcon size={22} strokeWidth={1.8} />, abrir: openGallery },
+                                  { label: 'Selecionar PDF', icon: <FileText size={22} strokeWidth={1.8} />, abrir: openPdfPicker },
+                                ].map((op, i) => (
+                                  <button key={op.label} onClick={() => { setMenuDoc(null); op.abrir(doc.key); }} style={{
+                                    display: 'flex', alignItems: 'center', gap: 16, width: '100%', padding: '15px 18px',
+                                    background: 'none', border: 'none', borderTop: i > 0 ? `1px solid ${LINE}` : 'none',
+                                    cursor: 'pointer', color: '#fff', fontSize: 15.5, textAlign: 'left',
+                                  }}>
+                                    {op.icon}
+                                    {op.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </>
                           )}
                         </>
                       )}
@@ -660,22 +660,22 @@ export function Documents() {
             {/* Campos complementares */}
             <div style={{ marginTop: 22, display: 'flex', flexDirection: 'column', gap: 16 }}>
               {beneficiario ? (
-                <>
-                  <ExtraField
-                    icon={<Landmark />}
-                    label="Banco onde recebe o benefício"
-                    placeholder="Ex.: Caixa Econômica, Banco do Brasil, Bradesco"
+                // Banco em `nomeEmpresa` e tipo em `bairroTrabalho` (o admin já rotula assim).
+                <div>
+                  <h2 style={sectionTitle}>Seu benefício</h2>
+                  <label style={sectionLabel}>Banco onde recebe</label>
+                  <input type="text" className="dk-input" placeholder="Ex.: Caixa, Banco do Brasil, Bradesco"
                     value={state.nomeEmpresa}
-                    onChange={v => dispatch({ type: 'SET_FIELD', field: 'nomeEmpresa', value: v })}
+                    onChange={e => dispatch({ type: 'SET_FIELD', field: 'nomeEmpresa', value: e.target.value })}
+                    style={sectionInput}
                   />
-                  <ExtraField
-                    icon={<BadgeCheck />}
-                    label="Tipo de benefício"
-                    placeholder="Ex.: Aposentadoria, Pensão, BPC/LOAS, Auxílio-doença"
+                  <label style={{ ...sectionLabel, marginTop: 16 }}>Tipo de benefício</label>
+                  <input type="text" className="dk-input" placeholder="Informe o benefício que você recebe"
                     value={state.bairroTrabalho}
-                    onChange={v => dispatch({ type: 'SET_FIELD', field: 'bairroTrabalho', value: v })}
+                    onChange={e => dispatch({ type: 'SET_FIELD', field: 'bairroTrabalho', value: e.target.value })}
+                    style={sectionInput}
                   />
-                </>
+                </div>
               ) : garantia ? null : autonomo ? (
                 <>
                   <ExtraField
@@ -693,6 +693,54 @@ export function Documents() {
                     onChange={v => dispatch({ type: 'SET_FIELD', field: 'bairroTrabalho', value: v })}
                   />
                 </>
+              ) : motoristaApp ? (
+                // Motorista de aplicativo: só o card "Seu veículo" (sem empresa/local de trabalho).
+                <div style={{ ...docCardStyle, marginTop: -10 }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                    <div style={{
+                      minWidth: 50, width: 50, height: 50, borderRadius: 14, background: '#131d2e',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}><Car size={26} color={GOLD} strokeWidth={1.7} /></div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ fontWeight: 600, fontSize: 16.5, color: '#fff' }}>Seu veículo</span>
+                      <p style={{ fontSize: 13.5, color: MUTED, marginTop: 2, lineHeight: 1.35 }}>
+                        O veículo é próprio ou alugado?
+                      </p>
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+                      {(['PROPRIO', 'ALUGADO'] as const).map(v => {
+                        const ativo = state.veiculoProprio === v;
+                        return (
+                          <button key={v} type="button"
+                            onClick={() => dispatch({ type: 'SET_FIELD', field: 'veiculoProprio', value: v })}
+                            style={{
+                              ...docActionStyle,
+                              background: ativo ? 'rgba(246,199,0,0.08)' : 'transparent',
+                              borderColor: ativo ? GOLD : LINE,
+                              color: ativo ? GOLD : '#fff',
+                            }}>
+                            {ativo && <Check size={16} strokeWidth={2.6} />}
+                            {v === 'PROPRIO' ? 'Próprio' : 'Alugado'}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <label style={{ display: 'block', fontSize: 14.5, color: '#fff', margin: '14px 0 8px' }}>
+                    Placa do veículo
+                  </label>
+                  <input type="text" className="dk-input" placeholder="Digite a placa"
+                    value={state.placaVeiculo} maxLength={8}
+                    onChange={e => dispatch({ type: 'SET_FIELD', field: 'placaVeiculo', value: e.target.value.toUpperCase() })}
+                    style={{
+                      width: '100%', boxSizing: 'border-box', height: 48, padding: '0 14px',
+                      borderRadius: 10, border: `1.5px solid ${LINE}`, background: 'transparent',
+                      fontSize: 16, color: '#fff', outline: 'none',
+                    }}
+                  />
+                </div>
               ) : semComprovacao ? (
                 <ExtraField
                   icon={<Briefcase />}
@@ -702,22 +750,16 @@ export function Documents() {
                   onChange={v => dispatch({ type: 'SET_FIELD', field: 'nomeEmpresa', value: v })}
                 />
               ) : recebeSeguro ? (
-                <>
-                  <ExtraField
-                    icon={<Landmark />}
-                    label="Seguradora"
-                    placeholder="Ex.: Porto Seguro, Bradesco Seguros, SulAmérica"
-                    value={state.nomeEmpresa}
-                    onChange={v => dispatch({ type: 'SET_FIELD', field: 'nomeEmpresa', value: v })}
-                  />
-                  <ExtraField
-                    icon={<BadgeCheck />}
-                    label="Tipo de seguro"
-                    placeholder="Ex.: Seguro de vida, DPVAT, Acidentes pessoais"
+                // Tipo de seguro fica em `bairroTrabalho` (o admin já mostra como "Tipo de seguro").
+                <div>
+                  <h2 style={sectionTitle}>Seu seguro</h2>
+                  <label style={sectionLabel}>Tipo de seguro</label>
+                  <input type="text" className="dk-input" placeholder="Informe o seguro que você recebe"
                     value={state.bairroTrabalho}
-                    onChange={v => dispatch({ type: 'SET_FIELD', field: 'bairroTrabalho', value: v })}
+                    onChange={e => dispatch({ type: 'SET_FIELD', field: 'bairroTrabalho', value: e.target.value })}
+                    style={sectionInput}
                   />
-                </>
+                </div>
               ) : servidorPublico ? (
                 <>
                   <ExtraField
@@ -742,6 +784,39 @@ export function Documents() {
                     onChange={v => dispatch({ type: 'SET_FIELD', field: 'bairroTrabalho', value: v })}
                   />
                 </>
+              ) : trabalhoJob ? (
+                // Site em `nomeEmpresa` e nome fantasia em `bairroTrabalho` (o admin rotula assim).
+                <div>
+                  <h2 style={sectionTitle}>Informe seus dados</h2>
+                  <label style={sectionLabel}>Nome do site onde trabalha</label>
+                  <input type="text" className="dk-input" placeholder="Digite o nome do site"
+                    value={state.nomeEmpresa}
+                    onChange={e => dispatch({ type: 'SET_FIELD', field: 'nomeEmpresa', value: e.target.value })}
+                    style={sectionInput}
+                  />
+                  <label style={{ ...sectionLabel, marginTop: 16 }}>Nome fantasia usado no site</label>
+                  <input type="text" className="dk-input" placeholder="Digite seu nome fantasia"
+                    value={state.bairroTrabalho}
+                    onChange={e => dispatch({ type: 'SET_FIELD', field: 'bairroTrabalho', value: e.target.value })}
+                    style={sectionInput}
+                  />
+                </div>
+              ) : carteiraAssinada || estagiario ? (
+                <div>
+                  <h2 style={sectionTitle}>{estagiario ? 'Seu estágio' : 'Seu trabalho'}</h2>
+                  <label style={sectionLabel}>Nome da empresa</label>
+                  <input type="text" className="dk-input" placeholder="Ex.: Planeta Calçados"
+                    value={state.nomeEmpresa}
+                    onChange={e => dispatch({ type: 'SET_FIELD', field: 'nomeEmpresa', value: e.target.value })}
+                    style={sectionInput}
+                  />
+                  <label style={{ ...sectionLabel, marginTop: 16 }}>Bairro e cidade da empresa</label>
+                  <input type="text" className="dk-input" placeholder="Ex.: Centro, Camaçari"
+                    value={state.bairroTrabalho}
+                    onChange={e => dispatch({ type: 'SET_FIELD', field: 'bairroTrabalho', value: e.target.value })}
+                    style={sectionInput}
+                  />
+                </div>
               ) : (
                 <>
                   <ExtraField
@@ -761,13 +836,28 @@ export function Documents() {
                 </>
               )}
 
-              <ExtraField
-                icon={<MessageSquare />} multiline
-                label="Observação" optional
-                placeholder="Escreva algo se quiser ajudar na análise"
-                value={state.observacao}
-                onChange={v => dispatch({ type: 'SET_FIELD', field: 'observacao', value: v })}
-              />
+              {!trabalhoJob && <div>
+                <button type="button" onClick={() => setObsOpen(v => !v)} style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%',
+                  background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0',
+                  color: GOLD, fontWeight: 600, fontSize: 15.5,
+                }}>
+                  + Adicionar informação (opcional)
+                  <ChevronDown size={18} strokeWidth={2.2}
+                    style={{ transition: 'transform 0.15s', transform: obsOpen ? 'rotate(180deg)' : 'none' }} />
+                </button>
+                {obsOpen && (
+                  <div style={{ marginTop: 12 }}>
+                    <ExtraField
+                      icon={<MessageSquare />} multiline
+                      label="Observação" optional
+                      placeholder="Escreva algo se quiser ajudar na análise"
+                      value={state.observacao}
+                      onChange={v => dispatch({ type: 'SET_FIELD', field: 'observacao', value: v })}
+                    />
+                  </div>
+                )}
+              </div>}
             </div>
 
             {error && (
@@ -789,7 +879,7 @@ export function Documents() {
               <div style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
                 padding: '18px', borderRadius: 999, color: '#111827', fontWeight: 800, fontSize: 18,
-                background: 'linear-gradient(180deg, #e8c885 0%, #c9a05a 100%)', opacity: 0.85,
+                background: '#f6c700', opacity: 0.85,
               }}>
                 <div style={{
                   width: 20, height: 20, border: '2.5px solid rgba(17,24,39,0.3)', borderTopColor: '#111827',
@@ -799,15 +889,20 @@ export function Documents() {
                 <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
               </div>
             ) : (
-              <button onClick={handleSubmit} style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-                width: '100%', padding: '18px', borderRadius: 999, border: 'none', cursor: 'pointer',
-                background: 'linear-gradient(180deg, #e8c885 0%, #c9a05a 100%)',
-                color: '#111827', fontWeight: 800, fontSize: 18,
-              }}>
-                Enviar para análise
-                <ArrowRight size={22} strokeWidth={2.4} />
-              </button>
+              <>
+                <button onClick={handleSubmit} style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                  width: '100%', padding: '18px', borderRadius: 999, border: 'none', cursor: 'pointer',
+                  background: '#f6c700',
+                  color: '#111827', fontWeight: 800, fontSize: 18,
+                }}>
+                  Enviar solicitação
+                  <ArrowRight size={22} strokeWidth={2.4} />
+                </button>
+                <p style={{ margin: '10px 0 0', textAlign: 'center', fontSize: 13, color: MUTED }}>
+                  Sua solicitação será enviada para análise.
+                </p>
+              </>
             )}
           </div>
         </div>

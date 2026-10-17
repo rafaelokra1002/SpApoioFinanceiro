@@ -4,7 +4,7 @@ import {
   Wallet, CalendarClock, MapPin, Briefcase, Building2, UserRound, CreditCard,
   Send, Shield, Users, FileText, Search, ChevronDown, Calendar, AtSign, Target,
   Monitor, CloudDownload, ClipboardList, Camera, Clock, Zap, ExternalLink, Play,
-  MoreHorizontal, Check, FolderInput,
+  MoreHorizontal, Check, FolderInput, Car,
 } from 'lucide-react';
 import { Lead } from '../types';
 import { parseGarantia, isBemDoc, GarantiaInfo } from '../utils/garantia';
@@ -65,6 +65,8 @@ const PERFIL_LABELS: Record<string, string> = {
   CARTEIRA_ASSINADA: 'CLT Registrado',
   CLT_SEM_REGISTRO: 'Trabalho Informal',
   AUTONOMO: 'Autônomo / conta própria',
+  MOTORISTA_APP: 'Motorista de aplicativo',
+  TRABALHO_JOB: 'Trabalho com job (GP)',
   BENEFICIARIO: 'Beneficiário',
   ESTAGIARIO: 'Estagiário',
   SERVIDOR_PUBLICO: 'Servidor público',
@@ -181,6 +183,10 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
   const vinculoServidorLabel = lead.vinculoServidor === 'EFETIVO' ? 'Cargo efetivo'
     : lead.vinculoServidor === 'COMISSIONADO' ? 'Cargo comissionado' : '—';
   const matriculaCargoLabel = lead.vinculoServidor === 'COMISSIONADO' ? 'Cargo que ocupa' : 'Matrícula funcional';
+  // Motorista de aplicativo: veículo próprio/alugado e placa.
+  const isMotorista = lead.perfil === 'MOTORISTA_APP';
+  const veiculoProprioLabel = lead.veiculoProprio === 'PROPRIO' ? 'Próprio'
+    : lead.veiculoProprio === 'ALUGADO' ? 'Alugado' : '—';
 
   const StatusIcon = METRICS[lead.status as MetricKey]?.icon ?? CalendarClock;
 
@@ -300,6 +306,12 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
                   <>
                     <InfoItem icon={<Shield size={15} className="text-indigo-500" />} iconBg="bg-indigo-500/10" label="Vínculo" value={vinculoServidorLabel} />
                     <InfoItem icon={<ClipboardList size={15} className="text-sky-500" />} iconBg="bg-sky-500/10" label={matriculaCargoLabel} value={lead.matriculaCargo || '—'} />
+                  </>
+                )}
+                {isMotorista && (
+                  <>
+                    <InfoItem icon={<Car size={15} className="text-indigo-500" />} iconBg="bg-indigo-500/10" label="Veículo" value={veiculoProprioLabel} />
+                    <InfoItem icon={<ClipboardList size={15} className="text-sky-500" />} iconBg="bg-sky-500/10" label="Placa do veículo" value={lead.placaVeiculo || '—'} />
                   </>
                 )}
                 <InfoItem icon={<CalendarClock size={15} className="text-rose-500" />} iconBg="bg-rose-500/10" label="Total a pagar com juros"

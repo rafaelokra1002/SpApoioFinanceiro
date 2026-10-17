@@ -10,7 +10,7 @@ const WHATSAPP_ATENDIMENTO = '5571983067447';
 const WHATSAPP_MSG = 'Olá! Tenho uma dúvida sobre o empréstimo.';
 
 const BG = '#060c15';
-const GOLD = '#c9a05a';
+const GOLD = '#f6c700';
 
 /** Botão secundário escuro com borda: ícone + rótulo centralizados e seta à direita. */
 const outlineBtn: React.CSSProperties = {
@@ -102,7 +102,7 @@ export function Home() {
         <div style={{
           position: 'absolute', top: '73%', left: '6.5%', width: 'fit-content', maxWidth: '85%',
           display: 'flex', alignItems: 'center', gap: 9, padding: '9px 12px',
-          borderRadius: 10, border: '1.3px solid rgba(201,160,90,0.55)',
+          borderRadius: 10, border: '1.3px solid rgba(246,199,0,0.55)',
           background: 'rgba(6,12,21,0.55)', backdropFilter: 'blur(2px)',
         }}>
           <span style={{

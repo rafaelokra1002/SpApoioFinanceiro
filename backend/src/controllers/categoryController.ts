@@ -215,9 +215,9 @@ export async function handleSeedCategories(
         documents: [
           { key: 'RG ou CNH (frente)', label: 'RG ou CNH (frente)', description: 'Documento de identificação', icon: '🪪' },
           { key: 'RG ou CNH (verso)', label: 'RG ou CNH (verso)', description: 'Documento de identificação', icon: '🪪' },
-          { key: 'Selfie (rosto)', label: 'Selfie (rosto nítido)', description: 'Sem filtro, rosto bem visível', icon: '📷' },
-          { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz – últimos 2 meses', icon: '🏠' },
-          { key: 'Carteira de trabalho digital', label: 'Carteira de trabalho digital (PDF)', description: 'Envie em formato PDF', icon: '💼' },
+          { key: 'Selfie (rosto)', label: 'Foto do rosto', description: 'Foto nítida, sem filtro.', icon: '📷' },
+          { key: 'Carteira de trabalho digital', label: 'Carteira de Trabalho Digital', description: 'Arquivo em PDF.', icon: '💼' },
+          { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz dos últimos 2 meses.', icon: '🏠' },
         ],
       },
       {
@@ -245,9 +245,9 @@ export async function handleSeedCategories(
         documents: [
           { key: 'RG ou CNH (frente)', label: 'RG ou CNH (frente)', description: 'Documento de identificação', icon: '🪪' },
           { key: 'RG ou CNH (verso)', label: 'RG ou CNH (verso)', description: 'Documento de identificação', icon: '🪪' },
-          { key: 'Selfie (rosto)', label: 'Selfie (rosto nítido)', description: 'Sem filtro, rosto bem visível', icon: '📷' },
-          { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz – últimos 2 meses', icon: '🏠' },
-          { key: 'Extrato bancário', label: 'Extrato bancário (últimos 30 dias)', description: 'Print do app com nome e valor visível', icon: '📄' },
+          { key: 'Selfie (rosto)', label: 'Foto do rosto', description: 'Foto nítida, sem filtro.', icon: '📷' },
+          { key: 'Extrato bancário', label: 'Extrato do benefício', description: 'Envie o extrato do último mês com seu nome e o valor do benefício visíveis.', icon: '📄' },
+          { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz dos últimos 2 meses.', icon: '🏠' },
         ],
       },
       {
@@ -255,9 +255,9 @@ export async function handleSeedCategories(
         documents: [
           { key: 'RG ou CNH (frente)', label: 'RG ou CNH (frente)', description: 'Documento de identificação', icon: '🪪' },
           { key: 'RG ou CNH (verso)', label: 'RG ou CNH (verso)', description: 'Documento de identificação', icon: '🪪' },
-          { key: 'Selfie (rosto)', label: 'Selfie (rosto nítido)', description: 'Sem filtro, rosto bem visível', icon: '📷' },
-          { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz – últimos 2 meses', icon: '🏠' },
-          { key: 'Contrato de estágio ou comprovante do último pagamento', label: 'Contrato de estágio ou comprovante do último pagamento', description: 'Envie uma das duas opções', icon: '📄' },
+          { key: 'Selfie (rosto)', label: 'Foto do rosto', description: 'Foto nítida, sem filtro.', icon: '📷' },
+          { key: 'Contrato de estágio ou comprovante do último pagamento', label: 'Comprovante de estágio', description: 'Contrato de estágio ou comprovante do último pagamento. Envie uma das opções.', icon: '📄' },
+          { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz dos últimos 2 meses.', icon: '🏠' },
         ],
       },
       {
@@ -274,13 +274,33 @@ export async function handleSeedCategories(
         documents: [
           { key: 'RG ou CNH (frente)', label: 'RG ou CNH (frente)', description: 'Documento de identificação', icon: '🪪' },
           { key: 'RG ou CNH (verso)', label: 'RG ou CNH (verso)', description: 'Documento de identificação', icon: '🪪' },
-          { key: 'Selfie (rosto)', label: 'Selfie (rosto nítido)', description: 'Sem filtro, rosto bem visível', icon: '📷' },
-          { key: 'Comprovante do seguro', label: 'Comprovante do seguro', description: 'Extrato ou comprovante do recebimento', icon: '📄' },
-          { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz – últimos 2 meses', icon: '🏠' },
+          { key: 'Selfie (rosto)', label: 'Foto do rosto', description: 'Foto nítida, sem filtro.', icon: '📷' },
+          { key: 'Comprovante do seguro', label: 'Comprovante do seguro', description: 'Envie o extrato ou comprovante do recebimento.', icon: '📄' },
+          { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz dos últimos 2 meses.', icon: '🏠' },
         ],
       },
       {
-        value: 'SEM_COMPROVACAO', label: 'Sem comprovação de renda', icon: '❌', order: 7,
+        value: 'MOTORISTA_APP', label: 'Motorista de aplicativo', icon: '🚗', order: 7,
+        documents: [
+          { key: 'RG ou CNH (frente)', label: 'RG ou CNH (frente)', description: 'Documento de identificação', icon: '🪪' },
+          { key: 'RG ou CNH (verso)', label: 'RG ou CNH (verso)', description: 'Documento de identificação', icon: '🪪' },
+          { key: 'Selfie (rosto)', label: 'Foto do rosto', description: 'Foto nítida, sem filtro.', icon: '📷' },
+          { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz dos últimos 2 meses.', icon: '🏠' },
+          { key: 'Comprovante de ganhos', label: 'Comprovante de ganhos', description: 'Extratos ou prints dos últimos 30 dias da Uber ou 99. Se trabalha nos dois, envie dos dois.', icon: '📊' },
+        ],
+      },
+      {
+        value: 'TRABALHO_JOB', label: 'Trabalho com job (GP)', icon: '💼', order: 9,
+        documents: [
+          { key: 'RG ou CNH (frente)', label: 'RG ou CNH (frente)', description: 'Documento de identificação', icon: '🪪' },
+          { key: 'RG ou CNH (verso)', label: 'RG ou CNH (verso)', description: 'Documento de identificação', icon: '🪪' },
+          { key: 'Selfie (rosto)', label: 'Foto do rosto', description: 'Foto nítida, sem filtro.', icon: '📷' },
+          { key: 'Comprovante de residência', label: 'Comprovante de residência', description: 'Água ou luz dos últimos 2 meses.', icon: '🏠' },
+          { key: 'Extrato bancário', label: 'Extrato bancário', description: 'Últimos 30 dias.', icon: '📄' },
+        ],
+      },
+      {
+        value: 'SEM_COMPROVACAO', label: 'Sem comprovação de renda', icon: '❌', order: 8,
         documents: [
           { key: 'RG ou CNH (frente)', label: 'RG ou CNH (frente)', description: 'Documento de identificação', icon: '🪪' },
           { key: 'RG ou CNH (verso)', label: 'RG ou CNH (verso)', description: 'Documento de identificação', icon: '🪪' },

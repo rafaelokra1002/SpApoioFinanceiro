@@ -34,6 +34,10 @@ export interface LoanState {
   bairroTrabalho: string;
   /** Matrícula funcional (efetivo) ou cargo ocupado (comissionado) — servidor público. */
   matriculaCargo: string;
+  /** Veículo próprio ou alugado — só usado quando categoria = MOTORISTA_APP. */
+  veiculoProprio: 'PROPRIO' | 'ALUGADO' | '';
+  /** Placa do veículo — só usado quando categoria = MOTORISTA_APP. */
+  placaVeiculo: string;
   endereco: string;
   cep: string;
   enderecoTrabalho: string;
@@ -74,6 +78,7 @@ const initial: LoanState = {
   renda: '', instagram: '', indicacao: '', simulation: null,
   nome: '', telefone: '', cpf: '', email: '',
   nomeEmpresa: '', bairroTrabalho: '', matriculaCargo: '',
+  veiculoProprio: '', placaVeiculo: '',
   endereco: '', cep: '', enderecoTrabalho: '', observacao: '',
   latitude: null, longitude: null, geo: 'pending',
   documents: {}, loading: false,

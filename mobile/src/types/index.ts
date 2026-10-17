@@ -36,6 +36,8 @@ export type CategoryType =
   | 'CARTEIRA_ASSINADA'
   | 'CLT_SEM_REGISTRO'
   | 'AUTONOMO'
+  | 'MOTORISTA_APP'
+  | 'TRABALHO_JOB'
   | 'BENEFICIARIO'
   | 'ESTAGIARIO'
   | 'SERVIDOR_PUBLICO'
