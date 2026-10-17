@@ -3,6 +3,7 @@ import {
   handleCreateLead,
   handleUploadDocuments,
   handleCreateLeadWithDocs,
+  handleUploadSingleDocument,
 } from '../controllers/leadController';
 import { validate, leadSchema } from '../middleware/validation';
 import { upload } from '../middleware/upload';
@@ -16,6 +17,10 @@ router.post(
   upload.array('documentos', 10),
   handleUploadDocuments
 );
+
+// Um arquivo por requisição: cada envio termina rápido mesmo com internet fraca
+// (o proxy da hospedagem corta requisições que passam de 60s).
+router.post('/upload', upload.single('documento'), handleUploadSingleDocument);
 
 router.post(
   '/complete',

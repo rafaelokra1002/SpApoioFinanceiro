@@ -32,46 +32,87 @@ export async function fetchModalidadePagamento(): Promise<'VISTA' | 'PARCELADO'>
   return result.data.modalidade;
 }
 
+type DocRef = { tipo: string; url: string; filename: string };
+
+/** Arquivos já enviados nesta sessão: se o cliente tentar de novo, não reenvia o que já subiu. */
+const enviados = new WeakMap<File, DocRef>();
+
+const MSG_SEM_CONEXAO = 'Não conseguimos concluir o envio. Verifique sua internet e tente de novo.';
+
+/** Lê a resposta (pode não ser JSON, ex.: página de erro do proxy) e monta o erro amigável. */
+async function lerResposta(res: Response): Promise<ApiResponse> {
+  let result: ApiResponse | null = null;
+  try { result = await res.json(); } catch { /* não-JSON */ }
+  if (!res.ok) {
+    return {
+      success: false,
+      error: result?.error
+        || (res.status === 413
+          ? 'Arquivo muito grande. Envie uma foto menor ou um PDF mais leve.'
+          : `O servidor não conseguiu processar o envio (código ${res.status}). Tente novamente em instantes.`),
+    };
+  }
+  return result ?? { success: false, error: 'Resposta inesperada do servidor. Tente novamente.' };
+}
+
+/**
+ * Envia UM documento. Cada arquivo vai numa requisição curta (o proxy da hospedagem
+ * corta envios que passam de 60s); se a conexão cair, tenta de novo até 3 vezes.
+ */
+async function enviarDocumento(tipo: string, file: File): Promise<{ ok: true; ref: DocRef } | { ok: false; error: string }> {
+  const ja = enviados.get(file);
+  if (ja) return { ok: true, ref: ja };
+
+  const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+  for (let tentativa = 1; tentativa <= 3; tentativa++) {
+    const fd = new FormData();
+    fd.append('documento', file, `${tipo}.${ext}`);
+    let res: Response;
+    try {
+      res = await fetch(`${API_BASE}/lead/upload`, { method: 'POST', body: fd });
+    } catch {
+      // Conexão caiu: espera um pouco e tenta de novo.
+      if (tentativa < 3) { await new Promise((r) => setTimeout(r, 1500 * tentativa)); continue; }
+      return { ok: false, error: `${MSG_SEM_CONEXAO} (${tipo})` };
+    }
+    const result = await lerResposta(res);
+    if (!result.success || !result.data) return { ok: false, error: result.error || `Falha ao enviar "${tipo}".` };
+    enviados.set(file, result.data as DocRef);
+    return { ok: true, ref: result.data as DocRef };
+  }
+  return { ok: false, error: MSG_SEM_CONEXAO };
+}
+
 export async function submitLeadWithDocuments(
   data: LeadData,
-  documents: { tipo: string; file: File }[]
+  documents: { tipo: string; file: File }[],
+  onProgress?: (enviados: number, total: number) => void,
 ): Promise<ApiResponse> {
   try {
+    // 1) Documentos, um por vez.
+    const refs: DocRef[] = [];
+    for (let i = 0; i < documents.length; i++) {
+      onProgress?.(i, documents.length);
+      const r = await enviarDocumento(documents[i].tipo, documents[i].file);
+      if (!r.ok) return { success: false, error: r.error };
+      refs.push(r.ref);
+    }
+    onProgress?.(documents.length, documents.length);
+
+    // 2) Solicitação com os dados + referências (requisição pequena e rápida).
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
       if (value !== undefined && value !== null) formData.append(key, String(value));
     });
-    documents.forEach((doc) => {
-      const ext = doc.file.name.split('.').pop()?.toLowerCase() || 'jpg';
-      formData.append('documentos', doc.file, `${doc.tipo}.${ext}`);
-    });
+    formData.append('documentosEnviados', JSON.stringify(refs));
 
     let res: Response;
     try {
       res = await fetch(`${API_BASE}/lead/complete`, { method: 'POST', body: formData });
     } catch {
-      // "Failed to fetch": a conexão caiu ou foi cortada antes de haver resposta.
-      return {
-        success: false,
-        error: 'Não conseguimos concluir o envio. Verifique sua internet e tente de novo. '
-          + 'Se as fotos são da galeria, tente pelo botão "Foto" ou envie em PDF.',
-      };
+      return { success: false, error: MSG_SEM_CONEXAO };
     }
-
-    // A resposta pode não ser JSON (ex.: página de erro do servidor/proxy).
-    let result: ApiResponse | null = null;
-    try { result = await res.json(); } catch { /* não-JSON */ }
-
-    if (!res.ok) {
-      return {
-        success: false,
-        error: result?.error
-          || (res.status === 413
-            ? 'Os arquivos são muito grandes. Envie fotos menores ou PDFs mais leves.'
-            : `O servidor não conseguiu processar o envio (código ${res.status}). Tente novamente em instantes.`),
-      };
-    }
-    return result ?? { success: false, error: 'Resposta inesperada do servidor. Tente novamente.' };
+    return await lerResposta(res);
   } catch (error: any) {
     return { success: false, error: error.message || 'Erro ao enviar solicitação' };
   }

@@ -142,6 +142,8 @@ const darkInput: React.CSSProperties = {
 export function Documents() {
   const { state, dispatch } = useLoan();
   const [submitting, setSubmitting] = useState(false);
+  // Progresso do envio (documentos vão um por vez).
+  const [progresso, setProgresso] = useState<{ feitos: number; total: number } | null>(null);
   const [error, setError] = useState('');
   const [docStep, setDocStep] = useState(1); // 1 = dados pessoais, 2 = documentos
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -311,7 +313,8 @@ export function Documents() {
       .filter(([, v]) => v !== null)
       .map(([tipo, v]) => ({ tipo, file: (v as UploadedFile).file }));
 
-    const res = await submitLeadWithDocuments(leadData, docFiles);
+    const res = await submitLeadWithDocuments(leadData, docFiles, (feitos, total) => setProgresso({ feitos, total }));
+    setProgresso(null);
     setSubmitting(false);
     if (res.success) {
       dispatch({ type: 'SET_STEP', step: 5 });
@@ -885,7 +888,9 @@ export function Documents() {
                   width: 20, height: 20, border: '2.5px solid rgba(17,24,39,0.3)', borderTopColor: '#111827',
                   borderRadius: '50%', animation: 'spin 0.8s linear infinite',
                 }} />
-                Enviando...
+                {progresso && progresso.feitos < progresso.total
+                  ? `Enviando documentos ${progresso.feitos + 1} de ${progresso.total}...`
+                  : 'Finalizando...'}
                 <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
               </div>
             ) : (

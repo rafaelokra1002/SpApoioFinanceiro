@@ -54,6 +54,51 @@ async function persistDocument(file: Express.Multer.File, baseUrl: string) {
   };
 }
 
+type DocumentoEnviado = { tipo: string; url: string; filename: string };
+
+/**
+ * Documentos já enviados um a um por `POST /lead/upload`, que chegam em
+ * `documentosEnviados` (JSON). Só aceita URLs do nosso armazenamento, para ninguém
+ * anexar um link externo qualquer à solicitação.
+ */
+function documentosEnviadosDe(raw: unknown, baseUrl: string): DocumentoEnviado[] {
+  if (!raw) return [];
+  let lista: unknown;
+  try {
+    lista = JSON.parse(String(raw));
+  } catch {
+    throw new AppError('Lista de documentos inválida.', 400);
+  }
+  if (!Array.isArray(lista) || lista.length > 15) throw new AppError('Lista de documentos inválida.', 400);
+
+  const cloud = process.env.CLOUDINARY_CLOUD_NAME;
+  const origensValidas = [`${baseUrl}/uploads/`, ...(cloud ? [`https://res.cloudinary.com/${cloud}/`] : [])];
+  return lista.map((d: any) => {
+    const ok = d && typeof d.url === 'string' && typeof d.filename === 'string'
+      && origensValidas.some((o) => d.url.startsWith(o));
+    if (!ok) throw new AppError('Documento inválido na solicitação. Envie os arquivos novamente.', 400);
+    return { tipo: 'documentos', url: d.url, filename: String(d.filename).slice(0, 200) };
+  });
+}
+
+/** Recebe UM arquivo, guarda (Cloudinary ou disco) e devolve a referência para o envio final. */
+export async function handleUploadSingleDocument(
+  req: Request,
+  res: Response<ApiResponse>,
+  next: NextFunction
+): Promise<void> {
+  const file = req.file;
+  try {
+    assertFormatosAceitos(req);
+    if (!file) throw new AppError('Nenhum arquivo enviado', 400);
+    const doc = await persistDocument(file, getBaseUrl(req));
+    res.status(201).json({ success: true, data: doc });
+  } catch (error) {
+    if (file) await discardFiles([file]);
+    next(error);
+  }
+}
+
 export async function handleCreateLead(
   req: Request,
   res: Response<ApiResponse>,
@@ -154,7 +199,9 @@ export async function handleCreateLeadWithDocs(
     // rede), nada é criado e o cliente pode tentar de novo sem gerar solicitação duplicada ou
     // sem documentos (antes o lead nascia primeiro e ficava órfão quando um envio falhava).
     const baseUrl = getBaseUrl(req);
-    const documents = [];
+    // App atual: arquivos já enviados um a um (só as referências chegam aqui).
+    // Versões antigas do app ainda mandam os arquivos junto nesta mesma requisição.
+    const documents: DocumentoEnviado[] = documentosEnviadosDe(body.documentosEnviados, baseUrl);
     for (const file of files) {
       documents.push(await persistDocument(file, baseUrl));
     }
