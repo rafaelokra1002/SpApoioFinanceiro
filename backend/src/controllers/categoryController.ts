@@ -203,7 +203,10 @@ export async function handleSeedCategories(
   next: NextFunction
 ): Promise<void> {
   try {
-    const existing = await prisma.category.count();
+    // A migração 20261018 já insere MOTORISTA_APP e TRABALHO_JOB: elas não contam como
+    // "banco já populado", senão um banco novo ficaria sem as demais categorias.
+    const INSERIDAS_POR_MIGRACAO = ['MOTORISTA_APP', 'TRABALHO_JOB'];
+    const existing = await prisma.category.count({ where: { value: { notIn: INSERIDAS_POR_MIGRACAO } } });
     if (existing > 0) {
       res.json({ success: true, message: 'Categorias já existem, seed ignorado' });
       return;
@@ -310,7 +313,12 @@ export async function handleSeedCategories(
       },
     ];
 
-    for (const cat of categories) {
+    const jaExistem = new Set(
+      (await prisma.category.findMany({ select: { value: true } })).map((c) => c.value),
+    );
+    const faltando = categories.filter((cat) => !jaExistem.has(cat.value));
+
+    for (const cat of faltando) {
       await prisma.category.create({
         data: {
           value: cat.value,
@@ -330,7 +338,7 @@ export async function handleSeedCategories(
       });
     }
 
-    res.status(201).json({ success: true, message: `${categories.length} categorias criadas` });
+    res.status(201).json({ success: true, message: `${faltando.length} categorias criadas` });
   } catch (error) {
     next(error);
   }
