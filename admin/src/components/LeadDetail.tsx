@@ -1,17 +1,15 @@
 import { useState, useEffect, ReactNode } from 'react';
 import {
-  X, CheckCircle, XCircle, Trash2, MessageCircle, Download, Loader2, Banknote,
-  Wallet, CalendarClock, MapPin, Briefcase, Building2, UserRound, CreditCard,
-  Send, Shield, Users, FileText, Search, ChevronDown, Calendar, AtSign, Target,
-  Monitor, CloudDownload, ClipboardList, Camera, Clock, Zap, ExternalLink, Play,
-  MoreHorizontal, Check, FolderInput, Car,
+  X, CheckCircle, XCircle, Trash2, MessageCircle, Download, Loader2, MapPin, Briefcase, UserRound,
+  CreditCard, Send, Shield, Users, FileText, Search, ChevronDown, Calendar, Camera, Play, MoreHorizontal,
+  Check, FolderInput, Pencil, Copy, Eye, ChevronLeft, ChevronRight, Map as MapIcon, House, MessageSquare,
 } from 'lucide-react';
 import { Lead } from '../types';
 import { parseGarantia, isBemDoc, GarantiaInfo } from '../utils/garantia';
 import { fixMojibake } from '../utils/text';
 import { fetchMessageLogs } from '../services/api';
 import { downloadDocument, downloadLeadDossier } from '../utils/leadDossier';
-import { METRICS, STATUS_ORDER, isInternalStatus, statusLabel, MetricKey } from '../constants/status';
+import { METRICS, STATUS_ORDER, isInternalStatus, statusLabel } from '../constants/status';
 import { camposEmprego, modalidade, origemOf } from '../utils/analytics';
 import { avatarColor, clientPhotoUrl, initials } from '../utils/avatar';
 import { notify } from './Notice';
@@ -108,10 +106,10 @@ function statusTone(status: string): string {
 /** Rótulo do chip de data conforme a situação. */
 function dateChipLabel(status: string): string {
   switch (status) {
-    case 'APROVADO': return 'Aprovado em:';
-    case 'RECUSADO': return 'Recusado em:';
-    case 'PENDENTE': return 'Recebido em:';
-    default: return 'Atualizado em:';
+    case 'APROVADO': return 'Aprovada em';
+    case 'RECUSADO': return 'Recusada em';
+    case 'PENDENTE': return 'Recebida em';
+    default: return 'Atualizada em';
   }
 }
 
@@ -124,8 +122,11 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
   const [enviandoGrupo, setEnviandoGrupo] = useState(false);
   const [cobrancaFacil, setCobrancaFacil] = useState(false);
   const [enviandoStatus, setEnviandoStatus] = useState(false);
-  // "Mais ações" abre uma aba suspensa (modal) com marcações internas + envio ao grupo.
-  const [maisAcoes, setMaisAcoes] = useState(false);
+  // "Mais opções": menu suspenso na barra de ações.
+  const [menuMais, setMenuMais] = useState(false);
+  // Popover "Copiar dados" e documento aberto no visualizador.
+  const [copiarAberto, setCopiarAberto] = useState(false);
+  const [docIdx, setDocIdx] = useState(0);
   // "Mover para a categoria" abre uma aba suspensa com os status disponíveis.
   const [moverCategoria, setMoverCategoria] = useState(false);
   // Clicar numa barra de garantia abre uma tela suspensa (modal) com o conteúdo.
@@ -136,6 +137,9 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
       if (res.success) setLogs(res.data);
     }).catch(() => {});
   }, [lead.id]);
+
+  // O modal é reaproveitado entre clientes: volta para o primeiro documento.
+  useEffect(() => { setDocIdx(0); setCopiarAberto(false); setMenuMais(false); }, [lead.id]);
 
   const handleDownload = async () => {
     try {
@@ -188,11 +192,36 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
   const veiculoProprioLabel = lead.veiculoProprio === 'PROPRIO' ? 'Próprio'
     : lead.veiculoProprio === 'ALUGADO' ? 'Alugado' : '—';
 
-  const StatusIcon = METRICS[lead.status as MetricKey]?.icon ?? CalendarClock;
-
   // Enquanto qualquer modal de ação está aberto, a "Visão do Cliente" some (não fica atrás).
   const algumModal = recusando || aprovando || enviandoGrupo || cobrancaFacil
-    || enviandoStatus || maisAcoes || moverCategoria || modalBem !== null;
+    || enviandoStatus || moverCategoria || modalBem !== null;
+
+  // Visualizador: documentos pessoais na ordem das abas (Documento, Rosto, Trabalho, Casa).
+  const docsOrdenados = [...pessoalDocs].sort(
+    (x, y) => DOC_TABS.findIndex((t) => t.key === docGrupo(x)) - DOC_TABS.findIndex((t) => t.key === docGrupo(y)),
+  );
+  const docAtual = docsOrdenados.length ? docsOrdenados[Math.min(docIdx, docsOrdenados.length - 1)] : undefined;
+
+  const endereco = partesEndereco(lead.endereco, lead.cep);
+  const bairroEndereco = endereco.find(([k]) => k === 'Bairro')?.[1];
+
+  // Linhas do popover "Copiar dados" (cada uma copia sozinha; "Copiar tudo" junta).
+  const localTrabalho = [lead.nomeEmpresa, lead.enderecoTrabalho || lead.bairroTrabalho].filter(Boolean).join(' — ');
+  const linhasCopiar = [
+    `Nome completo: ${lead.nome}`,
+    `Cidade: ${lead.cidade}`,
+    `Bairro: ${bairroEndereco || lead.bairroTrabalho || '—'}`,
+    `Local de trabalho: ${localTrabalho || '—'}`,
+    `Deve a alguém? ${lead.deveAlguem || ''}`.trim(),
+  ];
+  const copiar = async (texto: string) => {
+    try {
+      await navigator.clipboard.writeText(texto);
+      notify('Copiado.', 'success');
+    } catch {
+      notify('Não foi possível copiar.', 'error');
+    }
+  };
 
   const renderDocCard = (doc: typeof docs[number], tall = false) => {
     const isImage = IMAGE_EXT.test(doc.filename) || IMAGE_EXT.test(doc.url);
@@ -235,47 +264,31 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
 
   return (
     <>
-      {/* Visão do Cliente — oculta enquanto um modal de ação está aberto. */}
+      {/* Visualização do cliente — oculta enquanto um modal de ação está aberto. */}
       {!algumModal && (
-      // Moldura com borda em gradiente azul→roxo, como no modelo.
-      <div className="rounded-[26px] bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 p-[3px] shadow-2xl">
-      <div className="flex max-h-[96vh] w-[min(1080px,94vw)] flex-col overflow-hidden rounded-3xl bg-canvas">
-        {/* Cabeçalho */}
-        <div className="flex shrink-0 flex-wrap items-center justify-between gap-2.5 border-b border-line bg-surface px-4 py-2.5">
-          <div className="flex items-center gap-2.5">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-md">
-              <UserRound size={20} />
-            </span>
-            <div>
-              <h3 className="text-[19px] font-extrabold leading-tight text-ink">Visão do Cliente</h3>
-              <p className="text-[12px] text-subtle">Todas as informações e documentos do cliente em um só lugar.</p>
-            </div>
+      <div className="flex max-h-[95vh] w-[min(1120px,96vw)] flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-2xl">
+        {/* Cabeçalho escuro: logo + título + fechar */}
+        <div className="flex shrink-0 items-center justify-between gap-3 bg-[#111214] px-4 py-2.5">
+          <div className="flex items-center gap-3">
+            <p className="text-[17px] font-extrabold tracking-tight text-white">
+              <span className="text-[#F6C700]">SP</span> EMPRÉSTIMOS
+            </p>
+            <span className="h-5 w-px bg-white/25" />
+            <p className="text-[13.5px] text-white/80">Visualização do cliente</p>
           </div>
-
-          <div className="flex items-center gap-2.5">
-            {/* Chips: categoria • situação • data */}
-            <div className="hidden items-stretch divide-x divide-line overflow-hidden rounded-xl border border-line bg-canvas md:flex">
-              <HeaderChip icon={<Target size={16} className="text-purple-500" />} label="Categoria" value={perfilLabel(lead.perfil)} />
-              <HeaderChip icon={<StatusIcon size={16} className={statusTone(lead.status)} />} label="Situação"
-                value={<span className={statusTone(lead.status)}>{statusLabel(lead.status)}</span>} />
-              <HeaderChip icon={<Calendar size={16} className="text-blue-500" />} label={dateChipLabel(lead.status)}
-                value={formatDateTime(lead.status === 'PENDENTE' ? lead.createdAt : lead.updatedAt)} />
-            </div>
-
-            <button onClick={onClose}
-              className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-rose-600 text-white shadow-md transition-transform hover:scale-105 cursor-pointer">
-              <X size={20} strokeWidth={2.6} />
-            </button>
-          </div>
+          <button onClick={onClose} title="Fechar"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-white transition-colors hover:bg-white/10 cursor-pointer">
+            <X size={20} strokeWidth={2.4} />
+          </button>
         </div>
 
-        <div className="flex-1 space-y-2.5 overflow-y-auto p-3.5">
-          {/* Linha 1: Dados do cliente | Documentos enviados */}
-          <div className="grid grid-cols-1 gap-3 lg:grid-cols-[380px_1fr]">
-            {/* Dados do cliente */}
-            <Section icon={<UserRound size={18} className="text-ink" />} title="Dados do Cliente">
+        <div className="grid flex-1 grid-cols-1 gap-3 overflow-y-auto bg-canvas p-3 lg:grid-cols-[390px_1fr]">
+          {/* ───── Coluna esquerda ───── */}
+          <div className="space-y-3">
+            <div className="rounded-xl border border-line bg-surface p-3.5">
+              {/* Foto + nome + WhatsApp */}
               <div className="flex items-center gap-3">
-                <span className={`relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full text-[22px] font-bold text-white ring-2 ring-blue-400/40 ${avatarColor(lead.nome)}`}>
+                <span className={`relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full text-[22px] font-bold text-white ${avatarColor(lead.nome)}`}>
                   {initials(lead.nome)}
                   {photoUrl && (
                     <img src={photoUrl} alt={lead.nome} loading="lazy"
@@ -284,201 +297,144 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
                   )}
                 </span>
                 <div className="min-w-0">
-                  <p className="text-[18px] font-extrabold leading-tight text-ink">{lead.nome}</p>
-                  <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-ink-2">
-                    {!isInternalStatus(lead.status) && (
-                      <button onClick={() => onWhatsApp(lead)} title="Enviar WhatsApp"
-                        className="flex h-5 w-5 items-center justify-center rounded-full bg-[#25D366] text-white transition-transform hover:scale-110 cursor-pointer">
-                        <MessageCircle size={11} fill="currentColor" />
-                      </button>
-                    )}
-                    {lead.telefone}
-                  </p>
+                  <p className="text-[20px] font-extrabold leading-tight text-ink [overflow-wrap:anywhere]">{lead.nome}</p>
+                  {isInternalStatus(lead.status) ? (
+                    <p className="mt-1 text-[14px] font-semibold text-ink-2">{lead.telefone}</p>
+                  ) : (
+                    <button onClick={() => onWhatsApp(lead)} title="Enviar WhatsApp"
+                      className="mt-1 flex items-center gap-1.5 text-[14px] font-semibold text-ink-2 hover:underline cursor-pointer">
+                      <MessageCircle size={16} className="text-[#25D366]" /> {lead.telefone}
+                    </button>
+                  )}
                 </div>
               </div>
 
-              <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 border-t border-line pt-3">
-                <InfoItem icon={<Banknote size={15} className="text-emerald-500" />} iconBg="bg-emerald-500/10" label="Renda mensal" value={formatMoney(lead.renda)} />
-                <InfoItem icon={<Building2 size={15} className="text-indigo-500" />} iconBg="bg-indigo-500/10" label={campos.empresa} value={lead.nomeEmpresa || '—'} />
-                <InfoItem icon={<Wallet size={15} className="text-violet-500" />} iconBg="bg-violet-500/10" label="Valor solicitado" value={formatCurrency(lead.valorSolicitado)} />
-                <InfoItem icon={<Briefcase size={15} className="text-sky-500" />} iconBg="bg-sky-500/10" label={campos.local} value={lead.enderecoTrabalho || lead.bairroTrabalho || '—'} />
+              {/* Categoria • situação • data */}
+              <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-line pt-3">
+                <span className="flex items-center gap-1.5 text-[12.5px] font-bold text-ink" title={perfilLabel(lead.perfil)}>
+                  <Briefcase size={15} className="text-ink-2" /> {perfilCurto(lead.perfil)}
+                </span>
+                <span className={`flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-extrabold uppercase tracking-wide ${statusPill(lead.status)}`}>
+                  <span className="h-1.5 w-1.5 rounded-full bg-current" /> {statusPillLabel(lead.status)}
+                </span>
+                <span className="flex items-center gap-1.5 text-[11.5px] leading-tight text-subtle">
+                  <Calendar size={15} className="text-ink-2" />
+                  <span>{dateChipLabel(lead.status)}<br />{formatDateTime(lead.status === 'PENDENTE' ? lead.createdAt : lead.updatedAt)}</span>
+                </span>
+              </div>
+            </div>
+
+            {/* Cartão escuro: valor + total + condições */}
+            <div className="rounded-xl bg-[#18191c] p-3.5 text-white shadow-md ring-1 ring-white/10">
+              <div className="flex items-stretch">
+                <div className="flex-1">
+                  <p className="text-[12.5px] text-white/70">{lead.valorAprovado != null ? 'Valor aprovado' : 'Valor solicitado'}</p>
+                  <p className="mt-0.5 flex items-center gap-2 text-[22px] font-extrabold">
+                    {formatCurrency(lead.valorAprovado ?? lead.valorSolicitado)}
+                    <button onClick={() => setAprovando(true)} title="Editar valor aprovado"
+                      className="flex h-6 w-6 items-center justify-center rounded-full bg-[#F6C700] text-[#111] transition-transform hover:scale-110 cursor-pointer">
+                      <Pencil size={12} strokeWidth={2.6} />
+                    </button>
+                  </p>
+                </div>
+                <span className="mx-3 w-px bg-white/15" />
+                <div className="flex-1">
+                  <p className="text-[12.5px] text-white/70">Total a pagar</p>
+                  <p className="mt-0.5 text-[22px] font-extrabold">{formatCurrency(lead.valorTotal)}</p>
+                </div>
+              </div>
+              <div className="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 border-t border-white/15 pt-2.5 text-[12px] text-white/75">
+                <CreditCard size={14} />
+                <span>{modalidadeTexto(lead)}</span>
+                <span className="text-white/40">•</span>
+                <span>Taxa: {lead.taxaJuros}%</span>
+                <span className="text-white/40">•</span>
+                <span>Prazo: {lead.prazo} dias</span>
+              </div>
+            </div>
+
+            {/* Dados do cliente */}
+            <div className="relative rounded-xl border border-line bg-surface p-3.5">
+              <div className="mb-2.5 flex items-center justify-between">
+                <p className="flex items-center gap-2 text-[15px] font-bold text-ink">
+                  <UserRound size={17} /> Dados do cliente
+                </p>
+                <button onClick={() => setCopiarAberto((v) => !v)}
+                  className="flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1 text-[12px] font-semibold text-ink-2 transition-colors hover:bg-canvas cursor-pointer">
+                  <Copy size={13} /> Copiar
+                </button>
+              </div>
+
+              {copiarAberto && (
+                <>
+                  <div className="fixed inset-0 z-20" onClick={() => setCopiarAberto(false)} />
+                  <div className="absolute left-[55%] top-2 z-30 w-[min(300px,80vw)] rounded-xl border border-line bg-surface p-3.5 shadow-2xl">
+                    <div className="mb-2 flex items-center justify-between">
+                      <p className="text-[15px] font-bold text-ink">Copiar dados</p>
+                      <button onClick={() => setCopiarAberto(false)}
+                        className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-canvas cursor-pointer">
+                        <X size={16} className="text-subtle" />
+                      </button>
+                    </div>
+                    {linhasCopiar.map((l) => (
+                      <button key={l} onClick={() => copiar(l)} title="Copiar esta linha"
+                        className="block w-full rounded-lg px-1.5 py-2 text-left text-[13px] text-ink-2 hover:bg-canvas cursor-pointer">
+                        {l}
+                      </button>
+                    ))}
+                    <button onClick={() => { copiar(linhasCopiar.join('\n')); setCopiarAberto(false); }}
+                      className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#111214] py-2 text-[12.5px] font-semibold text-white hover:brightness-125 cursor-pointer">
+                      <Copy size={13} /> Copiar tudo
+                    </button>
+                  </div>
+                </>
+              )}
+
+              <div className="divide-y divide-line">
+                <DadoRow label="Renda mensal" value={formatMoney(lead.renda)} />
+                {lead.valorAprovado != null && lead.valorAprovado !== lead.valorSolicitado && (
+                  <DadoRow label="Valor solicitado" value={formatCurrency(lead.valorSolicitado)} />
+                )}
+                <DadoRow label={campos.empresa} value={lead.nomeEmpresa || '—'} />
+                <DadoRow label={campos.local} value={lead.enderecoTrabalho || lead.bairroTrabalho || '—'} />
                 {isServidor && (
                   <>
-                    <InfoItem icon={<Shield size={15} className="text-indigo-500" />} iconBg="bg-indigo-500/10" label="Vínculo" value={vinculoServidorLabel} />
-                    <InfoItem icon={<ClipboardList size={15} className="text-sky-500" />} iconBg="bg-sky-500/10" label={matriculaCargoLabel} value={lead.matriculaCargo || '—'} />
+                    <DadoRow label="Vínculo" value={vinculoServidorLabel} />
+                    <DadoRow label={matriculaCargoLabel} value={lead.matriculaCargo || '—'} />
                   </>
                 )}
                 {isMotorista && (
                   <>
-                    <InfoItem icon={<Car size={15} className="text-indigo-500" />} iconBg="bg-indigo-500/10" label="Veículo" value={veiculoProprioLabel} />
-                    <InfoItem icon={<ClipboardList size={15} className="text-sky-500" />} iconBg="bg-sky-500/10" label="Placa do veículo" value={lead.placaVeiculo || '—'} />
+                    <DadoRow label="Veículo" value={veiculoProprioLabel} />
+                    <DadoRow label="Placa do veículo" value={lead.placaVeiculo || '—'} />
                   </>
                 )}
-                <InfoItem icon={<CalendarClock size={15} className="text-rose-500" />} iconBg="bg-rose-500/10" label="Total a pagar com juros"
-                  value={<span className="text-danger">{formatCurrency(lead.valorTotal)}</span>} />
-                <InfoItem icon={<AtSign size={15} className="text-pink-500" />} iconBg="bg-pink-500/10" label="Instagram (URL)"
+                <DadoRow label="Cidade / Estado" value={lead.cidade} />
+              </div>
+
+              <div className="mt-3 space-y-2.5 border-t border-line pt-3">
+                <IconRow icon={<InstagramIcon />} label="Instagram do cliente"
                   value={lead.instagram
                     ? <a href={lead.instagram.startsWith('http') ? lead.instagram : `https://instagram.com/${lead.instagram.replace(/^@/, '')}`}
                         target="_blank" rel="noopener noreferrer" className="hover:underline">{lead.instagram}</a>
                     : '—'} />
-                <InfoItem icon={<CreditCard size={15} className="text-amber-500" />} iconBg="bg-amber-500/10" label="Modalidade"
-                  value={lead.parcelas > 1 ? `Parcelado (${lead.parcelas}x)` : 'À vista'} />
-                <InfoItem icon={<UserRound size={15} className="text-blue-500" />} iconBg="bg-blue-500/10" label="Indicado por" value={lead.indicacao || '—'} />
-                <InfoItem icon={<MapPin size={15} className="text-teal-500" />} iconBg="bg-teal-500/10" label="Cidade / Estado" value={lead.cidade} />
-                <InfoItem icon={<Users size={15} className="text-emerald-500" />} iconBg="bg-emerald-500/10" label="Origem" value={origemOf(lead)} />
-              </div>
-            </Section>
-
-            {/* Documentos enviados */}
-            <Section icon={<FileText size={18} className="text-purple-500" />} title="Documentos Enviados"
-              count={pessoalDocs.length}>
-              {pessoalDocs.length > 0 ? (
-                <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-                  {pessoalDocs.map((d) => renderDocCard(d))}
-                </div>
-              ) : (
-                <p className="rounded-xl border border-dashed border-line bg-canvas/60 py-10 text-center text-[13px] text-subtle">
-                  Nenhum documento enviado.
-                </p>
-              )}
-            </Section>
-          </div>
-
-          {/* Linha 2: barras do bem em garantia (só para clientes COM garantia) —
-              clicar abre uma tela suspensa (modal) */}
-          {temGarantia && (
-            <div className="space-y-2.5">
-              <GarantiaBar
-                icon={<Shield size={16} className="text-amber-600" />}
-                title="Informações do bem como garantia"
-                onClick={() => setModalBem('info')}
-              />
-              <GarantiaBar
-                icon={<Camera size={16} className="text-purple-500" />}
-                title="Fotos e vídeo do bem como garantia"
-                count={bemDocs.length}
-                onClick={() => setModalBem('midia')}
-              />
-            </div>
-          )}
-
-          {/* Linha 3: localização | observação */}
-          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-            <div className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-3.5">
-              <p className="mb-2.5 flex items-center gap-2 text-[14px] font-bold text-ink">
-                <MapPin size={15} className="text-emerald-600" /> Localização
-              </p>
-              {hasLocation ? (
-                <div className="flex gap-3.5">
-                  <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
-                    className="h-24 w-32 shrink-0 overflow-hidden rounded-xl border border-line">
-                    <iframe
-                      title="Localização da solicitação"
-                      className="pointer-events-none h-full w-full border-0"
-                      loading="lazy"
-                      referrerPolicy="no-referrer-when-downgrade"
-                      src={`https://maps.google.com/maps?q=${lead.latitude},${lead.longitude}&z=15&output=embed`}
-                    />
-                  </a>
-                  <div className="min-w-0">
-                    <p className="flex items-center gap-1.5 text-[12.5px] font-semibold text-success">
-                      <CheckCircle size={14} /> Localização recebida
-                    </p>
-                    {lead.endereco && (
-                      <>
-                        <p className="mt-2 text-[11px] font-semibold text-subtle">Endereço completo:</p>
-                        <p className="whitespace-pre-line text-[13px] text-ink-2">{lead.endereco}</p>
-                      </>
-                    )}
-                    {lead.cep && <p className="text-[13px] text-ink-2">CEP: {lead.cep}</p>}
-                    <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
-                      className="mt-2.5 inline-flex items-center gap-1.5 rounded-lg border border-brand/40 px-3 py-1.5 text-[12px] font-semibold text-brand-deep transition-colors hover:bg-brand/10">
-                      Ver no mapa <ExternalLink size={13} />
-                    </a>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-line bg-canvas/60 py-8 text-center">
-                  <MapPin size={24} className="text-subtle" />
-                  <p className="mt-1.5 px-4 text-[12px] text-subtle">O cliente não compartilhou a localização.</p>
-                </div>
-              )}
-            </div>
-
-            <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-3.5">
-              <p className="mb-2.5 flex items-center gap-2 text-[14px] font-bold text-teal-600 dark:text-teal-400">
-                <ClipboardList size={15} /> Observação do cliente
-              </p>
-              {observacaoCliente ? (
-                <p className="whitespace-pre-line text-[13px] text-ink-2">{observacaoCliente}</p>
-              ) : (
-                <p className="text-[13px] text-subtle">Sem observação do cliente.</p>
-              )}
-            </div>
-          </div>
-
-          {/* Linha 4: ações */}
-          <Section icon={<Zap size={18} className="text-blue-500" fill="currentColor" />} title="Ações">
-            <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_240px]">
-              <div className="space-y-2">
-                <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-4">
-                  <BigAction icon={<CheckCircle size={15} />} label="Aprovar"
-                    gradient="bg-gradient-to-r from-green-500 to-emerald-600"
-                    onClick={() => setAprovando(true)} />
-                  <BigAction icon={<XCircle size={15} />} label="Recusar"
-                    gradient="bg-gradient-to-r from-red-500 to-rose-600"
-                    onClick={() => setRecusando(true)} />
-                  <BigAction icon={<Send size={15} />} label="Enviar status"
-                    gradient="bg-gradient-to-r from-blue-500 to-blue-600"
-                    disabled={isInternalStatus(lead.status)}
-                    onClick={() => setEnviandoStatus(true)} />
-                  <BigAction icon={<Monitor size={15} />} label="Enviar cobrança fácil"
-                    gradient="bg-gradient-to-r from-teal-500 to-cyan-600"
-                    onClick={() => setCobrancaFacil(true)} />
-                  <BigAction icon={downloading ? <Loader2 size={15} className="animate-spin" /> : <CloudDownload size={15} />}
-                    label={downloading ? 'Gerando...' : 'Baixar backup'}
-                    gradient="bg-gradient-to-r from-orange-400 to-amber-500"
-                    disabled={downloading}
-                    onClick={handleDownload} />
-                  <BigAction icon={<MapPin size={15} />} label="Ver localização"
-                    gradient="bg-gradient-to-r from-blue-500 to-indigo-600"
-                    disabled={!hasLocation}
-                    onClick={hasLocation ? () => window.open(mapsUrl, '_blank', 'noopener') : undefined} />
-                  <BigAction icon={<Trash2 size={15} />} label="Excluir solicitação"
-                    gradient="bg-gradient-to-r from-rose-500 to-red-500"
-                    onClick={() => onDelete(lead.id)} />
-
-                  {/* Mais ações: abre uma aba suspensa (modal) com as marcações e o envio ao grupo. */}
-                  <BigAction icon={<MoreHorizontal size={15} />} label="Mais ações"
-                    gradient="bg-gradient-to-r from-slate-500 to-slate-600"
-                    onClick={() => setMaisAcoes(true)} />
-                </div>
-              </div>
-
-              {/* Mover para a categoria + legenda */}
-              <div>
-                <button onClick={() => setMoverCategoria(true)}
-                  className="flex w-full items-center justify-between gap-2 rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 px-4 py-2.5 text-[13px] font-semibold text-white shadow-md transition-all hover:brightness-110 cursor-pointer">
-                  Mover para a categoria
-                  <ChevronDown size={18} className="text-white" />
-                </button>
+                <IconRow icon={<MessageSquare size={18} className="text-ink-2" />} label="Como conheceu a SP"
+                  value={lead.indicacao || origemOf(lead)} />
+                <IconRow icon={<FileText size={18} className="text-ink-2" />} label="Observação do cliente"
+                  value={observacaoCliente || <span className="font-normal text-subtle">Sem observações.</span>} />
               </div>
             </div>
 
-            {/* Dados da recusa: grupo em que caiu + motivo (aparece só em recusados). */}
-            {lead.status === 'RECUSADO' && (
-              <div className="mt-4">
-                <RecusaEditor lead={lead} onUpdateGroups={onUpdateGroups} />
-              </div>
-            )}
+            {/* Dados da recusa (só em recusados) */}
+            {lead.status === 'RECUSADO' && <RecusaEditor lead={lead} onUpdateGroups={onUpdateGroups} />}
 
             {/* Histórico de mensagens */}
             {logs.length > 0 && (
-              <div className="mt-4">
-                <p className="mb-2 text-[13px] font-bold text-ink-2">Mensagens enviadas ({logs.length})</p>
-                <div className="max-h-40 space-y-2 overflow-y-auto">
+              <details className="rounded-xl border border-line bg-surface p-3.5">
+                <summary className="cursor-pointer text-[13px] font-bold text-ink-2">Mensagens enviadas ({logs.length})</summary>
+                <div className="mt-2 max-h-48 space-y-2 overflow-y-auto">
                   {logs.map((log) => (
-                    <div key={log.id} className="rounded-xl bg-canvas p-2.5">
+                    <div key={log.id} className="rounded-lg bg-canvas p-2.5">
                       <div className="mb-1 flex items-center justify-between">
                         <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${log.status === 'ENVIADO' ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'}`}>
                           {log.status}
@@ -489,11 +445,166 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
                     </div>
                   ))}
                 </div>
+              </details>
+            )}
+          </div>
+
+          {/* ───── Coluna direita ───── */}
+          <div className="min-w-0 space-y-3">
+            {/* Documentos: abas + visualizador */}
+            <div className="rounded-xl border border-line bg-surface p-3.5">
+              <p className="mb-2 flex items-center gap-2 text-[15px] font-bold text-ink">
+                <FileText size={17} /> Documentos
+              </p>
+              <div className="grid grid-cols-4 border-b border-line">
+                {DOC_TABS.map((t) => {
+                  const idx = docsOrdenados.findIndex((d) => docGrupo(d) === t.key);
+                  const ativa = docAtual ? docGrupo(docAtual) === t.key : false;
+                  return (
+                    <button key={t.key} onClick={() => idx >= 0 && setDocIdx(idx)} disabled={idx < 0}
+                      className={`-mb-px flex items-center justify-center gap-1.5 border-b-[3px] py-2 text-[13px] transition-colors
+                        ${ativa ? 'border-[#F6C700] font-bold text-ink' : 'border-transparent text-muted hover:text-ink-2'}
+                        ${idx < 0 ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'}`}>
+                      {t.icon} {t.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {docAtual ? (
+                <>
+                  <a href={docAtual.url} target="_blank" rel="noopener noreferrer" title={docDisplayLabel(docAtual)}
+                    className="mt-3 flex h-[240px] items-center justify-center overflow-hidden rounded-xl bg-canvas">
+                    {VIDEO_EXT.test(docAtual.filename) || VIDEO_EXT.test(docAtual.url)
+                      ? <video src={docAtual.url} controls className="h-full max-w-full" />
+                      : IMAGE_EXT.test(docAtual.filename) || IMAGE_EXT.test(docAtual.url)
+                      ? <img src={docAtual.url} alt={docDisplayLabel(docAtual)} className="h-full max-w-full object-contain" />
+                      : <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-ink-2">
+                          <FileText size={54} strokeWidth={1.3} />
+                          <span className="text-[13px] font-semibold">Documento PDF</span>
+                        </div>}
+                  </a>
+                  <p className="mt-2 truncate text-center text-[12.5px] font-semibold text-muted">{docDisplayLabel(docAtual)}</p>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <ViewerBtn onClick={() => setDocIdx((i) => Math.max(0, i - 1))} disabled={docIdx === 0}>
+                      <ChevronLeft size={16} /> Anterior
+                    </ViewerBtn>
+                    <span className="px-2 text-[12.5px] text-subtle">{docIdx + 1} de {docsOrdenados.length}</span>
+                    <ViewerBtn onClick={() => setDocIdx((i) => Math.min(docsOrdenados.length - 1, i + 1))} disabled={docIdx >= docsOrdenados.length - 1}>
+                      Próximo <ChevronRight size={16} />
+                    </ViewerBtn>
+                    <span className="flex-1" />
+                    <a href={docAtual.url} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-[12.5px] font-semibold text-ink transition-colors hover:bg-canvas">
+                      <Eye size={16} /> Visualizar
+                    </a>
+                    <ViewerBtn onClick={() => baixarDocumento(docAtual)} disabled={baixandoDoc === docAtual.id}>
+                      {baixandoDoc === docAtual.id
+                        ? <><Loader2 size={15} className="animate-spin" /> Baixando</>
+                        : <><Download size={16} /> Baixar</>}
+                    </ViewerBtn>
+                  </div>
+                </>
+              ) : (
+                <p className="mt-3 rounded-xl border border-dashed border-line py-12 text-center text-[13px] text-subtle">
+                  Nenhum documento enviado.
+                </p>
+              )}
+            </div>
+
+            {/* Bem em garantia (só para quem ofereceu) */}
+            {temGarantia && (
+              <div className="space-y-2.5">
+                <GarantiaBar icon={<Shield size={16} className="text-amber-600" />}
+                  title="Informações do bem como garantia" onClick={() => setModalBem('info')} />
+                <GarantiaBar icon={<Camera size={16} className="text-purple-500" />}
+                  title="Fotos e vídeo do bem como garantia" count={bemDocs.length} onClick={() => setModalBem('midia')} />
               </div>
             )}
-          </Section>
+
+            {/* Localização */}
+            <div className="rounded-xl border border-line bg-surface p-3.5">
+              <p className="mb-2.5 flex items-center gap-2 text-[15px] font-bold text-ink">
+                <MapPin size={17} /> {hasLocation ? 'Localização recebida' : 'Localização'}
+                {hasLocation && <span className="h-2 w-2 rounded-full bg-success" />}
+              </p>
+              {hasLocation ? (
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1.15fr]">
+                  <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
+                    className="h-36 overflow-hidden rounded-xl border border-line">
+                    <iframe title="Localização da solicitação" loading="lazy"
+                      className="pointer-events-none h-full w-full border-0"
+                      referrerPolicy="no-referrer-when-downgrade"
+                      src={`https://maps.google.com/maps?q=${lead.latitude},${lead.longitude}&z=15&output=embed`} />
+                  </a>
+                  <div className="flex flex-col">
+                    <div className="divide-y divide-line rounded-xl border border-line text-[12.5px]">
+                      {endereco.map(([k, v]) => (
+                        <div key={k} className="flex gap-3 px-3 py-1.5">
+                          <span className="w-20 shrink-0 text-subtle">{k}:</span>
+                          <span className="font-semibold text-ink [overflow-wrap:anywhere]">{v}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
+                      className="mt-2 inline-flex items-center gap-1.5 self-end rounded-lg border border-[#F6C700] bg-[#F6C700]/10 px-3 py-1.5 text-[12px] font-semibold text-[#9a7a00] underline transition-colors hover:bg-[#F6C700]/20 dark:text-[#F6C700]">
+                      <MapIcon size={14} /> Abrir no mapa
+                    </a>
+                  </div>
+                </div>
+              ) : (
+                <p className="rounded-xl border border-dashed border-line py-8 text-center text-[12.5px] text-subtle">
+                  O cliente não compartilhou a localização.
+                </p>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
+
+        {/* Barra de ações */}
+        <div className="flex shrink-0 flex-wrap items-center gap-2 border-t border-line bg-surface px-3 py-2.5">
+          <FooterBtn className="bg-[#111214] text-white hover:brightness-125" onClick={() => setAprovando(true)}>
+            <Check size={18} strokeWidth={2.6} /> Aprovar
+          </FooterBtn>
+          <FooterBtn className="border border-line text-ink hover:bg-canvas" onClick={() => setRecusando(true)}>
+            <X size={18} /> Recusar
+          </FooterBtn>
+          <FooterBtn className="bg-slate-500 text-white hover:brightness-110" onClick={handleDownload} disabled={downloading}>
+            {downloading ? <Loader2 size={17} className="animate-spin" /> : <Download size={17} />}
+            {downloading ? 'Gerando...' : 'Backup'}
+          </FooterBtn>
+          <FooterBtn className="bg-slate-700 text-white hover:brightness-125" onClick={() => setCobrancaFacil(true)}>
+            <Send size={17} /> Enviar ao Cobra Fácil
+          </FooterBtn>
+
+          <div className="relative">
+            <FooterBtn className="border border-line bg-canvas text-ink hover:bg-line/60" onClick={() => setMenuMais((v) => !v)}>
+              <MoreHorizontal size={18} /> Mais opções
+              <ChevronDown size={16} className={`transition-transform ${menuMais ? 'rotate-180' : ''}`} />
+            </FooterBtn>
+            {menuMais && (
+              <>
+                <div className="fixed inset-0 z-20" onClick={() => setMenuMais(false)} />
+                <div className="absolute bottom-[calc(100%+8px)] right-0 z-30 w-[300px] space-y-1.5 rounded-xl border border-line bg-surface p-2.5 shadow-2xl">
+                  <MaisAcaoRow icon={<Send size={17} />} label="Enviar status" descricao="Atualizar o cliente pelo WhatsApp"
+                    onClick={isInternalStatus(lead.status) ? undefined : () => { setMenuMais(false); setEnviandoStatus(true); }} />
+                  <MaisAcaoRow icon={<FolderInput size={17} />} label="Mover para a categoria" descricao="Trocar a situação do cliente"
+                    onClick={() => { setMenuMais(false); setMoverCategoria(true); }} />
+                  <MaisAcaoRow icon={<Users size={17} />} label="Enviar para o grupo" descricao="Compartilhar no grupo de análise"
+                    onClick={() => { setMenuMais(false); setEnviandoGrupo(true); }} />
+                  <MaisAcaoRow icon={<Shield size={17} />} label="Evitar golpes" ativo={lead.evitarGolpes} tint="purple"
+                    onClick={() => onUpdateGroups(lead.id, { evitarGolpes: !lead.evitarGolpes })} />
+                  <MaisAcaoRow icon={<Users size={17} />} label="Análise de clientes" ativo={lead.analiseCliente} tint="orange"
+                    onClick={() => onUpdateGroups(lead.id, { analiseCliente: !lead.analiseCliente })} />
+                </div>
+              </>
+            )}
+          </div>
+
+          <FooterBtn className="ml-auto border border-line text-ink hover:border-danger hover:text-danger" onClick={() => onDelete(lead.id)}>
+            <Trash2 size={17} /> Excluir
+          </FooterBtn>
+        </div>
       </div>
       )}
 
@@ -538,41 +649,6 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
             onClose={() => setEnviandoStatus(false)}
             onEnviarStatus={() => onWhatsApp(lead)}
           />
-        )}
-
-        {/* Aba suspensa "Mais ações": marcações internas + envio ao grupo. */}
-        {maisAcoes && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
-            <div className="absolute inset-0 bg-black/50" onClick={() => setMaisAcoes(false)} />
-            <div className="relative z-10 w-[min(400px,92vw)] overflow-hidden rounded-2xl border border-line bg-surface shadow-2xl">
-              <div className="flex items-center justify-between border-b border-line px-4 py-3">
-                <p className="flex items-center gap-2 text-[15px] font-bold text-ink">
-                  <MoreHorizontal size={17} className="text-ink-2" /> Mais ações
-                </p>
-                <button onClick={() => setMaisAcoes(false)}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-line cursor-pointer">
-                  <X size={16} className="text-subtle" />
-                </button>
-              </div>
-              <div className="space-y-1.5 p-3">
-                <MaisAcaoRow
-                  icon={<Shield size={17} />} label="Evitar golpes"
-                  ativo={lead.evitarGolpes} tint="purple"
-                  onClick={() => onUpdateGroups(lead.id, { evitarGolpes: !lead.evitarGolpes })}
-                />
-                <MaisAcaoRow
-                  icon={<Users size={17} />} label="Análise de clientes"
-                  ativo={lead.analiseCliente} tint="orange"
-                  onClick={() => onUpdateGroups(lead.id, { analiseCliente: !lead.analiseCliente })}
-                />
-                <MaisAcaoRow
-                  icon={<Send size={17} />} label="Enviar para o grupo"
-                  descricao="Compartilhar no grupo de análise"
-                  onClick={() => { setMaisAcoes(false); setEnviandoGrupo(true); }}
-                />
-              </div>
-            </div>
-          </div>
         )}
 
         {/* Aba suspensa "Mover para a categoria": status disponíveis (exceto o atual). */}
@@ -622,18 +698,144 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
   );
 }
 
-/** Card de seção com cabeçalho (ícone + título + contagem opcional). */
-function Section({ icon, title, count, children }: {
-  icon: ReactNode; title: string; count?: number; children: ReactNode;
+/** Rótulo curto da categoria (chip ao lado da situação). */
+const PERFIL_CURTO: Record<string, string> = {
+  CARTEIRA_ASSINADA: 'CLT', CLT_SEM_REGISTRO: 'Informal', AUTONOMO: 'Autônomo',
+  MOTORISTA_APP: 'Motorista de app', TRABALHO_JOB: 'Job (GP)', BENEFICIARIO: 'Beneficiário',
+  ESTAGIARIO: 'Estagiário', SERVIDOR_PUBLICO: 'Servidor público', RECEBE_SEGURO: 'Recebe seguro',
+  COM_GARANTIA: 'Com garantia', SEM_COMPROVACAO: 'Sem comprovação',
+};
+function perfilCurto(perfil: string): string {
+  return PERFIL_CURTO[perfil] ?? perfilLabel(perfil);
+}
+
+/** Pílula da situação (fundo claro + texto da cor do status). */
+function statusPill(status: string): string {
+  switch (status) {
+    case 'APROVADO': return 'bg-success/15 text-success';
+    case 'RECUSADO': return 'bg-danger/15 text-danger';
+    case 'PENDENTE': return 'bg-[#F6C700]/20 text-[#8a6d00] dark:text-[#F6C700]';
+    default: return 'bg-info/15 text-info';
+  }
+}
+
+/** Texto da pílula de situação (singular; a lista usa o nome da aba). */
+function statusPillLabel(status: string): string {
+  switch (status) {
+    case 'PENDENTE': return 'Em análise';
+    case 'APROVADO': return 'Aprovado';
+    case 'RECUSADO': return 'Recusado';
+    default: return statusLabel(status);
+  }
+}
+
+/** "À vista" / "Parcelado (3x)" — a modalidade aprovada tem prioridade sobre a pedida. */
+function modalidadeTexto(lead: Lead): string {
+  if (lead.modalidadeAprovada === 'AVISTA') return 'À vista';
+  if (lead.modalidadeAprovada === 'PARCELADO' || lead.parcelas > 1) return `Parcelado (${lead.parcelas}x)`;
+  return 'À vista';
+}
+
+/** Abas do visualizador de documentos. */
+type DocGrupo = 'documento' | 'rosto' | 'trabalho' | 'casa';
+const DOC_TABS: { key: DocGrupo; label: string; icon: ReactNode }[] = [
+  { key: 'documento', label: 'Documento', icon: <FileText size={16} /> },
+  { key: 'rosto', label: 'Rosto', icon: <UserRound size={16} /> },
+  { key: 'trabalho', label: 'Trabalho', icon: <Briefcase size={16} /> },
+  { key: 'casa', label: 'Casa', icon: <House size={16} /> },
+];
+function docGrupo(doc: { tipo: string; filename: string }): DocGrupo {
+  const l = docLabel(doc);
+  if (/selfie|rosto/i.test(l)) return 'rosto';
+  if (/\b(rg|cnh)\b|identidade|identifica/i.test(l)) return 'documento';
+  if (/resid/i.test(l)) return 'casa';
+  return 'trabalho';
+}
+
+/**
+ * Quebra o endereço do app ("Rua, nº, Bairro, Cidade - UF") em linhas.
+ * Formato diferente: mostra o texto inteiro numa linha só.
+ */
+function partesEndereco(endereco: string | null, cep: string | null): [string, string][] {
+  const linhas: [string, string][] = [];
+  const partes = (endereco || '').split(',').map((p) => p.trim()).filter(Boolean);
+  const ultima = partes[partes.length - 1] || '';
+  if (partes.length >= 3 && ultima.includes(' - ')) {
+    const [cidade, uf] = ultima.split(' - ');
+    linhas.push(['Rua', partes.slice(0, -2).join(', ')]);
+    linhas.push(['Bairro', partes[partes.length - 2]]);
+    linhas.push(['Cidade / UF', `${cidade} / ${ufSigla(uf)}`]);
+  } else if (endereco) {
+    linhas.push(['Endereço', endereco]);
+  }
+  if (cep) linhas.push(['CEP', cep]);
+  if (linhas.length === 0) linhas.push(['Endereço', '—']);
+  return linhas;
+}
+
+const UFS: Record<string, string> = {
+  acre: 'AC', alagoas: 'AL', amapá: 'AP', amazonas: 'AM', bahia: 'BA', ceará: 'CE', 'distrito federal': 'DF',
+  'espírito santo': 'ES', goiás: 'GO', maranhão: 'MA', 'mato grosso': 'MT', 'mato grosso do sul': 'MS',
+  'minas gerais': 'MG', pará: 'PA', paraíba: 'PB', paraná: 'PR', pernambuco: 'PE', piauí: 'PI',
+  'rio de janeiro': 'RJ', 'rio grande do norte': 'RN', 'rio grande do sul': 'RS', rondônia: 'RO',
+  roraima: 'RR', 'santa catarina': 'SC', 'são paulo': 'SP', sergipe: 'SE', tocantins: 'TO',
+};
+/** "Bahia" → "BA" (o geocoder devolve o nome do estado). */
+function ufSigla(uf: string): string {
+  return UFS[uf.trim().toLowerCase()] ?? uf.trim();
+}
+
+/** Linha "rótulo à esquerda, valor à direita" de "Dados do cliente". */
+function DadoRow({ label, value }: { label: string; value: ReactNode }) {
+  return (
+    <div className="grid grid-cols-[130px_1fr] gap-3 py-1.5 text-[13px]">
+      <span className="text-muted">{label}</span>
+      <span className="font-semibold text-ink [overflow-wrap:anywhere]">{value}</span>
+    </div>
+  );
+}
+
+/** Linha com ícone à esquerda (Instagram, origem, observação). */
+function IconRow({ icon, label, value }: { icon: ReactNode; label: string; value: ReactNode }) {
+  return (
+    <div className="grid grid-cols-[22px_150px_1fr] items-start gap-2 text-[13px]">
+      <span className="mt-0.5">{icon}</span>
+      <span className="text-muted">{label}</span>
+      <span className="font-semibold text-ink [overflow-wrap:anywhere]">{value}</span>
+    </div>
+  );
+}
+
+/** Ícone do Instagram (o lucide desta versão não tem). */
+function InstagramIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e1306c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.5" cy="6.5" r="0.6" fill="#e1306c" />
+    </svg>
+  );
+}
+
+/** Botão do visualizador de documentos (Anterior / Próximo / Baixar). */
+function ViewerBtn({ children, onClick, disabled }: { children: ReactNode; onClick: () => void; disabled?: boolean }) {
+  return (
+    <button onClick={onClick} disabled={disabled}
+      className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-[12.5px] font-semibold text-ink transition-colors hover:bg-canvas cursor-pointer disabled:cursor-not-allowed disabled:opacity-40">
+      {children}
+    </button>
+  );
+}
+
+/** Botão da barra de ações do rodapé. */
+function FooterBtn({ children, className, onClick, disabled }: {
+  children: ReactNode; className: string; onClick: () => void; disabled?: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-line bg-surface p-3 shadow-sm">
-      <p className="mb-2 flex items-center gap-2 border-b border-line pb-2 text-[14px] font-bold text-ink">
-        {icon} {title}
-        {typeof count === 'number' && count > 0 && <span className="text-subtle">({count})</span>}
-      </p>
+    <button onClick={onClick} disabled={disabled}
+      className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-[13.5px] font-semibold transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${className}`}>
       {children}
-    </div>
+    </button>
   );
 }
 
@@ -790,33 +992,6 @@ function GarantiaModal({ tipo, garantia, bemDocs, renderDocCard, onSwitch, onClo
   );
 }
 
-/** Chip do cabeçalho (categoria / situação / data). */
-function HeaderChip({ icon, label, value }: { icon: ReactNode; label: string; value: ReactNode }) {
-  return (
-    <div className="flex items-center gap-2 px-3 py-2">
-      <span className="shrink-0">{icon}</span>
-      <div className="leading-tight">
-        <p className="text-[10.5px] text-subtle">{label}</p>
-        <p className="text-[12.5px] font-bold text-ink">{value}</p>
-      </div>
-    </div>
-  );
-}
-
-/** Item da grade "Dados do Cliente": ícone colorido + rótulo + valor completo. */
-function InfoItem({ icon, iconBg, label, value }: { icon: ReactNode; iconBg: string; label: string; value: ReactNode }) {
-  return (
-    <div className="flex items-start gap-2">
-      <span className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${iconBg}`}>{icon}</span>
-      <div className="min-w-0">
-        <p className="text-[11px] leading-tight text-muted">{label}</p>
-        {/* Valor por completo: quebra em várias linhas em vez de cortar com "…". */}
-        <p className="text-[13px] font-bold leading-snug text-ink [overflow-wrap:anywhere]">{value}</p>
-      </div>
-    </div>
-  );
-}
-
 /** Editor dos dados da recusa: grupo em que caiu (1/2/3) + motivo. */
 function RecusaEditor({ lead, onUpdateGroups }: {
   lead: Lead;
@@ -875,22 +1050,6 @@ function RecusaEditor({ lead, onUpdateGroups }: {
         Salvar motivo
       </button>
     </div>
-  );
-}
-
-/** Botão grande de ação: ícone em círculo translúcido + rótulo, com gradiente. */
-function BigAction({ icon, label, gradient, disabled, onClick }: {
-  icon: ReactNode; label: string; gradient: string; disabled?: boolean; onClick?: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={`flex items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-[12.5px] font-bold text-white shadow-sm transition-all hover:brightness-110 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100 ${gradient}`}
-    >
-      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/25">{icon}</span>
-      <span className="leading-tight">{label}</span>
-    </button>
   );
 }
 
