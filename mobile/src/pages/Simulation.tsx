@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useLoan } from '../context/LoanContext';
 import { simular } from '../hooks/useSimulation';
-import { useCities } from '../hooks/useCities';
 import { useModalidadePagamento } from '../hooks/useModalidadePagamento';
 import { PARCELAS } from '../constants/categories';
 import { formatCurrency } from '../utils/formatCurrency';
@@ -18,7 +17,6 @@ const MUTED = '#9a9aa1';
 
 export function Simulation() {
   const { state, dispatch } = useLoan();
-  const cities = useCities();
   const [inputValue, setInputValue] = useState('');
   const [rendaInput, setRendaInput] = useState('');
 
@@ -59,7 +57,7 @@ export function Simulation() {
     dispatch({ type: 'SET_STEP', step: 2 });
   };
 
-  const canCalc = state.valor > 0 && !!state.cidade && !!state.renda;
+  const canCalc = state.valor > 0 && !!state.cidade.trim() && !!state.renda;
 
   const MODALIDADES = [
     { value: 'VISTA' as const, titulo: 'À vista', sub: 'Mais chance de aprovação' },
@@ -174,15 +172,16 @@ export function Simulation() {
         <div style={{ flex: 1, minWidth: 0 }}>
           <label style={fieldLabel}>Cidade</label>
           <div style={cardStyle}>
-            <select value={state.cidade} onChange={e => dispatch({ type: 'SET_FIELD', field: 'cidade', value: e.target.value })}
+            <input type="text" placeholder="Digite sua cidade" autoComplete="address-level2"
+              className="dk-input" maxLength={80}
+              value={state.cidade}
+              onChange={e => dispatch({ type: 'SET_FIELD', field: 'cidade', value: e.target.value })}
+              onBlur={e => dispatch({ type: 'SET_FIELD', field: 'cidade', value: e.target.value.trim() })}
               style={{
-                width: '100%', border: 'none', outline: 'none', background: 'transparent',
-                fontSize: 15, fontWeight: 500, appearance: 'none', cursor: 'pointer',
-                color: state.cidade ? '#fff' : MUTED,
-              }}>
-              <option value="" style={optionStyle}>Digite sua cidade</option>
-              {cities.map(c => <option key={c.value} value={c.value} style={optionStyle}>{c.label}</option>)}
-            </select>
+                width: '100%', minWidth: 0, border: 'none', outline: 'none', background: 'transparent',
+                fontSize: 15, fontWeight: 500, color: '#fff', padding: 0,
+              }}
+            />
           </div>
         </div>
 

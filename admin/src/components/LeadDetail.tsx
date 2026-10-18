@@ -200,7 +200,41 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
   const docsOrdenados = [...pessoalDocs].sort(
     (x, y) => DOC_TABS.findIndex((t) => t.key === docGrupo(x)) - DOC_TABS.findIndex((t) => t.key === docGrupo(y)),
   );
-  const docAtual = docsOrdenados.length ? docsOrdenados[Math.min(docIdx, docsOrdenados.length - 1)] : undefined;
+  // Páginas do visualizador: a aba Documento junta RG/CNH frente e verso numa página só;
+  // nas outras abas é um documento por página.
+  const paginas: (typeof docsOrdenados)[] = [];
+  for (const d of docsOrdenados) {
+    const ultima = paginas[paginas.length - 1];
+    if (docGrupo(d) === 'documento' && ultima && docGrupo(ultima[0]) === 'documento') ultima.push(d);
+    else paginas.push([d]);
+  }
+  const pagina = paginas.length ? paginas[Math.min(docIdx, paginas.length - 1)] : undefined;
+  const docAtual = pagina?.[0];
+
+  const renderMidia = (doc: typeof docsOrdenados[number]) => (
+    VIDEO_EXT.test(doc.filename) || VIDEO_EXT.test(doc.url)
+      ? <video src={doc.url} controls className="h-full max-w-full" />
+      : IMAGE_EXT.test(doc.filename) || IMAGE_EXT.test(doc.url)
+      ? <img src={doc.url} alt={docDisplayLabel(doc)} className="h-full max-w-full object-contain" />
+      : <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-ink-2">
+          <FileText size={54} strokeWidth={1.3} />
+          <span className="text-[13px] font-semibold">Documento PDF</span>
+        </div>
+  );
+
+  const botoesDoc = (doc: typeof docsOrdenados[number]) => (
+    <>
+      <a href={doc.url} target="_blank" rel="noopener noreferrer"
+        className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-[12.5px] font-semibold text-ink transition-colors hover:bg-canvas">
+        <Eye size={16} /> Visualizar
+      </a>
+      <ViewerBtn onClick={() => baixarDocumento(doc)} disabled={baixandoDoc === doc.id}>
+        {baixandoDoc === doc.id
+          ? <><Loader2 size={15} className="animate-spin" /> Baixando</>
+          : <><Download size={16} /> Baixar</>}
+      </ViewerBtn>
+    </>
+  );
 
   const endereco = partesEndereco(lead.endereco, lead.cep);
   const bairroEndereco = endereco.find(([k]) => k === 'Bairro')?.[1];
@@ -458,7 +492,7 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
               </p>
               <div className="grid grid-cols-4 border-b border-line">
                 {DOC_TABS.map((t) => {
-                  const idx = docsOrdenados.findIndex((d) => docGrupo(d) === t.key);
+                  const idx = paginas.findIndex((p) => docGrupo(p[0]) === t.key);
                   const ativa = docAtual ? docGrupo(docAtual) === t.key : false;
                   return (
                     <button key={t.key} onClick={() => idx >= 0 && setDocIdx(idx)} disabled={idx < 0}
@@ -471,38 +505,41 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
                 })}
               </div>
 
-              {docAtual ? (
+              {pagina && docAtual ? (
                 <>
-                  <a href={docAtual.url} target="_blank" rel="noopener noreferrer" title={docDisplayLabel(docAtual)}
-                    className="mt-3 flex h-[240px] items-center justify-center overflow-hidden rounded-xl bg-canvas">
-                    {VIDEO_EXT.test(docAtual.filename) || VIDEO_EXT.test(docAtual.url)
-                      ? <video src={docAtual.url} controls className="h-full max-w-full" />
-                      : IMAGE_EXT.test(docAtual.filename) || IMAGE_EXT.test(docAtual.url)
-                      ? <img src={docAtual.url} alt={docDisplayLabel(docAtual)} className="h-full max-w-full object-contain" />
-                      : <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-ink-2">
-                          <FileText size={54} strokeWidth={1.3} />
-                          <span className="text-[13px] font-semibold">Documento PDF</span>
-                        </div>}
-                  </a>
-                  <p className="mt-2 truncate text-center text-[12.5px] font-semibold text-muted">{docDisplayLabel(docAtual)}</p>
+                  {pagina.length > 1 ? (
+                    // Frente e verso lado a lado, cada um com seus botões.
+                    <div className="mt-3 grid grid-cols-2 gap-3">
+                      {pagina.map((doc) => (
+                        <div key={doc.id} className="min-w-0">
+                          <a href={doc.url} target="_blank" rel="noopener noreferrer" title={docDisplayLabel(doc)}
+                            className="flex h-[240px] items-center justify-center overflow-hidden rounded-xl bg-canvas">
+                            {renderMidia(doc)}
+                          </a>
+                          <p className="mt-2 truncate text-center text-[12.5px] font-semibold text-muted">{docDisplayLabel(doc)}</p>
+                          <div className="mt-1.5 flex justify-center gap-2">{botoesDoc(doc)}</div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <>
+                      <a href={docAtual.url} target="_blank" rel="noopener noreferrer" title={docDisplayLabel(docAtual)}
+                        className="mt-3 flex h-[240px] items-center justify-center overflow-hidden rounded-xl bg-canvas">
+                        {renderMidia(docAtual)}
+                      </a>
+                      <p className="mt-2 truncate text-center text-[12.5px] font-semibold text-muted">{docDisplayLabel(docAtual)}</p>
+                    </>
+                  )}
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     <ViewerBtn onClick={() => setDocIdx((i) => Math.max(0, i - 1))} disabled={docIdx === 0}>
                       <ChevronLeft size={16} /> Anterior
                     </ViewerBtn>
-                    <span className="px-2 text-[12.5px] text-subtle">{docIdx + 1} de {docsOrdenados.length}</span>
-                    <ViewerBtn onClick={() => setDocIdx((i) => Math.min(docsOrdenados.length - 1, i + 1))} disabled={docIdx >= docsOrdenados.length - 1}>
+                    <span className="px-2 text-[12.5px] text-subtle">{Math.min(docIdx, paginas.length - 1) + 1} de {paginas.length}</span>
+                    <ViewerBtn onClick={() => setDocIdx((i) => Math.min(paginas.length - 1, i + 1))} disabled={docIdx >= paginas.length - 1}>
                       Próximo <ChevronRight size={16} />
                     </ViewerBtn>
                     <span className="flex-1" />
-                    <a href={docAtual.url} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-[12.5px] font-semibold text-ink transition-colors hover:bg-canvas">
-                      <Eye size={16} /> Visualizar
-                    </a>
-                    <ViewerBtn onClick={() => baixarDocumento(docAtual)} disabled={baixandoDoc === docAtual.id}>
-                      {baixandoDoc === docAtual.id
-                        ? <><Loader2 size={15} className="animate-spin" /> Baixando</>
-                        : <><Download size={16} /> Baixar</>}
-                    </ViewerBtn>
+                    {pagina.length === 1 && botoesDoc(docAtual)}
                   </div>
                 </>
               ) : (

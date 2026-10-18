@@ -112,11 +112,6 @@ export interface DocumentType {
   icon: string;
 }
 
-export interface City {
-  value: string;
-  label: string;
-}
-
 export interface RendaOption {
   value: string;
   label: string;
