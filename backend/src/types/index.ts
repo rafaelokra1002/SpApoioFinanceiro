@@ -39,6 +39,10 @@ export interface LeadInput {
   veiculoProprio?: string;
   /** Motorista de aplicativo: placa do veículo. */
   placaVeiculo?: string;
+  /** Aparelho do cliente, montado no app (ex.: "Samsung SM-A515F · Android 13 · Chrome 129"). */
+  dispositivo?: string;
+  /** User-Agent bruto do envio (lido do cabeçalho pelo servidor). */
+  userAgent?: string;
   observacao?: string;
   latitude?: number;
   longitude?: number;

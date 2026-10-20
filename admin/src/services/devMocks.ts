@@ -46,6 +46,8 @@ function mk(
     matriculaCargo: null,
     veiculoProprio: null,
     placaVeiculo: null,
+    dispositivo: 'Samsung SM-A515F · Android 13 · Chrome 129',
+    userAgent: null,
     observacao: null,
     latitude: null,
     longitude: null,

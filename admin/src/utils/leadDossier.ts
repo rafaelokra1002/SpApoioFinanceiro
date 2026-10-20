@@ -82,6 +82,7 @@ function buildSummaryLines(lead: Lead, logs: LeadMessageLog[]) {
     `Status: ${lead.status}`,
     `Perfil: ${formatProfile(lead.perfil)}`,
     `Cidade: ${lead.cidade}`,
+    `Aparelho: ${lead.dispositivo || '—'}`,
     `Valor solicitado: ${formatCurrency(lead.valorSolicitado)}`,
     `Valor total: ${formatCurrency(lead.valorTotal)}`,
     `Taxa de juros: ${lead.taxaJuros}%`,

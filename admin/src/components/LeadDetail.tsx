@@ -3,6 +3,7 @@ import {
   X, CheckCircle, XCircle, Trash2, MessageCircle, Download, Loader2, MapPin, Briefcase, UserRound,
   CreditCard, Send, Shield, Users, FileText, Search, ChevronDown, Calendar, Camera, Play, MoreHorizontal,
   Check, FolderInput, Pencil, Copy, Eye, ChevronLeft, ChevronRight, Map as MapIcon, House, MessageSquare,
+  RotateCw,
 } from 'lucide-react';
 import { Lead } from '../types';
 import { parseGarantia, isBemDoc, GarantiaInfo } from '../utils/garantia';
@@ -16,7 +17,6 @@ import { notify } from './Notice';
 import RecusarModal from './leads/RecusarModal';
 import AprovarModal from './leads/AprovarModal';
 import EnviarGrupoModal from './leads/EnviarGrupoModal';
-import { MOTIVOS_RECUSA } from './leads/RecusarModal';
 import CobrancaFacilModal from './leads/CobrancaFacilModal';
 import EnviarStatusModal from './leads/EnviarStatusModal';
 
@@ -54,6 +54,9 @@ function formatDateTime(dateStr: string): string {
   const hora = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
   return `${data} às ${hora}`;
 }
+
+/** Altura da área de imagem do visualizador (classe h-[240px]). */
+const ALTURA_VISUALIZADOR = 240;
 
 const IMAGE_EXT = /\.(jpe?g|png|webp|gif|bmp|heic)$/i;
 const VIDEO_EXT = /\.(mp4|mov|webm|m4v|avi|3gp|mkv)$/i;
@@ -127,6 +130,8 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
   // Popover "Copiar dados" e documento aberto no visualizador.
   const [copiarAberto, setCopiarAberto] = useState(false);
   const [docIdx, setDocIdx] = useState(0);
+  // Giro de cada documento no visualizador (só na tela; o arquivo não muda).
+  const [rotacao, setRotacao] = useState<Record<string, number>>({});
   // "Mover para a categoria" abre uma aba suspensa com os status disponíveis.
   const [moverCategoria, setMoverCategoria] = useState(false);
   // Clicar numa barra de garantia abre uma tela suspensa (modal) com o conteúdo.
@@ -139,7 +144,7 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
   }, [lead.id]);
 
   // O modal é reaproveitado entre clientes: volta para o primeiro documento.
-  useEffect(() => { setDocIdx(0); setCopiarAberto(false); setMenuMais(false); }, [lead.id]);
+  useEffect(() => { setDocIdx(0); setCopiarAberto(false); setMenuMais(false); setRotacao({}); }, [lead.id]);
 
   const handleDownload = async () => {
     try {
@@ -211,19 +216,46 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
   const pagina = paginas.length ? paginas[Math.min(docIdx, paginas.length - 1)] : undefined;
   const docAtual = pagina?.[0];
 
-  const renderMidia = (doc: typeof docsOrdenados[number]) => (
-    VIDEO_EXT.test(doc.filename) || VIDEO_EXT.test(doc.url)
-      ? <video src={doc.url} controls className="h-full max-w-full" />
-      : IMAGE_EXT.test(doc.filename) || IMAGE_EXT.test(doc.url)
-      ? <img src={doc.url} alt={docDisplayLabel(doc)} className="h-full max-w-full object-contain" />
-      : <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-ink-2">
+  const ehImagem = (doc: typeof docsOrdenados[number]) => IMAGE_EXT.test(doc.filename) || IMAGE_EXT.test(doc.url);
+
+  /**
+   * `larguraCaixa`: largura aproximada da área do visualizador. Girada de lado, a
+   * imagem troca altura por largura, então os limites trocam também para caber na caixa.
+   */
+  const renderMidia = (doc: typeof docsOrdenados[number], larguraCaixa: number) => {
+    if (VIDEO_EXT.test(doc.filename) || VIDEO_EXT.test(doc.url)) {
+      return <video src={doc.url} controls className="h-full max-w-full" />;
+    }
+    if (!ehImagem(doc)) {
+      return (
+        <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-ink-2">
           <FileText size={54} strokeWidth={1.3} />
           <span className="text-[13px] font-semibold">Documento PDF</span>
         </div>
-  );
+      );
+    }
+    const graus = rotacao[doc.id] ?? 0;
+    const deLado = graus % 180 !== 0;
+    return (
+      <img src={doc.url} alt={docDisplayLabel(doc)}
+        className={deLado ? 'object-contain' : 'h-full max-w-full object-contain'}
+        style={{
+          transform: graus ? `rotate(${graus}deg)` : undefined,
+          transition: 'transform 0.2s',
+          ...(deLado ? { maxWidth: ALTURA_VISUALIZADOR, maxHeight: larguraCaixa } : {}),
+        }} />
+    );
+  };
+
+  const girar = (id: string) => setRotacao((r) => ({ ...r, [id]: ((r[id] ?? 0) + 90) % 360 }));
 
   const botoesDoc = (doc: typeof docsOrdenados[number]) => (
     <>
+      {ehImagem(doc) && (
+        <ViewerBtn onClick={() => girar(doc.id)}>
+          <RotateCw size={16} /> Girar
+        </ViewerBtn>
+      )}
       <a href={doc.url} target="_blank" rel="noopener noreferrer"
         className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-[12.5px] font-semibold text-ink transition-colors hover:bg-canvas">
         <Eye size={16} /> Visualizar
@@ -444,6 +476,7 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
                   </>
                 )}
                 <DadoRow label="Cidade / Estado" value={lead.cidade} />
+                <DadoRow label="Aparelho" value={<span title={lead.userAgent || undefined}>{lead.dispositivo || '—'}</span>} />
               </div>
 
               <div className="mt-3 space-y-2.5 border-t border-line pt-3">
@@ -459,8 +492,6 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
               </div>
             </div>
 
-            {/* Dados da recusa (só em recusados) */}
-            {lead.status === 'RECUSADO' && <RecusaEditor lead={lead} onUpdateGroups={onUpdateGroups} />}
 
             {/* Histórico de mensagens */}
             {logs.length > 0 && (
@@ -514,7 +545,7 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
                         <div key={doc.id} className="min-w-0">
                           <a href={doc.url} target="_blank" rel="noopener noreferrer" title={docDisplayLabel(doc)}
                             className="flex h-[240px] items-center justify-center overflow-hidden rounded-xl bg-canvas">
-                            {renderMidia(doc)}
+                            {renderMidia(doc, 290)}
                           </a>
                           <p className="mt-2 truncate text-center text-[12.5px] font-semibold text-muted">{docDisplayLabel(doc)}</p>
                           <div className="mt-1.5 flex justify-center gap-2">{botoesDoc(doc)}</div>
@@ -525,7 +556,7 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
                     <>
                       <a href={docAtual.url} target="_blank" rel="noopener noreferrer" title={docDisplayLabel(docAtual)}
                         className="mt-3 flex h-[240px] items-center justify-center overflow-hidden rounded-xl bg-canvas">
-                        {renderMidia(docAtual)}
+                        {renderMidia(docAtual, 620)}
                       </a>
                       <p className="mt-2 truncate text-center text-[12.5px] font-semibold text-muted">{docDisplayLabel(docAtual)}</p>
                     </>
@@ -1025,67 +1056,6 @@ function GarantiaModal({ tipo, garantia, bemDocs, renderDocCard, onSwitch, onClo
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-/** Editor dos dados da recusa: grupo em que caiu (1/2/3) + motivo. */
-function RecusaEditor({ lead, onUpdateGroups }: {
-  lead: Lead;
-  onUpdateGroups: (id: string, data: { grupo?: number | null; motivoRecusa?: string | null }) => void;
-}) {
-  const [motivo, setMotivo] = useState(lead.motivoRecusa ?? '');
-
-  // Sincroniza quando trocar de lead (o modal é reaproveitado entre clientes).
-  useEffect(() => { setMotivo(lead.motivoRecusa ?? ''); }, [lead.id, lead.motivoRecusa]);
-
-  const grupoDirty = (lead.grupo ?? null);
-  const motivoDirty = motivo.trim() !== (lead.motivoRecusa ?? '').trim();
-
-  const setGrupo = (g: number) => {
-    onUpdateGroups(lead.id, { grupo: grupoDirty === g ? null : g });
-  };
-
-  const salvarMotivo = () => {
-    onUpdateGroups(lead.id, { motivoRecusa: motivo.trim() || null });
-    notify('Motivo da recusa salvo.', 'success');
-  };
-
-  return (
-    <div className="rounded-xl border border-danger/20 bg-danger/5 p-3">
-      <p className="mb-2 text-[11px] font-semibold text-danger">Dados da recusa</p>
-
-      <p className="mb-1.5 text-[11.5px] text-muted">Motivo do grupo</p>
-      <div className="mb-3 space-y-1.5">
-        {MOTIVOS_RECUSA.map((m) => (
-          <button
-            key={m.grupo}
-            onClick={() => setGrupo(m.grupo)}
-            className={`w-full rounded-lg border px-2.5 py-1.5 text-left text-[12.5px] font-semibold transition-colors cursor-pointer
-              ${grupoDirty === m.grupo ? 'border-danger bg-danger text-white' : 'border-line bg-surface text-ink-2 hover:bg-canvas'}`}
-          >
-            {m.titulo}
-          </button>
-        ))}
-      </div>
-
-      <p className="mb-1.5 text-[11.5px] text-muted">Motivo da recusa</p>
-      <textarea
-        value={motivo}
-        onChange={(e) => setMotivo(e.target.value)}
-        rows={2}
-        placeholder="Ex.: Score de crédito baixo, documentação incompleta..."
-        className="w-full resize-none rounded-lg border border-line bg-surface px-3 py-2 text-[12.5px] text-ink
-          placeholder:text-subtle focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15"
-      />
-      <button
-        onClick={salvarMotivo}
-        disabled={!motivoDirty}
-        className="mt-2 w-full rounded-lg bg-danger py-2 text-[12.5px] font-semibold text-white transition-colors
-          hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
-      >
-        Salvar motivo
-      </button>
     </div>
   );
 }

@@ -190,6 +190,8 @@ export async function handleCreateLeadWithDocs(
       matriculaCargo: body.matriculaCargo || undefined,
       veiculoProprio: body.veiculoProprio || undefined,
       placaVeiculo: body.placaVeiculo || undefined,
+      dispositivo: body.dispositivo ? String(body.dispositivo).slice(0, 200) : undefined,
+      userAgent: req.get('user-agent')?.slice(0, 500) || undefined,
       observacao: body.observacao || undefined,
       latitude: body.latitude ? parseFloat(body.latitude) : undefined,
       longitude: body.longitude ? parseFloat(body.longitude) : undefined,

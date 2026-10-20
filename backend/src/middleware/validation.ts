@@ -38,6 +38,7 @@ export const leadSchema = z.object({
   matriculaCargo: z.string().optional().or(z.literal('')),
   veiculoProprio: z.string().optional().or(z.literal('')),
   placaVeiculo: z.string().optional().or(z.literal('')),
+  dispositivo: z.string().max(200).optional().or(z.literal('')),
   observacao: z.string().optional().or(z.literal('')),
   latitude: z.number().optional(),
   longitude: z.number().optional(),

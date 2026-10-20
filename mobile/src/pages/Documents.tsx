@@ -1,13 +1,14 @@
 import React, { useState, useRef } from 'react';
 import {
-  ArrowRight, BadgeCheck, Briefcase, Building2, Camera, Car, ChartNoAxesColumn, Check, CircleCheck,
-  ChevronDown, ChevronLeft, Clock, Upload,
+  ArrowRight, BadgeCheck, Briefcase, Building2, Camera, Car, ChartNoAxesColumn, Check,
+  ChevronDown, ChevronLeft, Upload,
   FileText, House, IdCard, Image as ImageIcon, Info, Landmark, MapPin, MessageSquare, UserRound,
 } from 'lucide-react';
 import { useLoan } from '../context/LoanContext';
 import { CATEGORIES, DOCUMENT_TYPES } from '../constants/categories';
 import { submitLeadWithDocuments } from '../services/api';
 import { compressImage, formatoAceito, pareceImagem } from '../utils/image';
+import { descreverDispositivo } from '../utils/device';
 import { UploadedFile } from '../types';
 
 // Tema escuro com dourado (mesma paleta da Home, Simulação e Categorias) — etapa "Seus dados".
@@ -34,15 +35,28 @@ const plainInput: React.CSSProperties = {
   fontSize: 16.5, color: '#fff', outline: 'none', fontFamily: 'inherit',
 };
 
-const docCardStyle: React.CSSProperties = {
-  background: CARD, border: `1.5px solid ${LINE}`, borderRadius: 16, padding: '14px 14px 14px',
+/** Borda clara dos botões e campos da lista de documentos. */
+const DOC_BORDA = 'rgba(255,255,255,0.72)';
+
+/** Item da lista de documentos: sem card, só uma linha separando um do outro. */
+const docItemStyle: React.CSSProperties = {
+  display: 'flex', alignItems: 'flex-start', gap: 14, padding: '16px 0',
+  borderBottom: '1px solid rgba(255,255,255,0.14)',
 };
+/** Botões/campos da lista ocupam a linha inteira (centralizados), não só a coluna do texto. */
+const docBotoesLinha: React.CSSProperties = { marginLeft: -46 };
+// A coluna do ícone tem a altura da linha do título e centraliza o ícone nela.
+const docIconCol: React.CSSProperties = {
+  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, width: 32, height: 24,
+};
+const docTitle: React.CSSProperties = { margin: 0, fontWeight: 700, fontSize: 17, lineHeight: '24px', color: '#fff' };
+const docDesc: React.CSSProperties = { margin: '3px 0 0', fontSize: 14, color: '#c9d1dd', lineHeight: 1.4 };
 
 /** Botão de envio (Foto / Galeria / PDF): contorno escuro, ícone e texto brancos. */
 const docActionStyle: React.CSSProperties = {
   flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
   padding: '11px 8px', borderRadius: 10, cursor: 'pointer',
-  background: 'transparent', border: `1.5px solid ${LINE}`, color: '#fff', fontWeight: 500, fontSize: 14,
+  background: 'transparent', border: `1.5px solid ${DOC_BORDA}`, color: '#fff', fontWeight: 500, fontSize: 14,
 };
 
 /**
@@ -97,8 +111,8 @@ function EtapaBar({ atual, total }: { atual: number; total: number }) {
 }
 
 /** Um dos lados da CNH (frente/verso): botão simples; depois de enviado, mostra check dourado. */
-function CnhLadoButton({ lado, uploaded, onAdd, onClear }: {
-  lado: string; uploaded: boolean; onAdd: () => void; onClear: () => void;
+function CnhLadoButton({ lado, uploaded, aberto, onAdd, onClear }: {
+  lado: string; uploaded: boolean; aberto: boolean; onAdd: () => void; onClear: () => void;
 }) {
   if (uploaded) {
     return (
@@ -113,10 +127,47 @@ function CnhLadoButton({ lado, uploaded, onAdd, onClear }: {
     );
   }
   return (
-    <button onClick={onAdd} style={docActionStyle}>
+    <button onClick={onAdd} style={{ ...docActionStyle, ...(aberto ? { borderColor: GOLD } : {}) }}>
       <Upload size={18} strokeWidth={2} />
       Adicionar {lado.toLowerCase()}
+      <ChevronDown size={17} strokeWidth={2.2}
+        style={{ transition: 'transform 0.15s', transform: aberto ? 'rotate(180deg)' : 'none' }} />
     </button>
+  );
+}
+
+type OrigemArquivo = 'camera' | 'galeria' | 'pdf';
+
+/** Seletor "Tirar foto / Escolher da galeria / Selecionar PDF" aberto abaixo do botão. */
+function MenuEnvio({ alinhar, onEscolher, onFechar }: {
+  alinhar: 'left' | 'right'; onEscolher: (o: OrigemArquivo) => void; onFechar: () => void;
+}) {
+  const opcoes: { o: OrigemArquivo; label: string; icon: React.ReactNode }[] = [
+    { o: 'camera', label: 'Tirar foto', icon: <Camera size={22} strokeWidth={1.8} /> },
+    { o: 'galeria', label: 'Escolher da galeria', icon: <ImageIcon size={22} strokeWidth={1.8} /> },
+    { o: 'pdf', label: 'Selecionar PDF', icon: <FileText size={22} strokeWidth={1.8} /> },
+  ];
+  return (
+    <>
+      {/* Toque fora fecha o menu. */}
+      <div onClick={onFechar} style={{ position: 'fixed', inset: 0, zIndex: 1 }} />
+      <div style={{
+        position: 'absolute', top: 'calc(100% + 8px)', [alinhar]: 0, width: 'min(300px, calc(100vw - 32px))', zIndex: 2,
+        background: '#131d2e', border: `1px solid ${LINE}`, borderRadius: 14, overflow: 'hidden',
+        boxShadow: '0 14px 32px rgba(0,0,0,0.55)',
+      }}>
+        {opcoes.map((op, i) => (
+          <button key={op.o} onClick={() => { onFechar(); onEscolher(op.o); }} style={{
+            display: 'flex', alignItems: 'center', gap: 16, width: '100%', padding: '15px 18px',
+            background: 'none', border: 'none', borderTop: i > 0 ? `1px solid ${LINE}` : 'none',
+            cursor: 'pointer', color: '#fff', fontSize: 15.5, textAlign: 'left',
+          }}>
+            {op.icon}
+            {op.label}
+          </button>
+        ))}
+      </div>
+    </>
   );
 }
 
@@ -128,7 +179,7 @@ const sectionTitle: React.CSSProperties = {
 const sectionLabel: React.CSSProperties = { display: 'block', fontSize: 16, fontWeight: 600, color: '#fff', marginBottom: 8 };
 const sectionInput: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box', height: 52, padding: '0 16px',
-  borderRadius: 12, border: `1.5px solid ${LINE}`, background: CARD,
+  borderRadius: 12, border: `1.5px solid ${DOC_BORDA}`, background: 'transparent',
   fontSize: 16, color: '#fff', outline: 'none',
 };
 
@@ -152,8 +203,7 @@ export function Documents() {
   const [currentDocKey, setCurrentDocKey] = useState('');
   const [showTip, setShowTip] = useState<string | null>(null);
   // Tipo esperado do arquivo conforme o botão clicado (foto x PDF).
-  const [expectedKind, setExpectedKind] = useState<'image' | 'pdf' | 'any'>('image');
-  const anyInputRef = useRef<HTMLInputElement>(null);
+  const [expectedKind, setExpectedKind] = useState<'image' | 'pdf'>('image');
   // "+ Adicionar informação (opcional)": começa fechado, a não ser que já tenha texto.
   const [obsOpen, setObsOpen] = useState(false);
   // Documento com o menu "Adicionar documento" aberto (Tirar foto / Galeria / PDF).
@@ -201,17 +251,16 @@ export function Documents() {
     galleryInputRef.current?.click();
   };
 
-  // RG/CNH: aceita foto ou PDF (o sistema mostra câmera, galeria e arquivos).
-  const openAnyPicker = (docKey: string) => {
-    setCurrentDocKey(docKey);
-    setExpectedKind('any');
-    anyInputRef.current?.click();
-  };
-
   const openPdfPicker = (docKey: string) => {
     setCurrentDocKey(docKey);
     setExpectedKind('pdf');
     pdfInputRef.current?.click();
+  };
+
+  const abrirArquivo = (docKey: string, origem: OrigemArquivo) => {
+    if (origem === 'camera') openFilePicker(docKey);
+    else if (origem === 'galeria') openGallery(docKey);
+    else openPdfPicker(docKey);
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -228,10 +277,6 @@ export function Documents() {
     }
     if (expectedKind === 'pdf' && !isPdf) {
       setError('Aqui é para arquivo PDF. Para enviar uma foto, use "Tirar foto" ou "Escolher da galeria".');
-      return;
-    }
-    if (expectedKind === 'any' && !isImage && !isPdf) {
-      setError('Envie uma foto ou um arquivo PDF.');
       return;
     }
     setError('');
@@ -304,6 +349,8 @@ export function Documents() {
       // Motorista de aplicativo: veículo próprio/alugado e placa em campos próprios.
       veiculoProprio: motoristaApp ? (state.veiculoProprio || undefined) : undefined,
       placaVeiculo: motoristaApp ? (state.placaVeiculo || undefined) : undefined,
+      // Aparelho do cliente (modelo/sistema/navegador), para o admin conferir.
+      dispositivo: (await descreverDispositivo().catch(() => '')) || undefined,
       observacao,
       latitude: state.latitude ?? undefined,
       longitude: state.longitude ?? undefined,
@@ -325,12 +372,12 @@ export function Documents() {
 
   // Ícones do Lucide (linha dourada), conforme a lista de equivalências.
   const docIcons: Record<string, React.ReactNode> = {
-    '🪪': <IdCard size={26} color={GOLD} strokeWidth={1.7} />,
-    '📷': <UserRound size={26} color={GOLD} strokeWidth={1.7} />,
-    '🏠': <House size={26} color={GOLD} strokeWidth={1.7} />,
-    '💼': <FileText size={26} color={GOLD} strokeWidth={1.7} />,
-    '📄': <FileText size={26} color={GOLD} strokeWidth={1.7} />,
-    '📊': <ChartNoAxesColumn size={26} color={GOLD} strokeWidth={1.9} />,
+    '🪪': <IdCard size={32} color="#fff" strokeWidth={1.6} />,
+    '📷': <Camera size={32} color="#fff" strokeWidth={1.6} />,
+    '🏠': <House size={32} color="#fff" strokeWidth={1.6} />,
+    '💼': <FileText size={32} color="#fff" strokeWidth={1.6} />,
+    '📄': <FileText size={32} color="#fff" strokeWidth={1.6} />,
+    '📊': <ChartNoAxesColumn size={32} color="#fff" strokeWidth={1.6} />,
   };
 
   const voltar = () => { if (docStep === 2) setDocStep(1); else dispatch({ type: 'SET_STEP', step: 2 }); };
@@ -347,8 +394,6 @@ export function Documents() {
       <input ref={galleryInputRef} type="file" accept="image/*"
         onChange={handleFileSelect} style={{ display: 'none' }} />
       <input ref={pdfInputRef} type="file" accept=".pdf,application/pdf"
-        onChange={handleFileSelect} style={{ display: 'none' }} />
-      <input ref={anyInputRef} type="file" accept="image/*,.pdf,application/pdf"
         onChange={handleFileSelect} style={{ display: 'none' }} />
 
       {docStep === 1 ? (
@@ -506,88 +551,64 @@ export function Documents() {
           </div>
 
           <div style={{ flex: 1, padding: '0 16px 20px' }}>
-            {/* CNH (frente + verso), quando a categoria pede os dois lados separados */}
+            {/* RG/CNH (frente + verso), quando a categoria pede os dois lados separados */}
             {temCnhSeparada && (
-              <div style={{ ...docCardStyle, marginBottom: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                  <div style={{
-                    minWidth: 50, width: 50, height: 50, borderRadius: 14, background: '#131d2e',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}><IdCard size={26} color={GOLD} strokeWidth={1.7} /></div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ fontWeight: 600, fontSize: 16.5, color: '#fff' }}>
-                      {motoristaApp ? 'CNH' : 'RG ou CNH'}
-                    </span>
-                    <p style={{ fontSize: 13.5, color: MUTED, marginTop: 2, lineHeight: 1.35 }}>
-                      {motoristaApp
-                        ? 'Se a CNH Digital tiver os dois lados, envie uma vez.'
-                        : 'Se o PDF tiver os dois lados, envie uma vez.'}
-                    </p>
+              <div style={{ ...docItemStyle, position: 'relative', zIndex: menuDoc === CNH_FRENTE_KEY || menuDoc === CNH_VERSO_KEY ? 30 : undefined }}>
+                <span style={docIconCol}><IdCard size={32} color="#fff" strokeWidth={1.6} /></span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={docTitle}>{motoristaApp ? 'CNH' : 'RG ou CNH'}</p>
+                  <div style={{ ...docBotoesLinha, display: 'flex', gap: 8, marginTop: 10 }}>
+                    {([['Frente', CNH_FRENTE_KEY, 'left'], ['Verso', CNH_VERSO_KEY, 'right']] as const).map(([lado, key, alinhar]) => (
+                      <div key={key} style={{ position: 'relative', flex: 1, display: 'flex' }}>
+                        <CnhLadoButton lado={lado} uploaded={!!state.documents[key]} aberto={menuDoc === key}
+                          onAdd={() => setMenuDoc(menuDoc === key ? null : key)}
+                          onClear={() => dispatch({ type: 'SET_DOCUMENT', key, file: null })} />
+                        {menuDoc === key && (
+                          <MenuEnvio alinhar={alinhar} onFechar={() => setMenuDoc(null)}
+                            onEscolher={(o) => abrirArquivo(key, o)} />
+                        )}
+                      </div>
+                    ))}
                   </div>
-                </div>
-                <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
-                  <CnhLadoButton lado="Frente" uploaded={!!state.documents[CNH_FRENTE_KEY]}
-                    onAdd={() => openAnyPicker(CNH_FRENTE_KEY)}
-                    onClear={() => dispatch({ type: 'SET_DOCUMENT', key: CNH_FRENTE_KEY, file: null })} />
-                  <CnhLadoButton lado="Verso" uploaded={!!state.documents[CNH_VERSO_KEY]}
-                    onAdd={() => openAnyPicker(CNH_VERSO_KEY)}
-                    onClear={() => dispatch({ type: 'SET_DOCUMENT', key: CNH_VERSO_KEY, file: null })} />
+                  <p style={{ ...docDesc, ...docBotoesLinha, marginTop: 10, textAlign: 'center' }}>
+                    {motoristaApp
+                      ? 'Se a CNH Digital tiver os dois lados, envie uma vez.'
+                      : 'Se o PDF tiver os dois lados, envie uma vez.'}
+                  </p>
                 </div>
               </div>
             )}
 
-            {/* Cards de documento */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {docsLista.map(doc => {
-                const uploaded = state.documents[doc.key];
-                const isPdfOnly = doc.key.toLowerCase().includes('carteira de trabalho');
-                const isSelfie = doc.key.toLowerCase().includes('selfie');
-                const temDica = doc.key === 'Comprovante de residência';
-                return (
-                  <div key={doc.key} style={{ ...docCardStyle, position: 'relative', zIndex: menuDoc === doc.key ? 30 : undefined }}>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                      <div style={{
-                        minWidth: 50, width: 50, height: 50, borderRadius: 14, background: '#131d2e',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      }}>{docIcons[doc.icon] || docIcons['📄']}</div>
-
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
-                          <span style={{ fontWeight: 600, fontSize: 16.5, color: '#fff' }}>{doc.label}</span>
-                          {temDica && (
-                            <button onClick={() => setShowTip(showTip === doc.key ? null : doc.key)}
-                              onMouseEnter={() => setShowTip(doc.key)}
-                              onMouseLeave={() => setShowTip(null)}
-                              title="Sobre o comprovante" style={{
-                                width: 20, height: 20, borderRadius: '50%', border: `1.5px solid ${GOLD}`,
-                                background: 'transparent', color: GOLD, fontSize: 11, fontWeight: 800,
-                                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                padding: 0, flexShrink: 0,
-                              }}>?</button>
-                          )}
-                        </div>
-                        {doc.description !== doc.label && (
-                          <p style={{ fontSize: 13.5, color: MUTED, marginTop: 2, lineHeight: 1.35 }}>{doc.description}</p>
-                        )}
-                      </div>
-
-                      <span style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 5, flexShrink: 0,
-                        padding: '5px 10px', borderRadius: 999, fontSize: 12.5, fontWeight: 600,
-                        background: uploaded ? 'rgba(34,197,94,0.14)' : '#131d2e',
-                        color: uploaded ? '#86efac' : '#c8d2e3',
-                      }}>
-                        {uploaded
-                          ? <CircleCheck size={14} strokeWidth={2.4} />
-                          : <Clock size={14} strokeWidth={2.2} />}
-                        {uploaded ? 'Enviado' : 'Pendente'}
-                      </span>
+            {/* Documentos: lista sem cards, separada por linhas */}
+            {docsLista.map(doc => {
+              const uploaded = state.documents[doc.key];
+              const isPdfOnly = doc.key.toLowerCase().includes('carteira de trabalho');
+              const isSelfie = doc.key.toLowerCase().includes('selfie');
+              const temDica = doc.key === 'Comprovante de residência';
+              return (
+                <div key={doc.key} style={{ ...docItemStyle, position: 'relative', zIndex: menuDoc === doc.key ? 30 : undefined }}>
+                  <span style={docIconCol}>{docIcons[doc.icon] || docIcons['📄']}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
+                      <p style={docTitle}>{doc.label}</p>
+                      {temDica && (
+                        <button onClick={() => setShowTip(showTip === doc.key ? null : doc.key)}
+                          onMouseEnter={() => setShowTip(doc.key)}
+                          onMouseLeave={() => setShowTip(null)}
+                          title="Sobre o comprovante" style={{
+                            width: 20, height: 20, borderRadius: '50%', border: `1.5px solid ${GOLD}`,
+                            background: 'transparent', color: GOLD, fontSize: 11, fontWeight: 800,
+                            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            padding: 0, flexShrink: 0,
+                          }}>?</button>
+                      )}
                     </div>
+                    {doc.description !== doc.label && <p style={docDesc}>{doc.description}</p>}
 
-                    {/* Balão flutuante: sobrepõe o card, sem empurrar o conteúdo. */}
+                    {/* Balão flutuante: sobrepõe a lista, sem empurrar o conteúdo. */}
                     {temDica && showTip === doc.key && (
                       <div style={{
-                        position: 'absolute', left: 14, right: 14, top: 72, zIndex: 20,
+                        position: 'absolute', left: 46, right: 0, top: 64, zIndex: 20,
                         display: 'flex', gap: 10, padding: '12px 14px',
                         background: '#131d2e', border: `1px solid ${LINE}`, borderRadius: 12,
                         boxShadow: '0 10px 26px rgba(0,0,0,0.5)',
@@ -599,12 +620,13 @@ export function Documents() {
                       </div>
                     )}
 
-                    <div style={{ position: 'relative', display: 'flex', gap: 8, marginTop: 14 }}>
+                    <div style={{ ...docBotoesLinha, position: 'relative', display: 'flex', gap: 8, marginTop: 10 }}>
                       {uploaded ? (
-                        // Limpa o arquivo: o card volta a "Pendente" com os botões de envio.
+                        // Toque limpa o arquivo e volta o botão de envio.
                         <button onClick={() => dispatch({ type: 'SET_DOCUMENT', key: doc.key, file: null })}
-                          style={{ ...docActionStyle, borderColor: GOLD, color: GOLD }}>
-                          Enviar novamente
+                          style={{ ...docActionStyle, borderColor: GOLD, color: GOLD, background: 'rgba(246,199,0,0.08)' }}>
+                          <Check size={17} strokeWidth={2.6} />
+                          Enviado · trocar arquivo
                         </button>
                       ) : isPdfOnly ? (
                         <button onClick={() => openPdfPicker(doc.key)} style={docActionStyle}>
@@ -620,45 +642,23 @@ export function Documents() {
                       ) : (
                         <>
                           <button onClick={() => setMenuDoc(menuDoc === doc.key ? null : doc.key)}
-                            style={{ ...docActionStyle, borderColor: menuDoc === doc.key ? GOLD : LINE }}>
+                            style={{ ...docActionStyle, ...(menuDoc === doc.key ? { borderColor: GOLD } : {}) }}>
                             <Upload size={18} strokeWidth={2} />
                             {doc.key === 'Comprovante de ganhos' ? 'Adicionar documentos' : 'Adicionar documento'}
                             <ChevronDown size={18} strokeWidth={2.2}
                               style={{ transition: 'transform 0.15s', transform: menuDoc === doc.key ? 'rotate(180deg)' : 'none' }} />
                           </button>
                           {menuDoc === doc.key && (
-                            <>
-                              {/* Toque fora fecha o menu. */}
-                              <div onClick={() => setMenuDoc(null)} style={{ position: 'fixed', inset: 0, zIndex: 1 }} />
-                              <div style={{
-                                position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: 'min(100%, 300px)', zIndex: 2,
-                                background: '#131d2e', border: `1px solid ${LINE}`, borderRadius: 14, overflow: 'hidden',
-                                boxShadow: '0 14px 32px rgba(0,0,0,0.55)',
-                              }}>
-                                {[
-                                  { label: 'Tirar foto', icon: <Camera size={22} strokeWidth={1.8} />, abrir: openFilePicker },
-                                  { label: 'Escolher da galeria', icon: <ImageIcon size={22} strokeWidth={1.8} />, abrir: openGallery },
-                                  { label: 'Selecionar PDF', icon: <FileText size={22} strokeWidth={1.8} />, abrir: openPdfPicker },
-                                ].map((op, i) => (
-                                  <button key={op.label} onClick={() => { setMenuDoc(null); op.abrir(doc.key); }} style={{
-                                    display: 'flex', alignItems: 'center', gap: 16, width: '100%', padding: '15px 18px',
-                                    background: 'none', border: 'none', borderTop: i > 0 ? `1px solid ${LINE}` : 'none',
-                                    cursor: 'pointer', color: '#fff', fontSize: 15.5, textAlign: 'left',
-                                  }}>
-                                    {op.icon}
-                                    {op.label}
-                                  </button>
-                                ))}
-                              </div>
-                            </>
+                            <MenuEnvio alinhar="right" onFechar={() => setMenuDoc(null)}
+                              onEscolher={(o) => abrirArquivo(doc.key, o)} />
                           )}
                         </>
                       )}
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
 
             {/* Campos complementares */}
             <div style={{ marginTop: 22, display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -697,22 +697,14 @@ export function Documents() {
                   />
                 </>
               ) : motoristaApp ? (
-                // Motorista de aplicativo: só o card "Seu veículo" (sem empresa/local de trabalho).
-                <div style={{ ...docCardStyle, marginTop: -10 }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                    <div style={{
-                      minWidth: 50, width: 50, height: 50, borderRadius: 14, background: '#131d2e',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}><Car size={26} color={GOLD} strokeWidth={1.7} /></div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <span style={{ fontWeight: 600, fontSize: 16.5, color: '#fff' }}>Seu veículo</span>
-                      <p style={{ fontSize: 13.5, color: MUTED, marginTop: 2, lineHeight: 1.35 }}>
-                        O veículo é próprio ou alugado?
-                      </p>
-                    </div>
-                  </div>
-                  <div>
-                    <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+                // Motorista de aplicativo: só o item "Seu veículo" (sem empresa/local de trabalho),
+                // no mesmo formato da lista de documentos.
+                <div style={{ ...docItemStyle, marginTop: -22 }}>
+                  <span style={docIconCol}><Car size={32} color="#fff" strokeWidth={1.6} /></span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={docTitle}>Seu veículo</p>
+                    <p style={{ ...docDesc, color: '#fff', marginTop: 6 }}>O veículo é próprio ou alugado?</p>
+                    <div style={{ ...docBotoesLinha, display: 'flex', gap: 8, marginTop: 10 }}>
                       {(['PROPRIO', 'ALUGADO'] as const).map(v => {
                         const ativo = state.veiculoProprio === v;
                         return (
@@ -720,9 +712,7 @@ export function Documents() {
                             onClick={() => dispatch({ type: 'SET_FIELD', field: 'veiculoProprio', value: v })}
                             style={{
                               ...docActionStyle,
-                              background: ativo ? 'rgba(246,199,0,0.08)' : 'transparent',
-                              borderColor: ativo ? GOLD : LINE,
-                              color: ativo ? GOLD : '#fff',
+                              ...(ativo ? { background: 'rgba(246,199,0,0.08)', borderColor: GOLD, color: GOLD } : {}),
                             }}>
                             {ativo && <Check size={16} strokeWidth={2.6} />}
                             {v === 'PROPRIO' ? 'Próprio' : 'Alugado'}
@@ -730,19 +720,19 @@ export function Documents() {
                         );
                       })}
                     </div>
+                    <label style={{ ...docBotoesLinha, display: 'block', fontSize: 14.5, color: '#fff', margin: '14px 0 8px -46px' }}>
+                      Placa do veículo
+                    </label>
+                    <input type="text" className="dk-input" placeholder="Digite a placa"
+                      value={state.placaVeiculo} maxLength={8}
+                      onChange={e => dispatch({ type: 'SET_FIELD', field: 'placaVeiculo', value: e.target.value.toUpperCase() })}
+                      style={{
+                        ...docBotoesLinha, width: 'calc(100% + 46px)', boxSizing: 'border-box', height: 46, padding: '0 14px',
+                        borderRadius: 10, border: `1.5px solid ${DOC_BORDA}`, background: 'transparent',
+                        fontSize: 16, color: '#fff', outline: 'none',
+                      }}
+                    />
                   </div>
-                  <label style={{ display: 'block', fontSize: 14.5, color: '#fff', margin: '14px 0 8px' }}>
-                    Placa do veículo
-                  </label>
-                  <input type="text" className="dk-input" placeholder="Digite a placa"
-                    value={state.placaVeiculo} maxLength={8}
-                    onChange={e => dispatch({ type: 'SET_FIELD', field: 'placaVeiculo', value: e.target.value.toUpperCase() })}
-                    style={{
-                      width: '100%', boxSizing: 'border-box', height: 48, padding: '0 14px',
-                      borderRadius: 10, border: `1.5px solid ${LINE}`, background: 'transparent',
-                      fontSize: 16, color: '#fff', outline: 'none',
-                    }}
-                  />
                 </div>
               ) : semComprovacao ? (
                 <ExtraField

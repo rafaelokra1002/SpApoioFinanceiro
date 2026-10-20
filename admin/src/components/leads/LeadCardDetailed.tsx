@@ -1,10 +1,10 @@
 import { ReactNode } from 'react';
 import {
   Banknote, Briefcase, Building2, Calendar, CreditCard, Eye, IdCard, MapPin,
-  MessageCircle, UserRound, Users, Wallet, AtSign,
+  MessageCircle, UserRound, Wallet, AtSign,
 } from 'lucide-react';
 import { Lead } from '../../types';
-import { camposEmprego, formatCurrency, modalidade, origemOf } from '../../utils/analytics';
+import { camposEmprego, formatCurrency, modalidade } from '../../utils/analytics';
 import { avatarColor, clientPhotoUrl, initials } from '../../utils/avatar';
 import { METRICS, MetricKey, isInternalStatus, statusBadge, statusLabel } from '../../constants/status';
 
@@ -84,7 +84,6 @@ export default function LeadCardDetailed({
   lead, onView, onWhatsApp, headerAction, extra, actions,
 }: LeadCardDetailedProps) {
   const internal = isInternalStatus(lead.status);
-  const origem = origemOf(lead);
   const StatusIcon = METRICS[lead.status as MetricKey]?.icon;
 
   // Parcelas derivadas do prazo (não é campo real — igual à "Modalidade").
@@ -167,17 +166,12 @@ export default function LeadCardDetailed({
           />
           <FieldRow
             left={<Field icon={<CreditCard size={16} className="text-blue-500" />} iconBg="bg-blue-500/10" label="Modalidade" value={modalidade(lead.parcelas)} />}
-            right={<Field icon={<Users size={16} className="text-orange" />} iconBg="bg-orange/10" label="Origem" value={origem} />}
-          />
-          <FieldRow
-            left={<Field icon={<MapPin size={16} className="text-orange" />} iconBg="bg-orange/10" label="Cidade" value={lead.cidade} />}
-            right={isServidor
-              ? <Field icon={<Briefcase size={16} className="text-indigo-500" />} iconBg="bg-indigo-500/10" label="Vínculo" value={vinculoServidorLabel} />
-              : undefined}
+            right={<Field icon={<MapPin size={16} className="text-orange" />} iconBg="bg-orange/10" label="Cidade" value={lead.cidade} />}
           />
           {isServidor && (
             <FieldRow
-              left={<Field icon={<IdCard size={16} className="text-sky-500" />} iconBg="bg-sky-500/10" label={matriculaCargoLabel} value={lead.matriculaCargo || '—'} />}
+              left={<Field icon={<Briefcase size={16} className="text-indigo-500" />} iconBg="bg-indigo-500/10" label="Vínculo" value={vinculoServidorLabel} />}
+              right={<Field icon={<IdCard size={16} className="text-sky-500" />} iconBg="bg-sky-500/10" label={matriculaCargoLabel} value={lead.matriculaCargo || '—'} />}
             />
           )}
         </div>

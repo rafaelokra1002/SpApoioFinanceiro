@@ -1,16 +1,13 @@
 import { useMemo, useState } from 'react';
-import { CalendarDays, Info, Loader2, X } from 'lucide-react';
+import { CalendarDays, Loader2, X } from 'lucide-react';
 import { Lead } from '../../types';
-import { CARD_ORDER, CHART_SERIES, METRICS, MetricKey } from '../../constants/status';
+import { CARD_ORDER, METRICS, MetricKey } from '../../constants/status';
 import {
-  afterDashboardStart, buildSummary, countLastDays, countMetrics, currentMonth, fullMonthLabel,
-  monthKey, monthSeries, origemOf, rank,
+  afterDashboardStart, countLastDays, countMetrics, currentMonth, fullMonthLabel,
+  monthKey, monthSeries, rank,
 } from '../../utils/analytics';
-import LineChart from '../charts/LineChart';
 import StatCard from './StatCard';
 import RankingCard from './RankingCard';
-import PeriodSummary from './PeriodSummary';
-import OrigemIcon from './OrigemIcon';
 
 interface DashboardProps {
   leads: Lead[];
@@ -50,18 +47,6 @@ export default function Dashboard({ leads: allLeads, loading, onDrillDown }: Das
     [allLeads, month],
   );
 
-  /* --- Gráficos e rankings de baixo: recortados pela data de corte. --- */
-  const scoped = useMemo(
-    () => (month ? leads.filter((l) => monthKey(new Date(l.createdAt)) === month) : leads),
-    [leads, month],
-  );
-
-  // O gráfico mostra a tendência dos últimos 6 meses até o mês selecionado.
-  const chartSeries = useMemo(
-    () => monthSeries(leads, month || currentMonth(), CHART_MONTHS),
-    [leads, month],
-  );
-
   // Clientes por Cidade tem o seu próprio seletor de período, independente do filtro geral.
   const [cityMonth, setCityMonth] = useState<string>('');
   const cityScoped = useMemo(
@@ -71,23 +56,6 @@ export default function Dashboard({ leads: allLeads, loading, onDrillDown }: Das
   const cityRank = useMemo(
     () => rank(cityScoped.filter((l) => l.status === 'APROVADO'), (l) => l.cidade, 10),
     [cityScoped],
-  );
-  const origemRank = useMemo(() => rank(scoped, origemOf, 10), [scoped]);
-
-  // O Resumo do período tem o seu próprio seletor de mês, independente do filtro geral.
-  const [summaryMonth, setSummaryMonth] = useState<string>('');
-  const summaryScoped = useMemo(
-    () => (summaryMonth ? leads.filter((l) => monthKey(new Date(l.createdAt)) === summaryMonth) : leads),
-    [leads, summaryMonth],
-  );
-  const summary = useMemo(() => buildSummary(summaryScoped), [summaryScoped]);
-
-  // Taxa de aprovação mês a mês, para o gráfico do tile. Diferente do tile, que
-  // olha só o mês filtrado, a janela aqui é a série até esse mês.
-  const taxaTrend = useMemo(
-    () => monthSeries(leads, summaryMonth || currentMonth(), CHART_MONTHS)
-      .map((p) => (p.counts.total ? (p.counts.APROVADO / p.counts.total) * 100 : 0)),
-    [leads, summaryMonth],
   );
 
   const periodLabel = month ? fullMonthLabel(month) : 'Todo o período';
@@ -149,29 +117,8 @@ export default function Dashboard({ leads: allLeads, loading, onDrillDown }: Das
         ))}
       </div>
 
-      {/* Gráfico + ranking de cidades */}
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.15fr_1fr]">
-        <section className="rounded-2xl border border-line bg-surface p-4 shadow-sm">
-          <header className="mb-3 flex flex-wrap items-center justify-between gap-3">
-            <h2 className="flex items-center gap-1.5 text-[14px] font-bold text-ink">
-              Solicitações por mês
-              <Info size={13} className="text-subtle" aria-label={`Últimos ${CHART_MONTHS} meses`} />
-            </h2>
-          </header>
-
-          <div className="mb-1 flex flex-wrap gap-x-4 gap-y-1.5">
-            {CHART_SERIES.map((key) => (
-              <span key={key} className="flex items-center gap-1.5 text-[11.5px] text-muted">
-                <span className="h-0.5 w-3.5 rounded-full" style={{ background: METRICS[key].hex }} />
-                {METRICS[key].label}
-              </span>
-            ))}
-          </div>
-
-          <LineChart points={chartSeries} series={CHART_SERIES} mode="quantidade" />
-        </section>
-
-        <RankingCard
+      {/* Ranking de cidades (recortado pela data de corte do dashboard) */}
+      <RankingCard
           title="Clientes por Cidade"
           labelHeader="Cidade"
           valueHeader={METRICS.APROVADO.label}
@@ -204,31 +151,9 @@ export default function Dashboard({ leads: allLeads, loading, onDrillDown }: Das
             </div>
           )}
         />
-      </div>
-
-      {/* Origem + resumo */}
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_1.35fr]">
-        <RankingCard
-          title="Origem dos clientes"
-          hint="Derivada do campo “Quem indicou você?”"
-          labelHeader="Origem"
-          valueHeader="Clientes"
-          rows={origemRank.rows}
-          total={origemRank.total}
-          iconFor={(label) => <OrigemIcon label={label} />}
-        />
-        <PeriodSummary
-          summary={summary}
-          month={summaryMonth}
-          monthOptions={monthOptions}
-          onMonthChange={setSummaryMonth}
-          taxaTrend={taxaTrend}
-        />
-      </div>
-
       <p className="pb-2 text-center text-[12px] text-subtle">
         {month
-          ? `Dados referentes a ${periodLabel}. O gráfico mostra os últimos ${CHART_MONTHS} meses.`
+          ? `Dados referentes a ${periodLabel}.`
           : 'Os dados exibidos consideram todas as solicitações recebidas e podem sofrer alterações.'}
       </p>
     </div>

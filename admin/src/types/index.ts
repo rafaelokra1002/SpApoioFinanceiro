@@ -29,6 +29,10 @@ export interface Lead {
   veiculoProprio: string | null;
   /** Motorista de aplicativo: placa do veículo. */
   placaVeiculo: string | null;
+  /** Aparelho do cliente no envio (ex.: "Samsung SM-A515F · Android 13 · Chrome 129"). */
+  dispositivo: string | null;
+  /** User-Agent bruto do envio. */
+  userAgent: string | null;
   observacao: string | null;
   latitude: number | null;
   longitude: number | null;

@@ -215,41 +215,6 @@ export function rank(leads: Lead[], keyOf: (lead: Lead) => string, limit = 5): {
   return { rows, total };
 }
 
-/* ----------------------------------------------------------------- resumo */
-
-export interface Summary {
-  taxaAprovacao: number;
-  aprovados: number;
-  totalClientes: number;
-  taxaContratacao: number;
-  contratados: number;
-  decididos: number;
-  topCidade: RankRow | null;
-  topOrigem: RankRow | null;
-}
-
-export function buildSummary(leads: Lead[]): Summary {
-  const c = countMetrics(leads);
-
-  // Contratação = quem foi aprovado e efetivamente fechou, sobre o universo de
-  // aprovados que já têm desfecho (fechou ou não contratou).
-  const decididos = c.APROVADO + c.NAO_CONTRATOU;
-
-  const cidades = rank(leads.filter((l) => l.status === 'APROVADO'), (l) => l.cidade, 1);
-  const origens = rank(leads, origemOf, 1);
-
-  return {
-    taxaAprovacao: c.total ? (c.APROVADO / c.total) * 100 : 0,
-    aprovados: c.APROVADO,
-    totalClientes: c.total,
-    taxaContratacao: decididos ? (c.APROVADO / decididos) * 100 : 0,
-    contratados: c.APROVADO,
-    decididos,
-    topCidade: cidades.rows[0] ?? null,
-    topOrigem: origens.rows[0] ?? null,
-  };
-}
-
 /* ---------------------------------------------------------------- formatos */
 
 export function formatPercent(value: number, digits = 1): string {

@@ -33,6 +33,8 @@ model Lead {
   matriculaCargo  String?
   veiculoProprio  String?
   placaVeiculo    String?
+  dispositivo     String?
+  userAgent       String?
   observacao      String?
   latitude        Float?
   longitude       Float?
