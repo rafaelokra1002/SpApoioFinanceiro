@@ -38,7 +38,7 @@ export function Confirmation() {
         </div>
 
         <h1 style={{
-          margin: '0 0 10px', fontSize: 'clamp(24px, 6.6vw, 34px)', fontWeight: 800,
+          margin: '0 0 10px', fontSize: 'clamp(24px, 7vw, 30px)', fontWeight: 800,
           color: '#fff', lineHeight: 1.15, letterSpacing: '-0.02em',
         }}>
           Análise em andamento
@@ -88,12 +88,12 @@ export function Confirmation() {
 
         <button onClick={() => dispatch({ type: 'RESET' })} style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-          width: '100%', padding: '19px', borderRadius: 14, border: 'none', cursor: 'pointer',
+          width: '100%', padding: '16px', borderRadius: 12, border: 'none', cursor: 'pointer',
           background: '#f6c700',
-          color: '#111827', fontWeight: 800, fontSize: 20,
+          color: '#111827', fontWeight: 800, fontSize: 17,
         }}>
           Entendi
-          <ArrowRight size={22} strokeWidth={2.4} />
+          <ArrowRight size={20} strokeWidth={2.4} />
         </button>
       </div>
 

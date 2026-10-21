@@ -45,7 +45,7 @@ export function Category() {
       </button>
 
       <h1 style={{
-        margin: '22px 0 22px', fontSize: 'clamp(24px, 6.6vw, 36px)', fontWeight: 800,
+        margin: '22px 0 22px', fontSize: 'clamp(24px, 7vw, 30px)', fontWeight: 800,
         lineHeight: 1.15, letterSpacing: '-0.02em', color: '#fff',
       }}>
         Qual é seu tipo de renda?

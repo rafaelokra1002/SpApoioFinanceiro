@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Category } from '../types';
+import { fixMojibake } from '../utils/text';
 import {
   Plus, Trash2, Pencil, Save, X, Sprout, Loader2,
   ToggleLeft, ToggleRight, FileText,
@@ -45,7 +46,7 @@ export default function CategoryManager({ categories, loading, onReload }: Categ
   };
 
   const handleDeleteCat = async (cat: Category) => {
-    if (!window.confirm(`Excluir categoria "${cat.label}"?`)) return;
+    if (!window.confirm(`Excluir categoria "${fixMojibake(cat.label)}"?`)) return;
     await deleteCategoryApi(cat.id);
     onReload();
   };
@@ -102,14 +103,6 @@ export default function CategoryManager({ categories, loading, onReload }: Categ
               className="mt-1 w-full px-3 py-2.5 rounded-xl border border-line text-sm focus:outline-none focus:ring-2 focus:ring-primary-light/20 focus:border-primary-light"
             />
           </div>
-          <div className="w-20">
-            <label className="text-[11px] font-semibold text-subtle uppercase tracking-wide">Ícone</label>
-            <input
-              value={newCat.icon}
-              onChange={(e) => setNewCat({ ...newCat, icon: e.target.value })}
-              className="mt-1 w-full px-3 py-2.5 rounded-xl border border-line text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary-light/20"
-            />
-          </div>
           <button
             onClick={handleCreate}
             className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:brightness-110 active:scale-[0.98] transition-all whitespace-nowrap cursor-pointer"
@@ -136,18 +129,12 @@ export default function CategoryManager({ categories, loading, onReload }: Categ
               {/* Cat Header */}
               <div className="flex items-center justify-between px-5 py-4 border-b border-line">
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">{cat.icon}</span>
                   {editingCat?.id === cat.id ? (
                     <div className="flex items-center gap-2">
                       <input
                         value={editingCat.label}
                         onChange={(e) => setEditingCat({ ...editingCat, label: e.target.value })}
                         className="px-2.5 py-1.5 rounded-lg border border-line text-sm focus:outline-none focus:ring-2 focus:ring-primary-light/20"
-                      />
-                      <input
-                        value={editingCat.icon}
-                        onChange={(e) => setEditingCat({ ...editingCat, icon: e.target.value })}
-                        className="w-12 px-2 py-1.5 rounded-lg border border-line text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary-light/20"
                       />
                       <button onClick={handleSaveCat} className="p-1.5 rounded-lg bg-success text-white hover:brightness-110 cursor-pointer">
                         <Save size={14} />
@@ -158,7 +145,7 @@ export default function CategoryManager({ categories, loading, onReload }: Categ
                     </div>
                   ) : (
                     <div>
-                      <h3 className="text-[15px] font-bold text-ink">{cat.label}</h3>
+                      <h3 className="text-[15px] font-bold text-ink">{fixMojibake(cat.label)}</h3>
                       <p className="text-[10px] text-subtle font-mono">{cat.value}</p>
                     </div>
                   )}
@@ -173,7 +160,7 @@ export default function CategoryManager({ categories, loading, onReload }: Categ
                     {cat.active ? 'Ativa' : 'Inativa'}
                   </button>
                   <button
-                    onClick={() => setEditingCat({ ...cat })}
+                    onClick={() => setEditingCat({ ...cat, label: fixMojibake(cat.label) })}
                     className="p-2 rounded-lg border border-line hover:bg-canvas transition-colors cursor-pointer"
                   >
                     <Pencil size={13} className="text-subtle" />
@@ -204,7 +191,7 @@ export default function CategoryManager({ categories, loading, onReload }: Categ
                 {/* New doc form */}
                 {newDoc?.catId === cat.id && (
                   <div className="bg-canvas rounded-xl p-4 mb-3 space-y-3">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                       <div>
                         <label className="text-[10px] font-semibold text-subtle uppercase">Chave</label>
                         <input
@@ -232,14 +219,6 @@ export default function CategoryManager({ categories, loading, onReload }: Categ
                           className="mt-1 w-full px-2.5 py-2 rounded-lg border border-line text-xs focus:outline-none focus:ring-2 focus:ring-primary-light/20"
                         />
                       </div>
-                      <div>
-                        <label className="text-[10px] font-semibold text-subtle uppercase">Ícone</label>
-                        <input
-                          value={newDoc.icon}
-                          onChange={(e) => setNewDoc({ ...newDoc, icon: e.target.value })}
-                          className="mt-1 w-full px-2.5 py-2 rounded-lg border border-line text-xs text-center focus:outline-none focus:ring-2 focus:ring-primary-light/20"
-                        />
-                      </div>
                     </div>
                     <div className="flex gap-2">
                       <button
@@ -265,14 +244,13 @@ export default function CategoryManager({ categories, loading, onReload }: Categ
                   <div className="space-y-1.5">
                     {cat.documents.map((doc) => (
                       <div key={doc.id} className="flex items-center gap-3 px-3 py-2.5 bg-canvas rounded-xl group">
-                        <span className="text-base">{doc.icon}</span>
                         <div className="flex-1 min-w-0">
-                          <p className="text-[13px] font-semibold text-ink">{doc.label}</p>
-                          {doc.description && <p className="text-[11px] text-subtle">{doc.description}</p>}
-                          <p className="text-[9px] text-subtle font-mono">key: {doc.key}</p>
+                          <p className="text-[13px] font-semibold text-ink">{fixMojibake(doc.label)}</p>
+                          {doc.description && <p className="text-[11px] text-subtle">{fixMojibake(doc.description)}</p>}
+                          <p className="text-[9px] text-subtle font-mono">key: {fixMojibake(doc.key)}</p>
                         </div>
                         <button
-                          onClick={() => handleDeleteDoc(doc.id, doc.label)}
+                          onClick={() => handleDeleteDoc(doc.id, fixMojibake(doc.label))}
                           className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-danger/10 transition-all cursor-pointer"
                         >
                           <Trash2 size={12} className="text-danger" />

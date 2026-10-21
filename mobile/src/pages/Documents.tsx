@@ -208,6 +208,9 @@ export function Documents() {
   const [obsOpen, setObsOpen] = useState(false);
   // Documento com o menu "Adicionar documento" aberto (Tirar foto / Galeria / PDF).
   const [menuDoc, setMenuDoc] = useState<string | null>(null);
+  // Aviso de arquivo recusado e "carregando", mostrados embaixo do próprio documento.
+  const [erroDoc, setErroDoc] = useState<{ key: string; msg: string } | null>(null);
+  const [processando, setProcessando] = useState<string | null>(null);
 
   const servidorPublico = state.categoria === 'SERVIDOR_PUBLICO';
   const comissionado = state.vinculoServidor === 'COMISSIONADO';
@@ -257,6 +260,21 @@ export function Documents() {
     pdfInputRef.current?.click();
   };
 
+  /** Linha embaixo do documento: "carregando" ou o motivo da recusa do arquivo. */
+  const avisoDoc = (key: string) => {
+    if (processando === key) {
+      return <p style={{ ...docDesc, ...docBotoesLinha, marginTop: 8, textAlign: 'center' }}>Carregando arquivo...</p>;
+    }
+    if (erroDoc?.key === key) {
+      return (
+        <p style={{ ...docBotoesLinha, margin: '8px 0 0 -46px', fontSize: 13.5, lineHeight: 1.4, color: '#fca5a5' }}>
+          {erroDoc.msg}
+        </p>
+      );
+    }
+    return null;
+  };
+
   const abrirArquivo = (docKey: string, origem: OrigemArquivo) => {
     if (origem === 'camera') openFilePicker(docKey);
     else if (origem === 'galeria') openGallery(docKey);
@@ -266,33 +284,37 @@ export function Documents() {
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.files?.[0];
     e.target.value = '';
-    if (!raw || !currentDocKey) return;
+    const key = currentDocKey;
+    if (!raw || !key) return;
+    const recusar = (msg: string) => setErroDoc({ key, msg });
+    setErroDoc(null);
 
     // Bloqueia tipo trocado: foto onde se pede PDF (e vice-versa).
     const isPdf = raw.type === 'application/pdf' || raw.name.toLowerCase().endsWith('.pdf');
     const isImage = pareceImagem(raw);
     if (expectedKind === 'image' && !isImage) {
-      setError('Aqui é para foto/imagem. Para enviar um PDF, use "Selecionar PDF".');
+      recusar('Este arquivo não é uma foto. Para enviar um PDF, use "Selecionar PDF".');
       return;
     }
     if (expectedKind === 'pdf' && !isPdf) {
-      setError('Aqui é para arquivo PDF. Para enviar uma foto, use "Tirar foto" ou "Escolher da galeria".');
+      recusar('Este arquivo não é um PDF. Para enviar uma foto, use "Tirar foto" ou "Escolher da galeria".');
       return;
     }
     setError('');
 
     // Comprime fotos antes de guardar (evita "File too large" e agiliza o upload).
-    const file = await compressImage(raw);
+    setProcessando(key);
+    const file = await compressImage(raw).finally(() => setProcessando(null));
 
     // O servidor só aceita JPEG/PNG/WebP e PDF. Se a imagem não pôde ser convertida (ex.: HEIC no
     // Android), avisa agora — antes o erro só aparecia no envio final, e sem dizer qual arquivo.
     if (!formatoAceito(file)) {
       const formato = raw.name.includes('.') ? raw.name.split('.').pop()!.toUpperCase() : (raw.type || 'desconhecido');
-      setError(`Este formato de imagem (${formato}) não é aceito. Use "Tirar foto" para fotografar agora, ou envie em PDF.`);
+      recusar(`Esta foto está em ${formato}, formato que não é aceito. Use "Tirar foto" para fotografar agora, ou envie em PDF.`);
       return;
     }
     const preview = file.type === 'application/pdf' ? '' : URL.createObjectURL(file);
-    dispatch({ type: 'SET_DOCUMENT', key: currentDocKey, file: { file, preview } });
+    dispatch({ type: 'SET_DOCUMENT', key, file: { file, preview } });
   };
 
   const handleSubmit = async () => {
@@ -413,7 +435,7 @@ export function Documents() {
           </div>
 
           <h1 style={{
-            margin: '26px 0 8px', fontSize: 'clamp(32px, 9vw, 42px)', fontWeight: 800,
+            margin: '26px 0 8px', fontSize: 'clamp(24px, 7vw, 30px)', fontWeight: 800,
             lineHeight: 1.1, letterSpacing: '-0.02em', color: '#fff',
           }}>
             Seus dados
@@ -492,8 +514,8 @@ export function Documents() {
             setDocStep(2);
           }} style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-            width: '100%', marginTop: 26, padding: '18px', borderRadius: 12, border: 'none', cursor: 'pointer',
-            background: GOLD, color: '#111827', fontWeight: 800, fontSize: 18,
+            width: '100%', marginTop: 26, padding: '16px', borderRadius: 12, border: 'none', cursor: 'pointer',
+            background: GOLD, color: '#111827', fontWeight: 800, fontSize: 17,
           }}>
             Continuar
             <ArrowRight size={20} strokeWidth={2.4} />
@@ -540,7 +562,7 @@ export function Documents() {
             </div>
 
             <h1 style={{
-              margin: '18px 0 4px', fontSize: 'clamp(28px, 8vw, 38px)', fontWeight: 800,
+              margin: '18px 0 4px', fontSize: 'clamp(24px, 7vw, 30px)', fontWeight: 800,
               lineHeight: 1.1, letterSpacing: '-0.02em', color: '#fff',
             }}>
               Seus documentos
@@ -570,6 +592,7 @@ export function Documents() {
                       </div>
                     ))}
                   </div>
+                  {avisoDoc(CNH_FRENTE_KEY) || avisoDoc(CNH_VERSO_KEY)}
                   <p style={{ ...docDesc, ...docBotoesLinha, marginTop: 10, textAlign: 'center' }}>
                     {motoristaApp
                       ? 'Se a CNH Digital tiver os dois lados, envie uma vez.'
@@ -655,6 +678,7 @@ export function Documents() {
                         </>
                       )}
                     </div>
+                    {avisoDoc(doc.key)}
                   </div>
                 </div>
               );
@@ -871,8 +895,8 @@ export function Documents() {
             {submitting ? (
               <div style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-                padding: '18px', borderRadius: 999, color: '#111827', fontWeight: 800, fontSize: 18,
-                background: '#f6c700', opacity: 0.85,
+                padding: '16px', borderRadius: 12, color: '#111827', fontWeight: 800, fontSize: 17,
+                background: GOLD, opacity: 0.85,
               }}>
                 <div style={{
                   width: 20, height: 20, border: '2.5px solid rgba(17,24,39,0.3)', borderTopColor: '#111827',
@@ -887,12 +911,12 @@ export function Documents() {
               <>
                 <button onClick={handleSubmit} style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-                  width: '100%', padding: '18px', borderRadius: 999, border: 'none', cursor: 'pointer',
-                  background: '#f6c700',
-                  color: '#111827', fontWeight: 800, fontSize: 18,
+                  width: '100%', padding: '16px', borderRadius: 12, border: 'none', cursor: 'pointer',
+                  background: GOLD,
+                  color: '#111827', fontWeight: 800, fontSize: 17,
                 }}>
                   Enviar solicitação
-                  <ArrowRight size={22} strokeWidth={2.4} />
+                  <ArrowRight size={20} strokeWidth={2.4} />
                 </button>
                 <p style={{ margin: '10px 0 0', textAlign: 'center', fontSize: 13, color: MUTED }}>
                   Sua solicitação será enviada para análise.

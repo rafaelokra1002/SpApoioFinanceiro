@@ -90,7 +90,7 @@ export function Simulation() {
       </div>
 
       <h1 style={{
-        margin: '0 0 22px', fontSize: 'clamp(24px, 7.4vw, 32px)', fontWeight: 800,
+        margin: '0 0 22px', fontSize: 'clamp(24px, 7vw, 30px)', fontWeight: 800,
         lineHeight: 1.15, letterSpacing: '-0.02em', color: '#fff', textAlign: 'center',
       }}>
         Você precisa de quanto?
@@ -267,8 +267,9 @@ export function Simulation() {
 
       {/* CTA */}
       <button onClick={handleCalc} disabled={!canCalc} style={{
-        width: '100%', padding: '18px', borderRadius: 14, border: 'none',
-        background: GOLD, color: '#111', fontWeight: 800, fontSize: 17,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+        width: '100%', padding: '16px', borderRadius: 12, border: 'none',
+        background: GOLD, color: '#111827', fontWeight: 800, fontSize: 17,
         cursor: canCalc ? 'pointer' : 'not-allowed', opacity: canCalc ? 1 : 0.4,
       }}>
         Solicitar empréstimo

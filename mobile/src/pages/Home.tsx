@@ -157,8 +157,8 @@ export function Home() {
         <div style={{ marginTop: 26, display: 'flex', flexDirection: 'column', gap: 12 }}>
           <button onClick={solicitarAgora} style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-            width: '100%', padding: '18px 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
-            background: GOLD, color: '#111827', fontSize: 18, fontWeight: 700,
+            width: '100%', padding: '16px', borderRadius: 12, border: 'none', cursor: 'pointer',
+            background: GOLD, color: '#111827', fontSize: 17, fontWeight: 800,
           }}>
             Solicitar empréstimo
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">

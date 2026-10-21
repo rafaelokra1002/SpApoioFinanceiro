@@ -44,7 +44,7 @@ export function ComoFunciona({ onClose, onSolicitar }: { onClose: () => void; on
           </button>
 
           <h1 style={{
-            margin: '18px 0 4px', fontSize: 'clamp(28px, 8vw, 36px)', fontWeight: 800,
+            margin: '18px 0 4px', fontSize: 'clamp(24px, 7vw, 30px)', fontWeight: 800,
             lineHeight: 1.1, letterSpacing: '-0.02em', color: '#fff',
           }}>
             Como funciona
@@ -83,12 +83,12 @@ export function ComoFunciona({ onClose, onSolicitar }: { onClose: () => void; on
         }}>
           <button onClick={onSolicitar} style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-            width: '100%', padding: '19px', borderRadius: 12, border: 'none', cursor: 'pointer',
-            background: '#f6c700',
-            color: '#111827', fontWeight: 800, fontSize: 19,
+            width: '100%', padding: '16px', borderRadius: 12, border: 'none', cursor: 'pointer',
+            background: GOLD,
+            color: '#111827', fontWeight: 800, fontSize: 17,
           }}>
             Solicitar empréstimo
-            <ArrowRight size={22} strokeWidth={2.4} />
+            <ArrowRight size={20} strokeWidth={2.4} />
           </button>
         </div>
       </div>
