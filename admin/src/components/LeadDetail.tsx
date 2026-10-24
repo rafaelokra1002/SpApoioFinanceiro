@@ -2,7 +2,7 @@ import { useState, useEffect, ReactNode } from 'react';
 import {
   X, CheckCircle, XCircle, Trash2, MessageCircle, Download, Loader2, MapPin, Briefcase, UserRound,
   CreditCard, Send, Shield, Users, FileText, Search, ChevronDown, Calendar, Camera, Play, MoreHorizontal,
-  Check, FolderInput, Pencil, Copy, Eye, ChevronLeft, ChevronRight, Map as MapIcon, House, MessageSquare,
+  Check, FolderInput, Pencil, Copy, Eye, Map as MapIcon, MessageSquare,
   RotateCw,
 } from 'lucide-react';
 import { Lead } from '../types';
@@ -55,8 +55,21 @@ function formatDateTime(dateStr: string): string {
   return `${data} às ${hora}`;
 }
 
-/** Altura da área de imagem do visualizador (classe h-[240px]). */
-const ALTURA_VISUALIZADOR = 240;
+/** Altura da miniatura de cada documento. */
+const ALTURA_MINIATURA = 120;
+
+/** Botão compacto dos cards de documento. */
+const CARD_BTN = 'flex shrink-0 items-center gap-1 rounded-md border border-line bg-surface px-1.5 py-1 text-[10.5px] font-semibold text-ink-2 transition-colors hover:bg-canvas cursor-pointer disabled:cursor-not-allowed disabled:opacity-50';
+
+function CardBtn({ children, onClick, disabled }: { children: ReactNode; onClick: () => void; disabled?: boolean }) {
+  return <button onClick={onClick} disabled={disabled} className={CARD_BTN}>{children}</button>;
+}
+
+/** Nome curto no card ("RG/CNH (frente)", "Selfie"…); o nome completo fica no title. */
+function rotuloCurto(doc: { tipo: string; filename: string }): string {
+  if (docGrupo(doc) === 'rosto') return 'Selfie';
+  return docDisplayLabel(doc).replace(/RG ou CNH/i, 'RG/CNH');
+}
 
 const IMAGE_EXT = /\.(jpe?g|png|webp|gif|bmp|heic)$/i;
 const VIDEO_EXT = /\.(mp4|mov|webm|m4v|avi|3gp|mkv)$/i;
@@ -129,7 +142,6 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
   const [menuMais, setMenuMais] = useState(false);
   // Popover "Copiar dados" e documento aberto no visualizador.
   const [copiarAberto, setCopiarAberto] = useState(false);
-  const [docIdx, setDocIdx] = useState(0);
   // Giro de cada documento no visualizador (só na tela; o arquivo não muda).
   const [rotacao, setRotacao] = useState<Record<string, number>>({});
   // "Mover para a categoria" abre uma aba suspensa com os status disponíveis.
@@ -144,7 +156,7 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
   }, [lead.id]);
 
   // O modal é reaproveitado entre clientes: volta para o primeiro documento.
-  useEffect(() => { setDocIdx(0); setCopiarAberto(false); setMenuMais(false); setRotacao({}); }, [lead.id]);
+  useEffect(() => { setCopiarAberto(false); setMenuMais(false); setRotacao({}); }, [lead.id]);
 
   const handleDownload = async () => {
     try {
@@ -201,36 +213,29 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
   const algumModal = recusando || aprovando || enviandoGrupo || cobrancaFacil
     || enviandoStatus || moverCategoria || modalBem !== null;
 
-  // Visualizador: documentos pessoais na ordem das abas (Documento, Rosto, Trabalho, Casa).
-  const docsOrdenados = [...pessoalDocs].sort(
-    (x, y) => DOC_TABS.findIndex((t) => t.key === docGrupo(x)) - DOC_TABS.findIndex((t) => t.key === docGrupo(y)),
-  );
-  // Páginas do visualizador: a aba Documento junta RG/CNH frente e verso numa página só;
-  // nas outras abas é um documento por página.
-  const paginas: (typeof docsOrdenados)[] = [];
-  for (const d of docsOrdenados) {
-    const ultima = paginas[paginas.length - 1];
-    if (docGrupo(d) === 'documento' && ultima && docGrupo(ultima[0]) === 'documento') ultima.push(d);
-    else paginas.push([d]);
-  }
-  const pagina = paginas.length ? paginas[Math.min(docIdx, paginas.length - 1)] : undefined;
-  const docAtual = pagina?.[0];
+  // Documentos em cards: 1ª linha RG/CNH + selfie; 2ª linha residência + renda/trabalho.
+  const ORDEM_GRUPO: Record<DocGrupo, number> = { documento: 0, rosto: 1, casa: 2, trabalho: 3 };
+  const docsOrdenados = [...pessoalDocs].sort((x, y) => ORDEM_GRUPO[docGrupo(x)] - ORDEM_GRUPO[docGrupo(y)]);
+  const linhasDocs = [
+    docsOrdenados.filter((d) => ['documento', 'rosto'].includes(docGrupo(d))),
+    docsOrdenados.filter((d) => ['casa', 'trabalho'].includes(docGrupo(d))),
+  ].filter((l) => l.length > 0);
 
   const ehImagem = (doc: typeof docsOrdenados[number]) => IMAGE_EXT.test(doc.filename) || IMAGE_EXT.test(doc.url);
 
   /**
-   * `larguraCaixa`: largura aproximada da área do visualizador. Girada de lado, a
-   * imagem troca altura por largura, então os limites trocam também para caber na caixa.
+   * `larguraCaixa`: largura aproximada da miniatura. Girada de lado, a imagem troca
+   * altura por largura, então os limites trocam também para caber na caixa.
    */
   const renderMidia = (doc: typeof docsOrdenados[number], larguraCaixa: number) => {
     if (VIDEO_EXT.test(doc.filename) || VIDEO_EXT.test(doc.url)) {
-      return <video src={doc.url} controls className="h-full max-w-full" />;
+      return <VideoThumb url={doc.url} />;
     }
     if (!ehImagem(doc)) {
       return (
-        <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-ink-2">
-          <FileText size={54} strokeWidth={1.3} />
-          <span className="text-[13px] font-semibold">Documento PDF</span>
+        <div className="flex h-full w-full flex-col items-center justify-center gap-1.5 text-ink-2">
+          <FileText size={34} strokeWidth={1.4} />
+          <span className="text-[11px] font-semibold">Documento PDF</span>
         </div>
       );
     }
@@ -242,7 +247,7 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
         style={{
           transform: graus ? `rotate(${graus}deg)` : undefined,
           transition: 'transform 0.2s',
-          ...(deLado ? { maxWidth: ALTURA_VISUALIZADOR, maxHeight: larguraCaixa } : {}),
+          ...(deLado ? { maxWidth: ALTURA_MINIATURA, maxHeight: larguraCaixa } : {}),
         }} />
     );
   };
@@ -252,19 +257,16 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
   const botoesDoc = (doc: typeof docsOrdenados[number]) => (
     <>
       {ehImagem(doc) && (
-        <ViewerBtn onClick={() => girar(doc.id)}>
-          <RotateCw size={16} /> Girar
-        </ViewerBtn>
+        <CardBtn onClick={() => girar(doc.id)}><RotateCw size={12} /> Girar</CardBtn>
       )}
-      <a href={doc.url} target="_blank" rel="noopener noreferrer"
-        className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-[12.5px] font-semibold text-ink transition-colors hover:bg-canvas">
-        <Eye size={16} /> Visualizar
+      <a href={doc.url} target="_blank" rel="noopener noreferrer" className={CARD_BTN}>
+        <Eye size={12} /> Visualizar
       </a>
-      <ViewerBtn onClick={() => baixarDocumento(doc)} disabled={baixandoDoc === doc.id}>
+      <CardBtn onClick={() => baixarDocumento(doc)} disabled={baixandoDoc === doc.id}>
         {baixandoDoc === doc.id
-          ? <><Loader2 size={15} className="animate-spin" /> Baixando</>
-          : <><Download size={16} /> Baixar</>}
-      </ViewerBtn>
+          ? <><Loader2 size={11} className="animate-spin" /> Baixando</>
+          : <><Download size={12} /> Baixar</>}
+      </CardBtn>
     </>
   );
 
@@ -390,11 +392,11 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
               </div>
             </div>
 
-            {/* Cartão escuro: valor + total + condições */}
-            <div className="rounded-xl bg-[#18191c] p-3.5 text-white shadow-md ring-1 ring-white/10">
+            {/* Cartão claro (bege): valor + total + condições */}
+            <div className="rounded-xl bg-[#f6efe0] p-3.5 text-ink ring-1 ring-[#eadfc6] dark:bg-[#F6C700]/10 dark:ring-[#F6C700]/20">
               <div className="flex items-stretch">
                 <div className="flex-1">
-                  <p className="text-[12.5px] text-white/70">{lead.valorAprovado != null ? 'Valor aprovado' : 'Valor solicitado'}</p>
+                  <p className="text-[12.5px] text-muted">{lead.valorAprovado != null ? 'Valor aprovado' : 'Valor solicitado'}</p>
                   <p className="mt-0.5 flex items-center gap-2 text-[22px] font-extrabold">
                     {formatCurrency(lead.valorAprovado ?? lead.valorSolicitado)}
                     <button onClick={() => setAprovando(true)} title="Editar valor aprovado"
@@ -403,18 +405,18 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
                     </button>
                   </p>
                 </div>
-                <span className="mx-3 w-px bg-white/15" />
+                <span className="mx-3 w-px bg-black/10 dark:bg-white/15" />
                 <div className="flex-1">
-                  <p className="text-[12.5px] text-white/70">Total a pagar</p>
+                  <p className="text-[12.5px] text-muted">Total a pagar</p>
                   <p className="mt-0.5 text-[22px] font-extrabold">{formatCurrency(lead.valorTotal)}</p>
                 </div>
               </div>
-              <div className="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 border-t border-white/15 pt-2.5 text-[12px] text-white/75">
+              <div className="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 border-t border-black/10 pt-2.5 text-[12px] text-ink-2 dark:border-white/15">
                 <CreditCard size={14} />
                 <span>{modalidadeTexto(lead)}</span>
-                <span className="text-white/40">•</span>
+                <span className="text-subtle">•</span>
                 <span>Taxa: {lead.taxaJuros}%</span>
-                <span className="text-white/40">•</span>
+                <span className="text-subtle">•</span>
                 <span>Prazo: {lead.prazo} dias</span>
               </div>
             </div>
@@ -516,65 +518,33 @@ export default function LeadDetail({ lead, onClose, onStatusChange, onDelete, on
 
           {/* ───── Coluna direita ───── */}
           <div className="min-w-0 space-y-3">
-            {/* Documentos: abas + visualizador */}
+            {/* Documentos: todos em cards, cada um com Girar / Visualizar / Baixar */}
             <div className="rounded-xl border border-line bg-surface p-3.5">
-              <p className="mb-2 flex items-center gap-2 text-[15px] font-bold text-ink">
+              <p className="mb-3 flex items-center gap-2 text-[15px] font-bold text-ink">
                 <FileText size={17} /> Documentos
               </p>
-              <div className="grid grid-cols-4 border-b border-line">
-                {DOC_TABS.map((t) => {
-                  const idx = paginas.findIndex((p) => docGrupo(p[0]) === t.key);
-                  const ativa = docAtual ? docGrupo(docAtual) === t.key : false;
-                  return (
-                    <button key={t.key} onClick={() => idx >= 0 && setDocIdx(idx)} disabled={idx < 0}
-                      className={`-mb-px flex items-center justify-center gap-1.5 border-b-[3px] py-2 text-[13px] transition-colors
-                        ${ativa ? 'border-[#F6C700] font-bold text-ink' : 'border-transparent text-muted hover:text-ink-2'}
-                        ${idx < 0 ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'}`}>
-                      {t.icon} {t.label}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {pagina && docAtual ? (
-                <>
-                  {pagina.length > 1 ? (
-                    // Frente e verso lado a lado, cada um com seus botões.
-                    <div className="mt-3 grid grid-cols-2 gap-3">
-                      {pagina.map((doc) => (
-                        <div key={doc.id} className="min-w-0">
+              {linhasDocs.length > 0 ? (
+                <div className="space-y-3">
+                  {linhasDocs.map((linha, i) => (
+                    <div key={i} className={`grid gap-3 ${linha.length === 1 ? 'grid-cols-1' : linha.length === 2 ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-3'}`}>
+                      {linha.map((doc) => (
+                        <div key={doc.id} className="flex min-w-0 flex-col rounded-xl border border-line bg-canvas/40 p-2.5">
                           <a href={doc.url} target="_blank" rel="noopener noreferrer" title={docDisplayLabel(doc)}
-                            className="flex h-[240px] items-center justify-center overflow-hidden rounded-xl bg-canvas">
-                            {renderMidia(doc, 290)}
+                            className="flex items-center justify-center overflow-hidden rounded-lg bg-canvas"
+                            style={{ height: ALTURA_MINIATURA }}>
+                            {renderMidia(doc, linha.length >= 3 ? 180 : 280)}
                           </a>
-                          <p className="mt-2 truncate text-center text-[12.5px] font-semibold text-muted">{docDisplayLabel(doc)}</p>
-                          <div className="mt-1.5 flex justify-center gap-2">{botoesDoc(doc)}</div>
+                          <p className="mt-2 truncate text-center text-[12.5px] font-semibold text-ink-2" title={docDisplayLabel(doc)}>
+                            {rotuloCurto(doc)}
+                          </p>
+                          <div className="mt-2 flex justify-center gap-1">{botoesDoc(doc)}</div>
                         </div>
                       ))}
                     </div>
-                  ) : (
-                    <>
-                      <a href={docAtual.url} target="_blank" rel="noopener noreferrer" title={docDisplayLabel(docAtual)}
-                        className="mt-3 flex h-[240px] items-center justify-center overflow-hidden rounded-xl bg-canvas">
-                        {renderMidia(docAtual, 620)}
-                      </a>
-                      <p className="mt-2 truncate text-center text-[12.5px] font-semibold text-muted">{docDisplayLabel(docAtual)}</p>
-                    </>
-                  )}
-                  <div className="mt-2 flex flex-wrap items-center gap-2">
-                    <ViewerBtn onClick={() => setDocIdx((i) => Math.max(0, i - 1))} disabled={docIdx === 0}>
-                      <ChevronLeft size={16} /> Anterior
-                    </ViewerBtn>
-                    <span className="px-2 text-[12.5px] text-subtle">{Math.min(docIdx, paginas.length - 1) + 1} de {paginas.length}</span>
-                    <ViewerBtn onClick={() => setDocIdx((i) => Math.min(paginas.length - 1, i + 1))} disabled={docIdx >= paginas.length - 1}>
-                      Próximo <ChevronRight size={16} />
-                    </ViewerBtn>
-                    <span className="flex-1" />
-                    {pagina.length === 1 && botoesDoc(docAtual)}
-                  </div>
-                </>
+                  ))}
+                </div>
               ) : (
-                <p className="mt-3 rounded-xl border border-dashed border-line py-12 text-center text-[13px] text-subtle">
+                <p className="rounded-xl border border-dashed border-line py-12 text-center text-[13px] text-subtle">
                   Nenhum documento enviado.
                 </p>
               )}
@@ -804,14 +774,8 @@ function modalidadeTexto(lead: Lead): string {
   return 'À vista';
 }
 
-/** Abas do visualizador de documentos. */
+/** Grupo do documento (define a linha em que o card aparece). */
 type DocGrupo = 'documento' | 'rosto' | 'trabalho' | 'casa';
-const DOC_TABS: { key: DocGrupo; label: string; icon: ReactNode }[] = [
-  { key: 'documento', label: 'Documento', icon: <FileText size={16} /> },
-  { key: 'rosto', label: 'Rosto', icon: <UserRound size={16} /> },
-  { key: 'trabalho', label: 'Trabalho', icon: <Briefcase size={16} /> },
-  { key: 'casa', label: 'Casa', icon: <House size={16} /> },
-];
 function docGrupo(doc: { tipo: string; filename: string }): DocGrupo {
   const l = docLabel(doc);
   if (/selfie|rosto/i.test(l)) return 'rosto';
@@ -882,16 +846,6 @@ function InstagramIcon() {
       <circle cx="12" cy="12" r="4" />
       <circle cx="17.5" cy="6.5" r="0.6" fill="#e1306c" />
     </svg>
-  );
-}
-
-/** Botão do visualizador de documentos (Anterior / Próximo / Baixar). */
-function ViewerBtn({ children, onClick, disabled }: { children: ReactNode; onClick: () => void; disabled?: boolean }) {
-  return (
-    <button onClick={onClick} disabled={disabled}
-      className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-[12.5px] font-semibold text-ink transition-colors hover:bg-canvas cursor-pointer disabled:cursor-not-allowed disabled:opacity-40">
-      {children}
-    </button>
   );
 }
 

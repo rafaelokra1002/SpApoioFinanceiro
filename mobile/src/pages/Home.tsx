@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Landmark } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { useLoan } from '../context/LoanContext';
 import { requestLocation, watchLocationPermission } from '../utils/geo';
 import { ComoFunciona } from './ComoFunciona';
@@ -12,24 +12,14 @@ const WHATSAPP_MSG = 'Olá! Tenho uma dúvida sobre o empréstimo.';
 const BG = '#060c15';
 const GOLD = '#f6c700';
 
-/** Botão secundário escuro com borda: ícone + rótulo centralizados e seta à direita. */
+/** Botão secundário escuro com borda: ícone + rótulo, lado a lado com o outro. */
 const outlineBtn: React.CSSProperties = {
-  position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14,
-  width: '100%', padding: '16px 46px', borderRadius: 12, cursor: 'pointer',
+  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, minWidth: 0,
+  width: '100%', padding: '16px 10px', borderRadius: 12, cursor: 'pointer',
   background: 'rgba(255,255,255,0.03)', border: '1.5px solid #2a3850',
 };
 
-const outlineLabel: React.CSSProperties = { fontSize: 17, fontWeight: 600, color: '#fff' };
-
-function Chevron() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7d8aa0" strokeWidth="2.4"
-      strokeLinecap="round" strokeLinejoin="round"
-      style={{ position: 'absolute', right: 18, top: '50%', transform: 'translateY(-50%)' }}>
-      <path d="M9 6l6 6-6 6"/>
-    </svg>
-  );
-}
+const outlineLabel: React.CSSProperties = { fontSize: 15.5, fontWeight: 600, color: '#fff', whiteSpace: 'nowrap' };
 
 export function Home() {
   const { state, dispatch } = useLoan();
@@ -76,112 +66,77 @@ export function Home() {
       minHeight: '100vh', background: BG, position: 'relative',
       display: 'flex', flexDirection: 'column', overflow: 'hidden',
     }}>
-      {/* Foto do personagem com o logo SP (já na arte). Proporção que reproduz o recorte
-          da referência: a foto escala pela largura, alinhada ao topo, e esmaece na base. */}
+      {/* Foto do personagem, centralizada, esmaecendo na base. */}
       <div style={{ position: 'relative', width: '100%', aspectRatio: '100 / 92', flexShrink: 0, overflow: 'hidden' }}>
         <img
-          src="/hero-sp-dark.jpg" alt=""
+          src="/capa-sp.jpg" alt=""
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }}
         />
         <div style={{
           position: 'absolute', inset: 0,
           background: `linear-gradient(to bottom, rgba(6,12,21,0) 58%, ${BG} 100%)`,
         }} />
-        {/* "EMPRÉSTIMOS" sob o logo da foto (posição em % da própria foto) */}
-        <div style={{
-          position: 'absolute', left: '6.5%', top: '51.5%', width: '40%',
-          paddingBottom: 6, textAlign: 'center', color: '#fff',
-          fontSize: 'clamp(12px, 3.8vw, 19px)', fontWeight: 600, letterSpacing: '0.3em',
-          textTransform: 'uppercase', whiteSpace: 'nowrap',
-          borderBottom: '1px solid rgba(255,255,255,0.55)',
-        }}>
-          Empréstimos
-        </div>
-
-        {/* "Não somos banco" — selo compacto, lado esquerdo, abaixo de "Empréstimos" */}
-        <div style={{
-          position: 'absolute', top: '73%', left: '6.5%', width: 'fit-content', maxWidth: '85%',
-          display: 'flex', alignItems: 'center', gap: 9, padding: '9px 12px',
-          borderRadius: 10, border: '1.3px solid rgba(246,199,0,0.55)',
-          background: 'rgba(6,12,21,0.55)', backdropFilter: 'blur(2px)',
-        }}>
-          <span style={{
-            position: 'relative', width: 34, height: 34, flexShrink: 0,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <Landmark size={18} color={GOLD} strokeWidth={1.8} />
-            {/* Círculo com barra diagonal por cima do ícone, indicando "não é banco". */}
-            <svg width="34" height="34" viewBox="0 0 24 24" style={{ position: 'absolute', inset: 0 }}>
-              <circle cx="12" cy="12" r="10" stroke={GOLD} strokeWidth="1.7" fill="none" />
-              <line x1="5.5" y1="18.5" x2="18.5" y2="5.5" stroke={GOLD} strokeWidth="1.7" strokeLinecap="round" />
-            </svg>
-          </span>
-          <div style={{ minWidth: 0 }}>
-            <div style={{
-              fontSize: 'clamp(12.5px, 3.8vw, 15px)', fontWeight: 700, color: '#fff',
-              lineHeight: 1.2, whiteSpace: 'nowrap',
-            }}>
-              Não somos banco
-            </div>
-            <div style={{
-              fontSize: 'clamp(10px, 3vw, 12px)', color: GOLD, marginTop: 1,
-              lineHeight: 1.25, whiteSpace: 'nowrap',
-            }}>
-              Crédito direto, sem enrolação.
-            </div>
-          </div>
-        </div>
       </div>
 
       <div style={{
         position: 'relative', zIndex: 1, flex: 1, display: 'flex', flexDirection: 'column',
-        padding: '0 20px 34px',
+        padding: '0 20px 34px', marginTop: -18,
       }}>
-        {/* Chamada */}
-        <div style={{ marginTop: 10, textAlign: 'center' }}>
-          <h1 style={{
-            margin: 0, fontSize: 'clamp(25px, 8vw, 37px)', fontWeight: 800,
-            lineHeight: 1.1, letterSpacing: '-0.02em', color: '#fff',
+        {/* Logo "SP EMPRÉSTIMOS" na horizontal */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
+          <img src="/sp-marca.png" alt="SP" style={{ height: 'clamp(30px, 9vw, 40px)', width: 'auto' }} />
+          <span style={{
+            color: '#fff', fontWeight: 600, letterSpacing: '0.28em',
+            fontSize: 'clamp(13px, 4.1vw, 17px)', whiteSpace: 'nowrap',
           }}>
-            Empréstimo no Pix
+            EMPRÉSTIMOS
+          </span>
+        </div>
+
+        {/* Chamada */}
+        <div style={{ marginTop: 24, textAlign: 'center' }}>
+          <h1 style={{
+            margin: 0, fontSize: 'clamp(40px, 12.5vw, 56px)', fontWeight: 800,
+            lineHeight: 1.02, letterSpacing: '-0.025em', color: '#fff',
+          }}>
+            Empréstimo<br />
+            <span style={{ color: GOLD }}>no Pix</span>
           </h1>
           <p style={{
-            margin: '6px 0 0', fontSize: 'clamp(13.5px, 4.1vw, 18px)', fontWeight: 500,
-            lineHeight: 1.3, color: '#9db0c9',
+            margin: '8px 0 0', fontSize: 'clamp(17px, 5.2vw, 22px)', fontWeight: 500,
+            lineHeight: 1.3, color: '#c9cdf5',
           }}>
-            Negativado? A gente analisa.
+            Liberamos para negativado
           </p>
         </div>
 
         {/* Ações */}
-        <div style={{ marginTop: 26, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ marginTop: 28, display: 'flex', flexDirection: 'column', gap: 12 }}>
           <button onClick={solicitarAgora} style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
             width: '100%', padding: '16px', borderRadius: 12, border: 'none', cursor: 'pointer',
             background: GOLD, color: '#111827', fontSize: 17, fontWeight: 800,
           }}>
             Solicitar empréstimo
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 6l6 6-6 6"/>
-            </svg>
+            <ArrowRight size={20} strokeWidth={2.4} />
           </button>
 
-          <button onClick={() => dispatch({ type: 'SHOW_MODAL', modal: 'comoFunciona', show: true })} style={outlineBtn}>
-            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M6 3h9l4 4v14H6z"/>
-              <path d="M15 3v4h4M9 12h6M9 16h6"/>
-            </svg>
-            <span style={outlineLabel}>Como funciona</span>
-            <Chevron />
-          </button>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <button onClick={() => dispatch({ type: 'SHOW_MODAL', modal: 'comoFunciona', show: true })} style={outlineBtn}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 3h9l4 4v14H6z"/>
+                <path d="M15 3v4h4M9 12h6M9 16h6"/>
+              </svg>
+              <span style={outlineLabel}>Como funciona</span>
+            </button>
 
-          <button onClick={abrirWhatsApp} style={outlineBtn}>
-            <svg width="34" height="34" viewBox="0 0 24 24" fill="#25d366">
-              <path d="M12 2a10 10 0 00-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1012 2zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-2.9.8.8-2.8-.2-.3A8.2 8.2 0 1112 20.2zm4.5-6.1c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.8.9-.1.2-.3.2-.5.1-1.3-.7-2.2-1.2-3.1-2.7-.2-.4.2-.4.6-1.2.1-.1 0-.3 0-.4l-.7-1.7c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.6.3-.2.2-.8.8-.8 1.9s.8 2.2.9 2.4c.1.2 1.6 2.5 4 3.5 1.5.6 2 .7 2.7.6.4-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1 0-.1-.2-.2-.4-.3z"/>
-            </svg>
-            <span style={outlineLabel}>Tirar dúvidas</span>
-            <Chevron />
-          </button>
+            <button onClick={abrirWhatsApp} style={outlineBtn}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="#25d366">
+                <path d="M12 2a10 10 0 00-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1012 2zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-2.9.8.8-2.8-.2-.3A8.2 8.2 0 1112 20.2zm4.5-6.1c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.8.9-.1.2-.3.2-.5.1-1.3-.7-2.2-1.2-3.1-2.7-.2-.4.2-.4.6-1.2.1-.1 0-.3 0-.4l-.7-1.7c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.6.3-.2.2-.8.8-.8 1.9s.8 2.2.9 2.4c.1.2 1.6 2.5 4 3.5 1.5.6 2 .7 2.7.6.4-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1 0-.1-.2-.2-.4-.3z"/>
+              </svg>
+              <span style={outlineLabel}>Tirar dúvidas</span>
+            </button>
+          </div>
         </div>
       </div>
 
